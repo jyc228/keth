@@ -1,0 +1,13 @@
+{
+  "dependencies": {
+    "web3-eth-abi": "latest",
+    "buffer": "^6.0.3"
+  },
+  "devDependencies": {
+    "webpack": "^5.74.0",
+    "webpack-cli": "^4.10.0"
+  },
+  "scripts": {
+    "build": "webpack $1"
+  }
+}
