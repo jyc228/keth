@@ -3,6 +3,7 @@ plugins {
     kotlin("plugin.serialization") version "1.9.21"
     `kotlin-dsl`
     `java-gradle-plugin`
+    `maven-publish`
 }
 
 dependencies {
@@ -28,3 +29,5 @@ gradlePlugin {
         }
     }
 }
+
+publishing(createGPRPublisher { artifactId = "solidity-plugin" })

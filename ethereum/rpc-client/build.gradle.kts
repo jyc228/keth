@@ -1,6 +1,7 @@
 plugins {
     kotlin("jvm")
     kotlin("plugin.serialization") version "1.9.21"
+    `maven-publish`
 }
 
 dependencies {
@@ -64,3 +65,5 @@ java {
     withSourcesJar()
     withJavadocJar()
 }
+
+publishing(createGPRPublisher { artifactId = "rpc-client" })
