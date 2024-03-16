@@ -113,7 +113,7 @@ data class FullBlock(
 ) : Block {
 
     override fun toString(): String {
-        return "number=${number} hash=${hash.toStringEllipsis()} parentHash=${parentHash.toStringEllipsis()} timestamp=${timestamp} txCount=${transactions.size}"
+        return "number=${number} hash=${hash} parentHash=${parentHash} timestamp=${timestamp} txCount=${transactions.size}"
     }
 
     @Serializable(TransactionsSerializer::class)

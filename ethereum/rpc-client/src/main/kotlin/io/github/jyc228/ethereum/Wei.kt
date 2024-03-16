@@ -6,6 +6,7 @@ import com.fasterxml.jackson.databind.SerializerProvider
 import com.fasterxml.jackson.databind.annotation.JsonSerialize
 import java.lang.ref.WeakReference
 import java.math.BigInteger
+import java.math.RoundingMode
 import java.util.WeakHashMap
 
 val Int.eth get() = wei(this) * Wei.ONE_ETH
@@ -24,10 +25,15 @@ value class Wei(val v: BigInteger) {
     operator fun div(wei: Wei) = Wei(v / wei.v)
     operator fun compareTo(other: Wei) = v.compareTo(other.v)
     override fun toString(): String {
-        if (v > ONE_ETH.v) {
-            return "${v.toBigDecimal() / ONE_ETH.v.toBigDecimal()}.eth"
-        }
+        if (v >= ONE_ETH.v) return "${toString(ONE_ETH, 18)}.eth"
+        if (v >= ONE_GWEI.v) return "${toString(ONE_GWEI, 9)}.gwei"
         return "$v.wei"
+    }
+
+    private fun toString(divisor: Wei, scale: Int): String {
+        return v.toBigDecimal().divide(divisor.v.toBigDecimal(), scale, RoundingMode.UP)
+            .stripTrailingZeros()
+            .toPlainString()
     }
 
     companion object {

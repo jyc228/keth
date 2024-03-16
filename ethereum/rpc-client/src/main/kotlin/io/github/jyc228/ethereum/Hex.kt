@@ -6,23 +6,24 @@ import kotlinx.serialization.Serializable
 
 interface HexString {
     val hex: String
-}
 
-@Serializable(HashSerializer::class)
-data class Hash(override val hex: String) : HexString {
-    override fun toString(): String = hex
     fun toStringEllipsis(): String = buildString {
         append(hex.take(6))
         append("...")
         append(hex.takeLast(4))
     }
+}
+
+@Serializable(HashSerializer::class)
+data class Hash(override val hex: String) : HexString {
+    override fun toString(): String = toStringEllipsis()
 
     companion object : StrictHexStringFactory<Hash>(::Hash, true, 66)
 }
 
 @Serializable(AddressSerializer::class)
 data class Address(override val hex: String) : HexString {
-    override fun toString(): String = hex
+    override fun toString(): String = toStringEllipsis()
 
     companion object : StrictHexStringFactory<Address>(::Address, true, 42)
 }

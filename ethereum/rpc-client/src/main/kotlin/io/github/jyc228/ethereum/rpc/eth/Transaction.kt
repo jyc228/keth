@@ -9,6 +9,8 @@ import io.github.jyc228.ethereum.HexULong
 import io.github.jyc228.ethereum.NullSerializer
 import io.github.jyc228.ethereum.TransactionSerializer
 import io.github.jyc228.ethereum.TransactionTypeSerializer
+import io.github.jyc228.ethereum.wei
+import java.math.BigInteger
 import kotlinx.serialization.Serializable
 
 @Serializable(TransactionSerializer::class)
@@ -98,6 +100,17 @@ abstract class AbstractMutableTransaction : Transaction {
     private class NullBlockHash : NullSerializer<Hash>(Hash.serializer(), Transaction.pendingBlockHash)
     private class NullBlockNumber : NullSerializer<HexULong>(HexULong.serializer(), Transaction.pendingBlockNumber)
     private class NullTxIndex : NullSerializer<HexInt>(HexInt.serializer(), HexInt(-1))
+
+    override fun toString(): String {
+        if (to == null) {
+            return "new contract: from=${from} value=${value.number.wei} gas=${gas.number.wei} gasPrice=${gasPrice?.number?.wei}"
+        }
+        return when {
+            input.length > 2 -> "call contract"
+            value.number > BigInteger.ZERO -> "send eth"
+            else -> type.toString()
+        }.let { "$it: from=${from} to=${to} value=${value.number.wei} gas=${gas.number.wei} gasPrice=${gasPrice?.number?.wei}" }
+    }
 }
 
 class TransactionBuilder : AbstractMutableTransaction() {
