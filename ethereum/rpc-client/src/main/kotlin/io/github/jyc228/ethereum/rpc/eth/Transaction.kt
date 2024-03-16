@@ -34,7 +34,7 @@ interface Transaction {
     val maxFeePerGas: HexBigInt?
     val maxPriorityFeePerGas: HexBigInt?
     val maxFeePerBlobGas: HexBigInt?
-    val blobHashes: List<Hash>?
+    val blobVersionedHashes: List<Hash>?
     val chainId: HexULong?
     val yParity: HexULong?
 
@@ -60,7 +60,7 @@ interface DynamicFeeTransaction : AccessListTransaction {
 
 interface BlobTransaction : DynamicFeeTransaction {
     override val maxFeePerBlobGas: HexBigInt
-    override val blobHashes: List<Hash>
+    override val blobVersionedHashes: List<Hash>
 }
 
 interface DepositTransaction : Transaction
@@ -95,7 +95,7 @@ abstract class AbstractMutableTransaction : Transaction {
     override val maxFeePerGas: HexBigInt? get() = null
     override val maxPriorityFeePerGas: HexBigInt? get() = null
     override val maxFeePerBlobGas: HexBigInt? get() = null
-    override val blobHashes: List<Hash>? get() = null
+    override val blobVersionedHashes: List<Hash>? get() = null
 
     private class NullBlockHash : NullSerializer<Hash>(Hash.serializer(), Transaction.pendingBlockHash)
     private class NullBlockNumber : NullSerializer<HexULong>(HexULong.serializer(), Transaction.pendingBlockNumber)
@@ -118,7 +118,7 @@ class TransactionBuilder : AbstractMutableTransaction() {
     override var maxFeePerGas: HexBigInt = HexBigInt.ZERO
     override var maxPriorityFeePerGas: HexBigInt = HexBigInt.ZERO
     override var maxFeePerBlobGas: HexBigInt = HexBigInt.ZERO
-    override var blobHashes: MutableList<Hash> = mutableListOf()
+    override var blobVersionedHashes: MutableList<Hash> = mutableListOf()
 }
 
 @Serializable
@@ -142,7 +142,7 @@ class MutableBlobTransaction : AbstractMutableTransaction(), BlobTransaction {
     override var maxFeePerGas: HexBigInt = HexBigInt.ZERO
     override var maxPriorityFeePerGas: HexBigInt = HexBigInt.ZERO
     override var maxFeePerBlobGas: HexBigInt = HexBigInt.ZERO
-    override var blobHashes: List<Hash> = emptyList()
+    override var blobVersionedHashes: List<Hash> = emptyList()
 }
 
 @Serializable
