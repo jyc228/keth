@@ -7,11 +7,11 @@ import io.github.jyc228.ethereum.HexInt
 import io.github.jyc228.ethereum.HexString
 import io.github.jyc228.ethereum.HexULong
 import io.github.jyc228.ethereum.NullSerializer
+import io.github.jyc228.ethereum.TransactionSerializer
 import io.github.jyc228.ethereum.TransactionTypeSerializer
-import io.github.jyc228.ethereum.TransactionsSerializer
 import kotlinx.serialization.Serializable
 
-@Serializable(TransactionsSerializer::class)
+@Serializable(TransactionSerializer::class)
 interface Transaction {
     val blockHash: Hash
     val blockNumber: HexULong
@@ -43,7 +43,7 @@ interface Transaction {
 }
 
 @Serializable
-data class Access(val address: Address, val storageKey: List<Hash>)
+data class Access(val address: Address, val storageKey: List<Hash> = emptyList())
 
 interface LegacyTransaction : Transaction
 

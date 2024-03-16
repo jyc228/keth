@@ -52,7 +52,7 @@ interface EthApi {
     suspend fun getSimpleBlock(tag: BlockReference = BlockReference.latest) =
         getBlockByNumber(tag, false) as RpcCall<SimpleBlock?>
 
-    suspend fun getSimpleBlock(numbers: ULongProgression) = numbers.map { getSimpleBlock(it) }
+    suspend fun getSimpleBlocks(numbers: ULongProgression) = numbers.map { getSimpleBlock(it) }
 
     suspend fun getLogs(init: GetLogsRequest.() -> Unit): RpcCall<List<Log>> = getLogs(GetLogsRequest().apply(init))
 

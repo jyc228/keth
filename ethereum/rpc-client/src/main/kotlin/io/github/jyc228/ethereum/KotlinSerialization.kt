@@ -1,6 +1,5 @@
 package io.github.jyc228.ethereum
 
-import io.github.jyc228.ethereum.rpc.eth.Block
 import io.github.jyc228.ethereum.rpc.eth.FullBlock
 import io.github.jyc228.ethereum.rpc.eth.MutableAccessListTransaction
 import io.github.jyc228.ethereum.rpc.eth.MutableBlobTransaction
@@ -22,8 +21,6 @@ import kotlinx.serialization.encoding.Decoder
 import kotlinx.serialization.encoding.Encoder
 import kotlinx.serialization.json.JsonContentPolymorphicSerializer
 import kotlinx.serialization.json.JsonElement
-import kotlinx.serialization.json.JsonPrimitive
-import kotlinx.serialization.json.jsonArray
 import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
 
@@ -56,52 +53,33 @@ internal abstract class NullSerializer<T>(
     override fun deserialize(decoder: Decoder): T = decoder.decodeNullableSerializableValue(serializer) ?: default
 }
 
-internal object BlockSerializer : JsonContentPolymorphicSerializer<Block>(Block::class) {
-    override fun selectDeserializer(element: JsonElement): DeserializationStrategy<Block> {
-        if (element.jsonObject["transactions"]?.jsonArray?.get(0) is JsonPrimitive) {
-            return SimpleBlock.serializer()
-        }
-        return FullBlock.serializer()
+internal object TransactionHashesSerializer : KSerializer<SimpleBlock.TransactionHashes> {
+    private val serializer = ListSerializer(HashSerializer)
+    override val descriptor: SerialDescriptor get() = serializer.descriptor
+
+    override fun deserialize(decoder: Decoder): SimpleBlock.TransactionHashes {
+        return SimpleBlock.TransactionHashes(serializer.deserialize(decoder))
+    }
+
+    override fun serialize(encoder: Encoder, value: SimpleBlock.TransactionHashes) {
+        serializer.serialize(encoder, value)
     }
 }
 
-internal object BlockTransactionsSerializer :
-    JsonContentPolymorphicSerializer<Block.Transactions>(Block.Transactions::class) {
-    override fun selectDeserializer(element: JsonElement): DeserializationStrategy<Block.Transactions> {
-        if (element.jsonArray.isEmpty() || element.jsonArray[0] is JsonPrimitive) {
-            return TransactionHashesSerializer
-        }
-        return TransactionsSerializer
+internal object TransactionsSerializer : KSerializer<FullBlock.Transactions> {
+    private val serializer = ListSerializer(Transaction.serializer())
+    override val descriptor: SerialDescriptor get() = serializer.descriptor
+
+    override fun deserialize(decoder: Decoder): FullBlock.Transactions {
+        return FullBlock.Transactions(serializer.deserialize(decoder))
     }
 
-    object TransactionHashesSerializer : KSerializer<SimpleBlock.TransactionHashes> {
-        private val serializer = ListSerializer(HashSerializer)
-        override val descriptor: SerialDescriptor get() = serializer.descriptor
-
-        override fun deserialize(decoder: Decoder): SimpleBlock.TransactionHashes {
-            return SimpleBlock.TransactionHashes(serializer.deserialize(decoder))
-        }
-
-        override fun serialize(encoder: Encoder, value: SimpleBlock.TransactionHashes) {
-            serializer.serialize(encoder, value)
-        }
-    }
-
-    object TransactionsSerializer : KSerializer<FullBlock.Transactions> {
-        private val serializer = ListSerializer(Transaction.serializer())
-        override val descriptor: SerialDescriptor get() = serializer.descriptor
-
-        override fun deserialize(decoder: Decoder): FullBlock.Transactions {
-            return FullBlock.Transactions(serializer.deserialize(decoder))
-        }
-
-        override fun serialize(encoder: Encoder, value: FullBlock.Transactions) {
-            serializer.serialize(encoder, value)
-        }
+    override fun serialize(encoder: Encoder, value: FullBlock.Transactions) {
+        serializer.serialize(encoder, value)
     }
 }
 
-internal object TransactionsSerializer : JsonContentPolymorphicSerializer<Transaction>(Transaction::class) {
+internal object TransactionSerializer : JsonContentPolymorphicSerializer<Transaction>(Transaction::class) {
     override fun selectDeserializer(element: JsonElement): DeserializationStrategy<Transaction> {
         val type = element.jsonObject["type"]?.jsonPrimitive?.content ?: error("")
         return when (TransactionType.from(type)) {

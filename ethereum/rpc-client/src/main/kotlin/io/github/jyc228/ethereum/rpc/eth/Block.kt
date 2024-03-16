@@ -1,13 +1,13 @@
 package io.github.jyc228.ethereum.rpc.eth
 
 import io.github.jyc228.ethereum.Address
-import io.github.jyc228.ethereum.BlockSerializer
-import io.github.jyc228.ethereum.BlockTransactionsSerializer
 import io.github.jyc228.ethereum.Hash
 import io.github.jyc228.ethereum.HexBigInt
 import io.github.jyc228.ethereum.HexData
 import io.github.jyc228.ethereum.HexULong
 import io.github.jyc228.ethereum.InstantSerializer
+import io.github.jyc228.ethereum.TransactionHashesSerializer
+import io.github.jyc228.ethereum.TransactionsSerializer
 import kotlinx.datetime.Instant
 import kotlinx.serialization.Serializable
 
@@ -36,7 +36,6 @@ interface BlockHeader {
     val withdrawalsRoot: Hash?
 }
 
-@Serializable(BlockSerializer::class)
 interface Block : BlockHeader {
     val miner: String
     val size: HexData
@@ -45,7 +44,6 @@ interface Block : BlockHeader {
     val uncles: List<String>
     val withdrawals: List<Withdrawal>
 
-    @Serializable(BlockTransactionsSerializer::class)
     interface Transactions {
         val hashes: List<Hash>
     }
@@ -80,7 +78,7 @@ data class SimpleBlock(
     override val withdrawalsRoot: Hash? = null
 ) : Block {
 
-    @Serializable(BlockTransactionsSerializer.TransactionHashesSerializer::class)
+    @Serializable(TransactionHashesSerializer::class)
     class TransactionHashes(override val hashes: List<Hash>) : Block.Transactions, List<Hash> by hashes
 }
 
@@ -118,7 +116,7 @@ data class FullBlock(
         return "number=${number} hash=${hash.toStringEllipsis()} parentHash=${parentHash.toStringEllipsis()} timestamp=${timestamp} txCount=${transactions.size}"
     }
 
-    @Serializable(BlockTransactionsSerializer.TransactionsSerializer::class)
+    @Serializable(TransactionsSerializer::class)
     class Transactions(self: List<Transaction>) : Block.Transactions, List<Transaction> by self {
         override val hashes: List<Hash> = object : AbstractList<Hash>() {
             override val size: Int get() = this@Transactions.size
