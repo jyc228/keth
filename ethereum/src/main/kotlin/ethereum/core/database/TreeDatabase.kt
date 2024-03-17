@@ -6,8 +6,7 @@ import ethereum.collections.MerkleTreeNode
 import ethereum.core.repository.TreeRepository
 import ethereum.db.InMemoryKeyValueDatabase
 import ethereum.db.KeyValueDatabase
-import ethereum.rlp.rlpToObject
-import ethereum.type.Account
+import ethereum.type.StateAccount
 
 class TreeDatabase(val db: KeyValueDatabase) {
     private val repository = TreeRepository(db)
@@ -40,7 +39,7 @@ class TreeDatabase(val db: KeyValueDatabase) {
 
         accountDirties.forEachByPath { n -> n?.let { insert(n) } }
         accountDirties.leaves.forEach {
-            val account = it.data.rlpToObject<Account.Default>()
+            val account = StateAccount.fromRlp(it.data)
             if (account.root != Hash.EMPTY_MPT_ROOT) {
                 reference(account.root, Hash(it.hash))
             }

@@ -2,7 +2,7 @@ package ethereum.core.state
 
 import ethereum.collections.Hash
 import ethereum.core.database.TreeDatabase
-import ethereum.core.state.account.StateAccount
+import ethereum.core.state.account.ManagedStateAccount
 import ethereum.evm.Address
 import org.junit.jupiter.api.Test
 
@@ -39,7 +39,7 @@ class StateDatabaseImplTest {
         }
     }
 
-    private fun StateAccount.withTestData(tweak: Byte) {
+    private fun ManagedStateAccount.withTestData(tweak: Byte) {
         val i = address.bytes[0]
         this.balance = (i.toUByte().toInt() * 11 + tweak).toBigInteger()
         this.nonce = (i.toUByte().toInt() * 42 + tweak).toULong()

@@ -1,8 +1,9 @@
 package ethereum.core.state
 
 import ethereum.collections.Hash
-import ethereum.core.state.account.StateAccount
+import ethereum.core.state.account.ManagedStateAccount
 import ethereum.evm.Address
+import ethereum.type.StateAccount
 
 interface StateDatabase {
     /**
@@ -17,15 +18,15 @@ interface StateDatabase {
      *
      * Carrying over the balance ensures that Ether doesn't disappear.
      */
-    fun createAccount(address: Address, callback: ((StateAccount) -> Unit)? = null)
+    fun createAccount(address: Address, callback: ((ManagedStateAccount) -> Unit)? = null)
 
-    fun applyAccountOrCreate(address: Address, callback: (StateAccount) -> Unit): StateAccount
-    fun applyAccountOrThrow(address: Address, callback: (StateAccount) -> Unit): StateAccount
-    fun applyAccountOrNull(address: Address, callback: (StateAccount?) -> Unit): StateAccount?
+    fun applyAccountOrCreate(address: Address, callback: (ManagedStateAccount) -> Unit): StateAccount
+    fun applyAccountOrThrow(address: Address, callback: (ManagedStateAccount) -> Unit): StateAccount
+    fun applyAccountOrNull(address: Address, callback: (ManagedStateAccount?) -> Unit): StateAccount?
 
-    fun <R> withAccountOrCreate(address: Address, transform: (StateAccount) -> R): R
-    fun <R> withAccountOrThrow(address: Address, transform: (StateAccount) -> R): R
-    fun <R> withAccountOrNull(address: Address, transform: (StateAccount?) -> R): R
+    fun <R> withAccountOrCreate(address: Address, transform: (ManagedStateAccount) -> R): R
+    fun <R> withAccountOrThrow(address: Address, transform: (ManagedStateAccount) -> R): R
+    fun <R> withAccountOrNull(address: Address, transform: (ManagedStateAccount?) -> R): R
 
     fun commit(deleteEmpty: Boolean): Hash
 

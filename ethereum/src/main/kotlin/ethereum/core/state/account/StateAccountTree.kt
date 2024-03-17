@@ -11,8 +11,7 @@ import ethereum.core.repository.ContractCodeRepository
 import ethereum.core.state.Journal
 import ethereum.core.state.JournalEntry
 import ethereum.evm.Address
-import ethereum.rlp.rlpToObject
-import ethereum.type.Account
+import ethereum.type.StateAccount
 
 class StateAccountTree(
     private var originalRoot: Hash,
@@ -20,7 +19,7 @@ class StateAccountTree(
     private val codeRepository: ContractCodeRepository = ContractCodeRepository(database.db)
 ) {
     private val tree = MerkleTree.fromRootState(originalRoot, database::node)
-    val accountByAddress = mutableMapOf<Address, StateAccount>()
+    val accountByAddress = mutableMapOf<Address, ManagedStateAccount>()
     val pendingAddress = mutableSetOf<Address>() // State objects finalized but not yet written to the trie
     val dirtyAddress = mutableSetOf<Address>() // State objects modified in the current execution
     val destructAddress = mutableSetOf<Address>() // State objects destructed in the block
@@ -28,9 +27,12 @@ class StateAccountTree(
     val journal = Journal()
     var refund = 0
 
-    fun create(address: Address, handlePrev: ((prev: StateAccount, next: StateAccount) -> Unit)? = null): StateAccount {
+    fun create(
+        address: Address,
+        handlePrev: ((prev: ManagedStateAccount, next: ManagedStateAccount) -> Unit)? = null
+    ): ManagedStateAccount {
         val prev = findDeletedOrNull(address)
-        val next = StateAccount.new(address).also { accountByAddress[address] = it }
+        val next = ManagedStateAccount.new(address).also { accountByAddress[address] = it }
         when (prev == null) {
             true -> journal.append { JournalEntry.CreateObjectChange(address) }
             false -> {
@@ -42,24 +44,24 @@ class StateAccountTree(
         return next
     }
 
-    operator fun get(address: Address): StateAccount? = findDeletedOrNull(address)?.takeIf { !it.deleted }
+    operator fun get(address: Address): ManagedStateAccount? = findDeletedOrNull(address)?.takeIf { !it.deleted }
 
     /**
      * similar to [findOrNull], but instead of returning nil for a deleted state object, it returns the actual object with the deleted flag set.
      *
      * This is needed by the state [journal] to revert to the correct s- destructed object instead of wiping all knowledge about the state account.
      */
-    private fun findDeletedOrNull(address: Address): StateAccount? {
+    private fun findDeletedOrNull(address: Address): ManagedStateAccount? {
         var stateAccount = accountByAddress[address]
         if (stateAccount == null) {
-            val account = findFromSnapshotOrNull() ?: tree[address.bytes]?.rlpToObject<Account.Default>() ?: return null
-            stateAccount = StateAccount.new(address, account)
+            val account = findFromSnapshotOrNull() ?: tree[address.bytes]?.let(StateAccount::fromRlp) ?: return null
+            stateAccount = ManagedStateAccount.new(address, account)
             accountByAddress[address] = stateAccount
         }
         return stateAccount
     }
 
-    fun findFromSnapshotOrNull(): Account? = null
+    fun findFromSnapshotOrNull(): ManagedStateAccount? = null
 
     fun commit(deleteEmptyObjects: Boolean): Hash {
         intermediateRoot(deleteEmptyObjects)
@@ -131,9 +133,9 @@ class StateAccountTree(
     }
 
 
-    fun StateAccount.Companion.new(address: Address, account: Account? = null) = StateAccount(
+    fun ManagedStateAccount.Companion.new(address: Address, account: StateAccount? = null) = ManagedStateAccount(
         address = address,
-        account = account ?: Account(),
+        account = account ?: StateAccount(),
         journal = journal,
         codeRepository = codeRepository,
         storage = StateAccountStorage(
@@ -144,12 +146,9 @@ class StateAccountTree(
         )
     )
 
-    private fun Set<Address>.forEachAccount(handle: (StateAccount) -> Unit) {
+    private fun Set<Address>.forEachAccount(handle: (ManagedStateAccount) -> Unit) {
         for (address in this) accountByAddress[address]?.apply(handle)
     }
-
-    private fun Set<Address>.asSequenceAccount(): Sequence<StateAccount> =
-        asSequence().mapNotNull { accountByAddress[it] }
 
     companion object {
         fun from(m: StateAccountTree) = StateAccountTree(m.originalRoot, m.database, m.codeRepository)

@@ -2,16 +2,17 @@ package ethereum.type
 
 import ethereum.collections.Hash
 import ethereum.rlp.RLPEncoder
+import ethereum.rlp.rlpToObject
 import java.math.BigInteger
 
-fun Account(
+fun StateAccount(
     nonce: ULong = 0u,
     balance: BigInteger = BigInteger.ZERO,
     root: Hash = Hash.EMPTY_MPT_ROOT,
     codeHash: Hash = Hash.EMPTY_CODE
-): Account = Account.Default(nonce, balance, root, codeHash)
+): StateAccount = ImmutableStateAccount(nonce, balance, root, codeHash)
 
-interface Account {
+interface StateAccount {
     val nonce: ULong
     val balance: BigInteger
     val root: Hash
@@ -24,16 +25,14 @@ interface Account {
         addBytes(codeHash.bytes)
     }
 
-    data class Default(
-        override val nonce: ULong,
-        override val balance: BigInteger,
-        override val root: Hash,
-        override val codeHash: Hash
-    ) : Account
+    companion object {
+        fun fromRlp(rlp: ByteArray): StateAccount = rlp.rlpToObject<ImmutableStateAccount>()
+    }
 }
 
-interface MutableAccount : Account {
-    override var nonce: ULong
-    override var balance: BigInteger
-    override var codeHash: Hash
-}
+data class ImmutableStateAccount(
+    override val nonce: ULong,
+    override val balance: BigInteger,
+    override val root: Hash,
+    override val codeHash: Hash
+) : StateAccount

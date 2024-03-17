@@ -2,7 +2,7 @@ package ethereum.core.state
 
 import ethereum.collections.Hash
 import ethereum.core.database.TreeDatabase
-import ethereum.core.state.account.StateAccount
+import ethereum.core.state.account.ManagedStateAccount
 import ethereum.core.state.account.StateAccountTree
 import ethereum.evm.Address
 import java.math.BigInteger
@@ -10,7 +10,7 @@ import java.math.BigInteger
 class StateDatabaseImpl(val accountTree: StateAccountTree) : StateDatabase {
     val accessList = AccessList()
 
-    override fun createAccount(address: Address, callback: ((StateAccount) -> Unit)?) {
+    override fun createAccount(address: Address, callback: ((ManagedStateAccount) -> Unit)?) {
         val account = accountTree.create(address) { prev, next ->
             accountTree.journal.disable { next.balance = prev.balance }
         }
@@ -19,32 +19,32 @@ class StateDatabaseImpl(val accountTree: StateAccountTree) : StateDatabase {
 
     override fun applyAccountOrCreate(
         address: Address,
-        callback: (StateAccount) -> Unit
-    ): StateAccount = (accountTree[address] ?: accountTree.create(address)).also(callback)
+        callback: (ManagedStateAccount) -> Unit
+    ): ManagedStateAccount = (accountTree[address] ?: accountTree.create(address)).also(callback)
 
     override fun applyAccountOrThrow(
         address: Address,
-        callback: (StateAccount) -> Unit
-    ): StateAccount = accountTree[address]?.also(callback) ?: error("")
+        callback: (ManagedStateAccount) -> Unit
+    ): ManagedStateAccount = accountTree[address]?.also(callback) ?: error("")
 
     override fun applyAccountOrNull(
         address: Address,
-        callback: (StateAccount?) -> Unit
-    ): StateAccount? = accountTree[address]?.also(callback)
+        callback: (ManagedStateAccount?) -> Unit
+    ): ManagedStateAccount? = accountTree[address]?.also(callback)
 
     override fun <R> withAccountOrCreate(
         address: Address,
-        transform: (StateAccount) -> R
+        transform: (ManagedStateAccount) -> R
     ) = transform((accountTree[address] ?: accountTree.create(address)))
 
     override fun <R> withAccountOrThrow(
         address: Address,
-        transform: (StateAccount) -> R
+        transform: (ManagedStateAccount) -> R
     ): R = transform(accountTree[address] ?: error(""))
 
     override fun <R> withAccountOrNull(
         address: Address,
-        transform: (StateAccount?) -> R
+        transform: (ManagedStateAccount?) -> R
     ): R = transform(accountTree[address])
 
     override fun snapshot(): Int = accountTree.journal.snapshot()

@@ -5,17 +5,16 @@ import ethereum.core.repository.ContractCodeRepository
 import ethereum.core.state.Journal
 import ethereum.core.state.JournalEntry
 import ethereum.evm.Address
-import ethereum.type.Account
-import ethereum.type.MutableAccount
+import ethereum.type.StateAccount
 import java.math.BigInteger
 
-class StateAccount(
+class ManagedStateAccount(
     val address: Address,
     val storage: StateAccountStorage,
     private val journal: Journal,
     private val codeRepository: ContractCodeRepository,
-    account: Account,
-) : MutableAccount {
+    account: StateAccount,
+) : StateAccount {
     override val root: Hash get() = storage.rootHash
     override var codeHash: Hash = account.codeHash
     override var nonce: ULong by journal.observable(account.nonce) { old, _ -> JournalEntry.NonceChange(address, old) }
