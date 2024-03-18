@@ -4,10 +4,6 @@ plugins {
     `maven-publish`
 }
 
-repositories {
-    mavenCentral()
-}
-
 dependencies {
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.2")
     implementation("org.jetbrains.kotlinx:kotlinx-datetime-jvm:0.4.0")

@@ -37,7 +37,7 @@ class SolidityPluginTest {
     private fun buildFileContent() = """
        plugins {
             kotlin("jvm") version "1.9.20"
-            id("io.github.jyc228.solidity") version "1.0-SNAPSHOT"
+            id("io.github.jyc228.keth") version "1.0-SNAPSHOT"
         }
     """
 }

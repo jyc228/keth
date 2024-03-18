@@ -6,7 +6,6 @@ plugins {
 
 dependencies {
     api(project(":contract:abi"))
-    implementation("org.jetbrains.kotlin:kotlin-stdlib")
     implementation("org.graalvm.js:js:22.0.0")
 
     implementation("org.bouncycastle:bcprov-jdk15on:1.70")
@@ -29,11 +28,6 @@ dependencies {
     implementation("io.ktor:ktor-client-content-negotiation:$ktorVersion")
     implementation("io.ktor:ktor-serialization-jackson:$ktorVersion")
     implementation("io.ktor:ktor-serialization-kotlinx-json:$ktorVersion")
-
-    testImplementation(kotlin("test"))
-    testImplementation("io.kotest:kotest-runner-junit5:5.6.2")
-    testImplementation("io.kotest:kotest-assertions-core:5.6.2")
-    testImplementation("io.kotest:kotest-assertions-json:5.5.2")
 }
 
 tasks.compileKotlin {
