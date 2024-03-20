@@ -2,7 +2,7 @@ package io.github.jyc228.ethereum.contract
 
 import io.github.jyc228.ethereum.Address
 import io.github.jyc228.ethereum.HexInt
-import io.github.jyc228.ethereum.rpc.RpcCall
+import io.github.jyc228.ethereum.rpc.ApiResult
 import io.github.jyc228.ethereum.rpc.eth.CallRequest
 import io.github.jyc228.ethereum.rpc.eth.EthApi
 import io.github.jyc228.ethereum.rpc.eth.GetLogsRequest
@@ -16,7 +16,7 @@ abstract class AbstractContract<EVENT : ContractEvent>(
     private val api: EthApi
 ) : Contract<EVENT> {
 
-    override suspend fun getLogs(options: (GetLogsRequest.() -> Unit)?): RpcCall<List<Pair<EVENT, Log>>> {
+    override suspend fun getLogs(options: (GetLogsRequest.() -> Unit)?): ApiResult<List<Pair<EVENT, Log>>> {
         val contractInterface = this::class.superclasses.first { it.isSubclassOf(Contract::class) }
         val eventFactoryByHash = contractInterface
             .nestedClasses
@@ -34,7 +34,7 @@ abstract class AbstractContract<EVENT : ContractEvent>(
     override suspend fun <INDEXED : Any, FACTORY : ContractEventFactory<out EVENT, INDEXED>> getLogs(
         factory: FACTORY,
         filterParameter: (GetLogsRequest.(INDEXED) -> Unit)?
-    ): RpcCall<List<Pair<EVENT, Log>>> {
+    ): ApiResult<List<Pair<EVENT, Log>>> {
         val request = GetLogsRequest(address = address.hex)
         if (filterParameter != null) {
             request.topics = factory.buildTopics { filterParameter(request, this) }
@@ -44,25 +44,25 @@ abstract class AbstractContract<EVENT : ContractEvent>(
 
     suspend operator fun <R> ContractFunctionP0<R>.invoke(
         callOption: (Contract.CallOption.() -> Unit)?
-    ): RpcCall<R> = call(callOption, encodeFunctionCall())
+    ): ApiResult<R> = call(callOption, encodeFunctionCall())
 
     suspend operator fun <P1, R> ContractFunctionP1<P1, R>.invoke(
         p1: P1,
         callOption: (Contract.CallOption.() -> Unit)?
-    ): RpcCall<R> = call(callOption, encodeFunctionCall(p1))
+    ): ApiResult<R> = call(callOption, encodeFunctionCall(p1))
 
     suspend operator fun <P1, P2, R> ContractFunctionP2<P1, P2, R>.invoke(
         p1: P1,
         p2: P2,
         callOption: (Contract.CallOption.() -> Unit)?
-    ): RpcCall<R> = call(callOption, encodeFunctionCall(p1, p2))
+    ): ApiResult<R> = call(callOption, encodeFunctionCall(p1, p2))
 
     suspend operator fun <P1, P2, P3, R> ContractFunctionP3<P1, P2, P3, R>.invoke(
         p1: P1,
         p2: P2,
         p3: P3,
         callOption: (Contract.CallOption.() -> Unit)?
-    ): RpcCall<R> = call(callOption, encodeFunctionCall(p1, p2, p3))
+    ): ApiResult<R> = call(callOption, encodeFunctionCall(p1, p2, p3))
 
     suspend operator fun <P1, P2, P3, P4, R> ContractFunctionP4<P1, P2, P3, P4, R>.invoke(
         p1: P1,
@@ -70,7 +70,7 @@ abstract class AbstractContract<EVENT : ContractEvent>(
         p3: P3,
         p4: P4,
         callOption: (Contract.CallOption.() -> Unit)?
-    ): RpcCall<R> = call(callOption, encodeFunctionCall(p1, p2, p3, p4))
+    ): ApiResult<R> = call(callOption, encodeFunctionCall(p1, p2, p3, p4))
 
     suspend operator fun <P1, P2, P3, P4, P5, R> ContractFunctionP5<P1, P2, P3, P4, P5, R>.invoke(
         p1: P1,
@@ -79,7 +79,7 @@ abstract class AbstractContract<EVENT : ContractEvent>(
         p4: P4,
         p5: P5,
         callOption: (Contract.CallOption.() -> Unit)?
-    ): RpcCall<R> = call(callOption, encodeFunctionCall(p1, p2, p3, p4, p5))
+    ): ApiResult<R> = call(callOption, encodeFunctionCall(p1, p2, p3, p4, p5))
 
     suspend operator fun <P1, P2, P3, P4, P5, P6, R> ContractFunctionP6<P1, P2, P3, P4, P5, P6, R>.invoke(
         p1: P1,
@@ -89,7 +89,7 @@ abstract class AbstractContract<EVENT : ContractEvent>(
         p5: P5,
         p6: P6,
         callOption: (Contract.CallOption.() -> Unit)?
-    ): RpcCall<R> = call(callOption, encodeFunctionCall(p1, p2, p3, p4, p5, p6))
+    ): ApiResult<R> = call(callOption, encodeFunctionCall(p1, p2, p3, p4, p5, p6))
 
     suspend operator fun <P1, P2, P3, P4, P5, P6, P7, R> ContractFunctionP7<P1, P2, P3, P4, P5, P6, P7, R>.invoke(
         p1: P1,
@@ -100,7 +100,7 @@ abstract class AbstractContract<EVENT : ContractEvent>(
         p6: P6,
         p7: P7,
         callOption: (Contract.CallOption.() -> Unit)?
-    ): RpcCall<R> = call(callOption, encodeFunctionCall(p1, p2, p3, p4, p5, p6, p7))
+    ): ApiResult<R> = call(callOption, encodeFunctionCall(p1, p2, p3, p4, p5, p6, p7))
 
     suspend operator fun <P1, P2, P3, P4, P5, P6, P7, P8, R> ContractFunctionP8<P1, P2, P3, P4, P5, P6, P7, P8, R>.invoke(
         p1: P1,
@@ -112,7 +112,7 @@ abstract class AbstractContract<EVENT : ContractEvent>(
         p7: P7,
         p8: P8,
         callOption: (Contract.CallOption.() -> Unit)?
-    ): RpcCall<R> = call(callOption, encodeFunctionCall(p1, p2, p3, p4, p5, p6, p7, p8))
+    ): ApiResult<R> = call(callOption, encodeFunctionCall(p1, p2, p3, p4, p5, p6, p7, p8))
 
     suspend operator fun <P1, P2, P3, P4, P5, P6, P7, P8, P9, R> ContractFunctionP9<P1, P2, P3, P4, P5, P6, P7, P8, P9, R>.invoke(
         p1: P1,
@@ -125,12 +125,12 @@ abstract class AbstractContract<EVENT : ContractEvent>(
         p8: P8,
         p9: P9,
         callOption: (Contract.CallOption.() -> Unit)?
-    ): RpcCall<R> = call(callOption, encodeFunctionCall(p1, p2, p3, p4, p5, p6, p7, p8, p9))
+    ): ApiResult<R> = call(callOption, encodeFunctionCall(p1, p2, p3, p4, p5, p6, p7, p8, p9))
 
     private suspend fun <R> AbstractContractFunction<R>.call(
         callOption: (Contract.CallOption.() -> Unit)?,
         data: String
-    ): RpcCall<R> {
+    ): ApiResult<R> {
         val option = Contract.CallOption().also { callOption?.invoke(it) }
         val result = api.call(
             CallRequest(

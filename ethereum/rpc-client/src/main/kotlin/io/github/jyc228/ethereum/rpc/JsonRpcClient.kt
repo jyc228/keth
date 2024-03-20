@@ -20,7 +20,7 @@ sealed class JsonRpcClient {
         method: String,
         params: JsonElement,
         decode: (JsonElement) -> T
-    ): RpcCall<T>
+    ): ApiResult<T>
 
     abstract fun toImmediateClient(): JsonRpcClient
 }
@@ -30,9 +30,9 @@ class ImmediateJsonRpcClient(private val client: KtorJsonRpcClient) : JsonRpcCli
         method: String,
         params: JsonElement,
         decode: (JsonElement) -> T
-    ): RpcCall<T> {
+    ): ApiResult<T> {
         val request = JsonRpcRequest(params, method, method)
-        return RpcCall(client.send(request), decode)
+        return ApiResult(client.send(request), decode)
     }
 
     override fun toImmediateClient(): JsonRpcClient = this
@@ -45,12 +45,12 @@ sealed class DeferredJsonRpcClient(protected val client: KtorJsonRpcClient) : Js
         method: String,
         params: JsonElement,
         decode: (JsonElement) -> T
-    ): DeferredRpcCall<T> {
+    ): DeferredApiResult<T> {
         val request = JsonRpcRequest(params, method, "$method::${idGenerator.getAndIncrement()}")
-        return DeferredRpcCall(request, Channel(1)) { RpcCall(it, decode) }
+        return DeferredApiResult(request, Channel(1)) { ApiResult(it, decode) }
     }
 
-    protected suspend fun executeAndSendResult(calls: List<DeferredRpcCall<*>>) {
+    protected suspend fun executeAndSendResult(calls: List<DeferredApiResult<*>>) {
         val response = client.sendBatch(calls.map { it.request })
         calls.onEachIndexed { index, call ->
             call.onResponse.send(when (call.request.id == response[index].id) {
@@ -65,8 +65,8 @@ sealed class DeferredJsonRpcClient(protected val client: KtorJsonRpcClient) : Js
 
 class BatchJsonRpcClient(client: KtorJsonRpcClient) : DeferredJsonRpcClient(client) {
     @Suppress("UNCHECKED_CAST")
-    suspend fun <T> execute(calls: List<RpcCall<T>>): List<RpcCall<T>> {
-        executeAndSendResult(calls as List<DeferredRpcCall<T>>)
+    suspend fun <T> execute(calls: List<ApiResult<T>>): List<ApiResult<T>> {
+        executeAndSendResult(calls as List<DeferredApiResult<T>>)
         return calls
     }
 }
@@ -76,7 +76,7 @@ class ScheduledJsonRpcClient(
     private val interval: Duration,
     private val maxBatchSize: Int = 999
 ) : DeferredJsonRpcClient(client) {
-    private val calls = mutableListOf<DeferredRpcCall<*>>()
+    private val calls = mutableListOf<DeferredApiResult<*>>()
     private val mutex = Mutex()
     private val job = CoroutineScope(Dispatchers.IO).launch {
         while (isActive) {
@@ -90,7 +90,7 @@ class ScheduledJsonRpcClient(
         method: String,
         params: JsonElement,
         decode: (JsonElement) -> T
-    ): DeferredRpcCall<T> {
+    ): DeferredApiResult<T> {
         return super.send(method, params, decode).also { mutex.withLock { calls += it } }
     }
 

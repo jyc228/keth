@@ -7,11 +7,11 @@ import kotlinx.serialization.json.decodeFromJsonElement
 import kotlinx.serialization.json.encodeToJsonElement
 
 abstract class AbstractJsonRpcApi(val client: JsonRpcClient) {
-    protected suspend inline operator fun <reified T> String.invoke(): RpcCall<T> {
+    protected suspend inline operator fun <reified T> String.invoke(): ApiResult<T> {
         return client.send(this, JsonNull) { json.decodeFromJsonElement(it) }
     }
 
-    protected suspend inline operator fun <reified T, reified P1> String.invoke(p1: P1): RpcCall<T> {
+    protected suspend inline operator fun <reified T, reified P1> String.invoke(p1: P1): ApiResult<T> {
         val inputs = listOf(Json.encodeToJsonElement(p1))
         return client.send(this, JsonArray(inputs)) { json.decodeFromJsonElement(it) }
     }
@@ -19,7 +19,7 @@ abstract class AbstractJsonRpcApi(val client: JsonRpcClient) {
     protected suspend inline operator fun <reified T, reified P1, reified P2> String.invoke(
         p1: P1,
         p2: P2
-    ): RpcCall<T> {
+    ): ApiResult<T> {
         val inputs = listOf(Json.encodeToJsonElement(p1), Json.encodeToJsonElement(p2))
         return client.send(this, JsonArray(inputs)) { json.decodeFromJsonElement(it) }
     }

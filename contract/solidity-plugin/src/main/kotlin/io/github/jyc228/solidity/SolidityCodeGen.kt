@@ -26,7 +26,7 @@ abstract class SolidityCodeGen {
             "ContractFunctionP8" -> "io.github.jyc228.ethereum.contract.ContractFunctionP8"
             "ContractFunctionP9" -> "io.github.jyc228.ethereum.contract.ContractFunctionP9"
             "Indexed" -> "io.github.jyc228.ethereum.contract.Indexed"
-            "RpcCall" -> "io.github.jyc228.ethereum.rpc.RpcCall"
+            "ApiResult" -> "io.github.jyc228.ethereum.rpc.ApiResult"
             "EthApi" -> "io.github.jyc228.ethereum.rpc.eth.EthApi"
             "BigInteger" -> "java.math.BigInteger"
             else -> ""

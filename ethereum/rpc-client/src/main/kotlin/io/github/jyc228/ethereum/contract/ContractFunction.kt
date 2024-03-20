@@ -3,7 +3,7 @@ package io.github.jyc228.ethereum.contract
 import io.github.jyc228.ethereum.HexData
 import io.github.jyc228.ethereum.abi.Abi
 import io.github.jyc228.ethereum.contract.TypeExtensions.decodeEthereumValue
-import io.github.jyc228.ethereum.rpc.RpcCall
+import io.github.jyc228.ethereum.rpc.ApiResult
 import io.github.jyc228.solidity.AbiItem
 import kotlin.reflect.KSuspendFunction10
 import kotlin.reflect.KSuspendFunction11
@@ -36,7 +36,7 @@ abstract class AbstractContractFunction<R>(
 }
 
 class ContractFunctionP0<R>(
-    private val kFunction: KSuspendFunction2<*, (Contract.CallOption.() -> Unit)?, RpcCall<R>>,
+    private val kFunction: KSuspendFunction2<*, (Contract.CallOption.() -> Unit)?, ApiResult<R>>,
     @Language("json")
     jsonAbi: String,
     sig: String
@@ -55,7 +55,7 @@ class ContractFunctionP0<R>(
 }
 
 class ContractFunctionP1<P1, R>(
-    private val kFunction: KSuspendFunction3<*, P1, (Contract.CallOption.() -> Unit)?, RpcCall<R>>,
+    private val kFunction: KSuspendFunction3<*, P1, (Contract.CallOption.() -> Unit)?, ApiResult<R>>,
     @Language("json")
     jsonAbi: String,
     sig: String
@@ -66,7 +66,7 @@ class ContractFunctionP1<P1, R>(
 }
 
 class ContractFunctionP2<P1, P2, R>(
-    private val kFunction: KSuspendFunction4<*, P1, P2, (Contract.CallOption.() -> Unit)?, RpcCall<R>>,
+    private val kFunction: KSuspendFunction4<*, P1, P2, (Contract.CallOption.() -> Unit)?, ApiResult<R>>,
     @Language("json")
     jsonAbi: String,
     sig: String
@@ -77,7 +77,7 @@ class ContractFunctionP2<P1, P2, R>(
 }
 
 class ContractFunctionP3<P1, P2, P3, R>(
-    private val kFunction: KSuspendFunction5<*, P1, P2, P3, (Contract.CallOption.() -> Unit)?, RpcCall<R>>,
+    private val kFunction: KSuspendFunction5<*, P1, P2, P3, (Contract.CallOption.() -> Unit)?, ApiResult<R>>,
     @Language("json")
     jsonAbi: String,
     sig: String
@@ -88,7 +88,7 @@ class ContractFunctionP3<P1, P2, P3, R>(
 }
 
 class ContractFunctionP4<P1, P2, P3, P4, R>(
-    private val kFunction: KSuspendFunction6<*, P1, P2, P3, P4, (Contract.CallOption.() -> Unit)?, RpcCall<R>>,
+    private val kFunction: KSuspendFunction6<*, P1, P2, P3, P4, (Contract.CallOption.() -> Unit)?, ApiResult<R>>,
     @Language("json")
     jsonAbi: String,
     sig: String
@@ -99,7 +99,7 @@ class ContractFunctionP4<P1, P2, P3, P4, R>(
 }
 
 class ContractFunctionP5<P1, P2, P3, P4, P5, R>(
-    private val kFunction: KSuspendFunction7<*, P1, P2, P3, P4, P5, (Contract.CallOption.() -> Unit)?, RpcCall<R>>,
+    private val kFunction: KSuspendFunction7<*, P1, P2, P3, P4, P5, (Contract.CallOption.() -> Unit)?, ApiResult<R>>,
     @Language("json")
     jsonAbi: String,
     sig: String
@@ -110,7 +110,7 @@ class ContractFunctionP5<P1, P2, P3, P4, P5, R>(
 }
 
 class ContractFunctionP6<P1, P2, P3, P4, P5, P6, R>(
-    private val kFunction: KSuspendFunction8<*, P1, P2, P3, P4, P5, P6, (Contract.CallOption.() -> Unit)?, RpcCall<R>>,
+    private val kFunction: KSuspendFunction8<*, P1, P2, P3, P4, P5, P6, (Contract.CallOption.() -> Unit)?, ApiResult<R>>,
     @Language("json")
     jsonAbi: String,
     sig: String
@@ -121,7 +121,7 @@ class ContractFunctionP6<P1, P2, P3, P4, P5, P6, R>(
 }
 
 class ContractFunctionP7<P1, P2, P3, P4, P5, P6, P7, R>(
-    private val kFunction: KSuspendFunction9<*, P1, P2, P3, P4, P5, P6, P7, (Contract.CallOption.() -> Unit)?, RpcCall<R>>,
+    private val kFunction: KSuspendFunction9<*, P1, P2, P3, P4, P5, P6, P7, (Contract.CallOption.() -> Unit)?, ApiResult<R>>,
     @Language("json")
     jsonAbi: String,
     sig: String
@@ -132,7 +132,7 @@ class ContractFunctionP7<P1, P2, P3, P4, P5, P6, P7, R>(
 }
 
 class ContractFunctionP8<P1, P2, P3, P4, P5, P6, P7, P8, R>(
-    private val kFunction: KSuspendFunction10<*, P1, P2, P3, P4, P5, P6, P7, P8, (Contract.CallOption.() -> Unit)?, RpcCall<R>>,
+    private val kFunction: KSuspendFunction10<*, P1, P2, P3, P4, P5, P6, P7, P8, (Contract.CallOption.() -> Unit)?, ApiResult<R>>,
     @Language("json")
     jsonAbi: String,
     sig: String
@@ -143,7 +143,7 @@ class ContractFunctionP8<P1, P2, P3, P4, P5, P6, P7, P8, R>(
 }
 
 class ContractFunctionP9<P1, P2, P3, P4, P5, P6, P7, P8, P9, R>(
-    private val kFunction: KSuspendFunction11<*, P1, P2, P3, P4, P5, P6, P7, P8, P9, (Contract.CallOption.() -> Unit)?, RpcCall<R>>,
+    private val kFunction: KSuspendFunction11<*, P1, P2, P3, P4, P5, P6, P7, P8, P9, (Contract.CallOption.() -> Unit)?, ApiResult<R>>,
     @Language("json")
     jsonAbi: String,
     sig: String
