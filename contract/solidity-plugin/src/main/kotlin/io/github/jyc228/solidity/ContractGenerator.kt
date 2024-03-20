@@ -40,10 +40,8 @@ class ContractGenerator(
 
     private fun BodyBuilder.addFunction(item: AbiItem) {
         function(item.name!!)
-            .suspend()
             .parameters(item.inputs.mapIndexed { i, input -> input.name.ifBlank { "key$i" } to input.typeToKotlin })
-            .parameter("callOption", "(Contract.CallOption.() -> Unit)? = null")
-            .returnType("ApiResult", listOf(item.outputToKotlinType() ?: "Unit"))
+            .returnType("ContractFunctionRequest", listOf(item.outputToKotlinType() ?: "Unit"))
         context.reportType("Contract")
     }
 
@@ -135,15 +133,12 @@ class ContractGenerator(
                             append(input.name.ifBlank { "key$index" })
                             append(", ")
                         }
-                        append("callOption")
                     }
                     function(item.name!!)
                         .override()
-                        .suspend()
                         .parameters(item.inputs.mapIndexed { i, input -> input.name.ifBlank { "key$i" } to input.typeToKotlin })
-                        .parameter("callOption", "(Contract.CallOption.() -> Unit)?")
                         .returnType(
-                            "ApiResult",
+                            "ContractFunctionRequest",
                             when (item.outputs.size > 3) {
                                 true -> listOf("$interfaceName.${item.outputToKotlinType()}")
                                 false -> listOf(item.outputToKotlinType() ?: "Unit")

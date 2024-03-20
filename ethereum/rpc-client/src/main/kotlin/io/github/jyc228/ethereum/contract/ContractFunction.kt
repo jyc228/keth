@@ -3,18 +3,17 @@ package io.github.jyc228.ethereum.contract
 import io.github.jyc228.ethereum.HexData
 import io.github.jyc228.ethereum.abi.Abi
 import io.github.jyc228.ethereum.contract.TypeExtensions.decodeEthereumValue
-import io.github.jyc228.ethereum.rpc.ApiResult
 import io.github.jyc228.solidity.AbiItem
-import kotlin.reflect.KSuspendFunction10
-import kotlin.reflect.KSuspendFunction11
-import kotlin.reflect.KSuspendFunction2
-import kotlin.reflect.KSuspendFunction3
-import kotlin.reflect.KSuspendFunction4
-import kotlin.reflect.KSuspendFunction5
-import kotlin.reflect.KSuspendFunction6
-import kotlin.reflect.KSuspendFunction7
-import kotlin.reflect.KSuspendFunction8
-import kotlin.reflect.KSuspendFunction9
+import kotlin.reflect.KFunction1
+import kotlin.reflect.KFunction10
+import kotlin.reflect.KFunction2
+import kotlin.reflect.KFunction3
+import kotlin.reflect.KFunction4
+import kotlin.reflect.KFunction5
+import kotlin.reflect.KFunction6
+import kotlin.reflect.KFunction7
+import kotlin.reflect.KFunction8
+import kotlin.reflect.KFunction9
 import kotlin.reflect.KType
 import kotlinx.serialization.json.Json
 import org.bouncycastle.jcajce.provider.digest.Keccak
@@ -36,7 +35,7 @@ abstract class AbstractContractFunction<R>(
 }
 
 class ContractFunctionP0<R>(
-    private val kFunction: KSuspendFunction2<*, (Contract.CallOption.() -> Unit)?, ApiResult<R>>,
+    private val kFunction: KFunction1<*, ContractFunctionRequest<R>>,
     @Language("json")
     jsonAbi: String,
     sig: String
@@ -55,7 +54,7 @@ class ContractFunctionP0<R>(
 }
 
 class ContractFunctionP1<P1, R>(
-    private val kFunction: KSuspendFunction3<*, P1, (Contract.CallOption.() -> Unit)?, ApiResult<R>>,
+    private val kFunction: KFunction2<*, P1, ContractFunctionRequest<R>>,
     @Language("json")
     jsonAbi: String,
     sig: String
@@ -66,7 +65,7 @@ class ContractFunctionP1<P1, R>(
 }
 
 class ContractFunctionP2<P1, P2, R>(
-    private val kFunction: KSuspendFunction4<*, P1, P2, (Contract.CallOption.() -> Unit)?, ApiResult<R>>,
+    private val kFunction: KFunction3<*, P1, P2, ContractFunctionRequest<R>>,
     @Language("json")
     jsonAbi: String,
     sig: String
@@ -77,7 +76,7 @@ class ContractFunctionP2<P1, P2, R>(
 }
 
 class ContractFunctionP3<P1, P2, P3, R>(
-    private val kFunction: KSuspendFunction5<*, P1, P2, P3, (Contract.CallOption.() -> Unit)?, ApiResult<R>>,
+    private val kFunction: KFunction4<*, P1, P2, P3, ContractFunctionRequest<R>>,
     @Language("json")
     jsonAbi: String,
     sig: String
@@ -88,7 +87,7 @@ class ContractFunctionP3<P1, P2, P3, R>(
 }
 
 class ContractFunctionP4<P1, P2, P3, P4, R>(
-    private val kFunction: KSuspendFunction6<*, P1, P2, P3, P4, (Contract.CallOption.() -> Unit)?, ApiResult<R>>,
+    private val kFunction: KFunction5<*, P1, P2, P3, P4, ContractFunctionRequest<R>>,
     @Language("json")
     jsonAbi: String,
     sig: String
@@ -99,7 +98,7 @@ class ContractFunctionP4<P1, P2, P3, P4, R>(
 }
 
 class ContractFunctionP5<P1, P2, P3, P4, P5, R>(
-    private val kFunction: KSuspendFunction7<*, P1, P2, P3, P4, P5, (Contract.CallOption.() -> Unit)?, ApiResult<R>>,
+    private val kFunction: KFunction6<*, P1, P2, P3, P4, P5, ContractFunctionRequest<R>>,
     @Language("json")
     jsonAbi: String,
     sig: String
@@ -110,7 +109,7 @@ class ContractFunctionP5<P1, P2, P3, P4, P5, R>(
 }
 
 class ContractFunctionP6<P1, P2, P3, P4, P5, P6, R>(
-    private val kFunction: KSuspendFunction8<*, P1, P2, P3, P4, P5, P6, (Contract.CallOption.() -> Unit)?, ApiResult<R>>,
+    private val kFunction: KFunction7<*, P1, P2, P3, P4, P5, P6, ContractFunctionRequest<R>>,
     @Language("json")
     jsonAbi: String,
     sig: String
@@ -121,7 +120,7 @@ class ContractFunctionP6<P1, P2, P3, P4, P5, P6, R>(
 }
 
 class ContractFunctionP7<P1, P2, P3, P4, P5, P6, P7, R>(
-    private val kFunction: KSuspendFunction9<*, P1, P2, P3, P4, P5, P6, P7, (Contract.CallOption.() -> Unit)?, ApiResult<R>>,
+    private val kFunction: KFunction8<*, P1, P2, P3, P4, P5, P6, P7, ContractFunctionRequest<R>>,
     @Language("json")
     jsonAbi: String,
     sig: String
@@ -132,7 +131,7 @@ class ContractFunctionP7<P1, P2, P3, P4, P5, P6, P7, R>(
 }
 
 class ContractFunctionP8<P1, P2, P3, P4, P5, P6, P7, P8, R>(
-    private val kFunction: KSuspendFunction10<*, P1, P2, P3, P4, P5, P6, P7, P8, (Contract.CallOption.() -> Unit)?, ApiResult<R>>,
+    private val kFunction: KFunction9<*, P1, P2, P3, P4, P5, P6, P7, P8, ContractFunctionRequest<R>>,
     @Language("json")
     jsonAbi: String,
     sig: String
@@ -143,7 +142,7 @@ class ContractFunctionP8<P1, P2, P3, P4, P5, P6, P7, P8, R>(
 }
 
 class ContractFunctionP9<P1, P2, P3, P4, P5, P6, P7, P8, P9, R>(
-    private val kFunction: KSuspendFunction11<*, P1, P2, P3, P4, P5, P6, P7, P8, P9, (Contract.CallOption.() -> Unit)?, ApiResult<R>>,
+    private val kFunction: KFunction10<*, P1, P2, P3, P4, P5, P6, P7, P8, P9, ContractFunctionRequest<R>>,
     @Language("json")
     jsonAbi: String,
     sig: String

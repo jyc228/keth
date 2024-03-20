@@ -25,6 +25,7 @@ abstract class SolidityCodeGen {
             "ContractFunctionP7" -> "io.github.jyc228.ethereum.contract.ContractFunctionP7"
             "ContractFunctionP8" -> "io.github.jyc228.ethereum.contract.ContractFunctionP8"
             "ContractFunctionP9" -> "io.github.jyc228.ethereum.contract.ContractFunctionP9"
+            "ContractFunctionRequest" -> "io.github.jyc228.ethereum.contract.ContractFunctionRequest"
             "Indexed" -> "io.github.jyc228.ethereum.contract.Indexed"
             "ApiResult" -> "io.github.jyc228.ethereum.rpc.ApiResult"
             "EthApi" -> "io.github.jyc228.ethereum.rpc.eth.EthApi"
