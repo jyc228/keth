@@ -128,15 +128,12 @@ class ContractGenerator(
             }
             .body {
                 abi.functions().forEach { item ->
-                    val parameters = buildString {
-                        item.inputs.forEachIndexed { index, input ->
-                            append(input.name.ifBlank { "key$index" })
-                            append(", ")
-                        }
+                    val parameters = item.inputs.mapIndexed { i, input ->
+                        input.name.ifBlank { "key$i" } to input.typeToKotlin
                     }
                     function(item.name!!)
                         .override()
-                        .parameters(item.inputs.mapIndexed { i, input -> input.name.ifBlank { "key$i" } to input.typeToKotlin })
+                        .parameters(parameters)
                         .returnType(
                             "ContractFunctionRequest",
                             when (item.outputs.size > 3) {
@@ -144,7 +141,7 @@ class ContractGenerator(
                                 false -> listOf(item.outputToKotlinType() ?: "Unit")
                             }
                         )
-                        .body("""return $interfaceName.${resolveMetadataPropertyName(item)}(${parameters})""")
+                        .body("""return $interfaceName.${resolveMetadataPropertyName(item)}(${parameters.joinToString(", ") { it.first }})""")
                     context.reportType("Contract")
                 }
             }
