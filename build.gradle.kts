@@ -22,6 +22,11 @@ allprojects {
         jvmToolchain(17)
     }
 
+    java {
+        withSourcesJar()
+        withJavadocJar()
+    }
+
     tasks.test {
         useJUnitPlatform()
     }

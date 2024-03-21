@@ -55,9 +55,4 @@ tasks.jar {
     enabled = true
 }
 
-java {
-    withSourcesJar()
-    withJavadocJar()
-}
-
 publishing(createGPRPublisher { artifactId = "rpc-client" })
