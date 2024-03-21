@@ -4,7 +4,9 @@ import kotlin.random.Random
 import org.bouncycastle.asn1.sec.SECNamedCurves
 import org.bouncycastle.jcajce.provider.digest.Keccak
 
-class Account {
+interface Account {
+    val address: Address
+
     companion object {
         fun generate(entropy: ByteArray?) {
             val privateKey = keccak256(
@@ -28,3 +30,16 @@ class Account {
         }
     }
 }
+
+fun AccountWithPrivateKey(address: Address, privateKey: String): AccountWithPrivateKey {
+    return SimpleAccountWithPrivateKey(address, privateKey)
+}
+
+interface AccountWithPrivateKey : Account {
+    val privateKey: String
+}
+
+private data class SimpleAccountWithPrivateKey(
+    override val address: Address,
+    override val privateKey: String
+) : AccountWithPrivateKey

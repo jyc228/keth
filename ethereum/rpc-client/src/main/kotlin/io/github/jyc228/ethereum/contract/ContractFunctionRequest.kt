@@ -1,5 +1,6 @@
 package io.github.jyc228.ethereum.contract
 
+import io.github.jyc228.ethereum.AccountWithPrivateKey
 import io.github.jyc228.ethereum.Address
 import io.github.jyc228.ethereum.Hash
 import io.github.jyc228.ethereum.HexBigInt
@@ -11,8 +12,11 @@ import io.github.jyc228.ethereum.rpc.eth.CallRequest
 import io.github.jyc228.ethereum.rpc.eth.EthApi
 
 interface ContractFunctionRequest<R> {
-    suspend fun call(build: CallBuilder.() -> Unit): ApiResult<R>
-    suspend fun transaction(privateKey: String, build: TransactionBuilder.() -> Unit): ApiResult<Hash>
+    suspend fun call(build: suspend CallBuilder.() -> Unit): ApiResult<R>
+    suspend fun transaction(
+        account: AccountWithPrivateKey,
+        build: suspend TransactionBuilder.() -> Unit
+    ): ApiResult<Hash>
 
     interface CallBuilder {
         var from: String?
@@ -53,16 +57,16 @@ class EthContractFunctionRequest<R>(
     override var maxFeePerGas: HexBigInt? = null
     override var maxPriorityFeePerGas: HexBigInt? = null
 
-    override suspend fun call(build: ContractFunctionRequest.CallBuilder.() -> Unit): ApiResult<R> {
-        build(this)
+    override suspend fun call(build: suspend ContractFunctionRequest.CallBuilder.() -> Unit): ApiResult<R> {
+        val builder: ContractFunctionRequest.CallBuilder = this.apply { build() }
         val result = eth.call(
             CallRequest(
-                from = from,
-                to = contractAddress.hex,
-                gas = gasLimit,
-                gasPrice = gasPrice,
-                value = value,
                 data = data,
+                to = contractAddress.hex,
+                from = builder.from,
+                gas = builder.gasLimit,
+                gasPrice = builder.gasPrice,
+                value = builder.value,
             ),
             targetBlock
         )
@@ -70,17 +74,17 @@ class EthContractFunctionRequest<R>(
     }
 
     override suspend fun transaction(
-        privateKey: String,
-        build: ContractFunctionRequest.TransactionBuilder.() -> Unit
+        account: AccountWithPrivateKey,
+        build: suspend ContractFunctionRequest.TransactionBuilder.() -> Unit
     ): ApiResult<Hash> {
-        val builder: ContractFunctionRequest.TransactionBuilder = this.apply(build)
-        return eth.sendTransaction(privateKey) {
+        val builder: ContractFunctionRequest.TransactionBuilder = this.apply { build() }
+        return eth.sendTransaction(account) {
             this.input = data
             this.to = contractAddress
             this.nonce = builder.nonce ?: HexULong(0u)
             this.chainId = builder.chainId
             this.gasPrice = builder.gasPrice ?: HexBigInt.ZERO
-            this.gas = builder.gasLimit ?: HexBigInt.ZERO
+            this.gasLimit = builder.gasLimit ?: HexBigInt.ZERO
             this.value = builder.value ?: HexBigInt.ZERO
             this.accessList += builder.accessList
             this.maxFeePerGas = builder.maxFeePerGas ?: HexBigInt.ZERO

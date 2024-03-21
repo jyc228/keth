@@ -1,5 +1,6 @@
 package io.github.jyc228.ethereum.rpc.eth
 
+import io.github.jyc228.ethereum.AccountWithPrivateKey
 import io.github.jyc228.ethereum.Address
 import io.github.jyc228.ethereum.Hash
 import io.github.jyc228.ethereum.HexBigInt
@@ -42,7 +43,10 @@ interface EthApi {
     suspend fun call(request: CallRequest, target: BlockReference = BlockReference.latest): ApiResult<HexData?>
     suspend fun estimateGas(request: CallRequest): ApiResult<HexBigInt>
     suspend fun sendRawTransaction(signedTransactionData: String): ApiResult<Hash>
-    suspend fun sendTransaction(privateKey: String, build: suspend TransactionBuilder.() -> Unit): ApiResult<Hash>
+    suspend fun sendTransaction(
+        account: AccountWithPrivateKey,
+        build: suspend TransactionBuilder.() -> Unit
+    ): ApiResult<Hash>
 
     suspend fun getFullBlock(hash: Hash) = getBlockByHash(hash, true) as ApiResult<FullBlock?>
     suspend fun getFullBlock(number: ULong) = getBlockByNumber(number, true) as ApiResult<FullBlock?>

@@ -113,14 +113,6 @@ abstract class AbstractMutableTransaction : Transaction {
     }
 }
 
-class TransactionBuilder : AbstractMutableTransaction() {
-    override var accessList: MutableList<Access> = mutableListOf()
-    override var maxFeePerGas: HexBigInt = HexBigInt.ZERO
-    override var maxPriorityFeePerGas: HexBigInt = HexBigInt.ZERO
-    override var maxFeePerBlobGas: HexBigInt = HexBigInt.ZERO
-    override var blobVersionedHashes: MutableList<Hash> = mutableListOf()
-}
-
 @Serializable
 class MutableLegacyTransaction : AbstractMutableTransaction(), LegacyTransaction
 
