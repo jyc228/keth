@@ -18,9 +18,9 @@ data class GetLogsRequest(
 data class CallRequest(
     var from: String? = null,
     var to: String? = null,
-    var gas: HexInt? = null,
-    var gasPrice: HexInt? = null,
-    var value: HexInt? = null,
+    var gas: HexBigInt? = null,
+    var gasPrice: HexBigInt? = null,
+    var value: HexBigInt? = null,
     var data: String? = null
 )
 

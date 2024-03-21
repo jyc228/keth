@@ -91,13 +91,13 @@ class EthJsonRpcApi(client: JsonRpcClient) : EthApi, AbstractJsonRpcApi(client) 
 
     override suspend fun estimateGas(request: CallRequest): ApiResult<HexBigInt> = "eth_estimateGas"(request)
 
-    override suspend fun sendRawTransaction(signedTransactionData: String): ApiResult<String> =
+    override suspend fun sendRawTransaction(signedTransactionData: String): ApiResult<Hash> =
         "eth_sendRawTransaction"(signedTransactionData)
 
     override suspend fun sendTransaction(
         privateKey: String,
         build: suspend TransactionBuilder.() -> Unit
-    ): ApiResult<String> {
+    ): ApiResult<Hash> {
         val client by lazy(LazyThreadSafetyMode.NONE) { EthJsonRpcApi(client.toImmediateClient()) }
         val tx = TransactionBuilder().apply { build() }
         val rawTx = RawTransaction.createTransaction(

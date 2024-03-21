@@ -41,8 +41,8 @@ interface EthApi {
 
     suspend fun call(request: CallRequest, target: BlockReference = BlockReference.latest): ApiResult<HexData?>
     suspend fun estimateGas(request: CallRequest): ApiResult<HexBigInt>
-    suspend fun sendRawTransaction(signedTransactionData: String): ApiResult<String>
-    suspend fun sendTransaction(privateKey: String, build: suspend TransactionBuilder.() -> Unit): ApiResult<String>
+    suspend fun sendRawTransaction(signedTransactionData: String): ApiResult<Hash>
+    suspend fun sendTransaction(privateKey: String, build: suspend TransactionBuilder.() -> Unit): ApiResult<Hash>
 
     suspend fun getFullBlock(hash: Hash) = getBlockByHash(hash, true) as ApiResult<FullBlock?>
     suspend fun getFullBlock(number: ULong) = getBlockByNumber(number, true) as ApiResult<FullBlock?>
