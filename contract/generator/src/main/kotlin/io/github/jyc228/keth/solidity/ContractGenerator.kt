@@ -1,9 +1,11 @@
-package io.github.jyc228.solidity
+package io.github.jyc228.keth.solidity
 
 import io.github.jyc228.kotlin.codegen.BodyBuilder
 import io.github.jyc228.kotlin.codegen.GenerationContext
 import io.github.jyc228.kotlin.codegen.KtFileBuilder
 import io.github.jyc228.kotlin.codegen.TypeBuilder
+import io.github.jyc228.solidity.AbiComponent
+import io.github.jyc228.solidity.AbiItem
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import org.bouncycastle.jcajce.provider.digest.Keccak

@@ -1,5 +1,6 @@
-package io.github.jyc228.solidity
+package io.github.jyc228.keth.solidity
 
+import io.github.jyc228.solidity.AbiItem
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonElement

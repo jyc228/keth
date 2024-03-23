@@ -1,7 +1,8 @@
-package io.github.jyc228.solidity
+package io.github.jyc228.keth.solidity
 
 import io.github.jyc228.kotlin.codegen.GenerationContext
 import io.github.jyc228.kotlin.codegen.KtFileBuilder
+import io.github.jyc228.solidity.AbiComponent
 
 class LibraryGenerator(
     val packagePath: String,

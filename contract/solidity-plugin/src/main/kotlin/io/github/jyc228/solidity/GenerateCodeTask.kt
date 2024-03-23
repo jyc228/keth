@@ -1,5 +1,8 @@
 package io.github.jyc228.solidity
 
+import io.github.jyc228.keth.solidity.Abi
+import io.github.jyc228.keth.solidity.ContractGenerator
+import io.github.jyc228.keth.solidity.LibraryGenerator
 import java.io.File
 import org.gradle.api.tasks.Internal
 import org.gradle.api.tasks.SourceTask

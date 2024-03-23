@@ -7,13 +7,8 @@ plugins {
 }
 
 dependencies {
-    api(project(":codegen"))
-    api(project(":contract:abi"))
+    implementation(project(":contract:generator"))
     implementation(gradleKotlinDsl())
-    implementation("org.bouncycastle:bcprov-jdk15on:1.70")
-
-    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.2")
-    implementation("org.jetbrains.kotlinx:kotlinx-datetime-jvm:0.4.0")
 
     testImplementation(gradleTestKit())
 }

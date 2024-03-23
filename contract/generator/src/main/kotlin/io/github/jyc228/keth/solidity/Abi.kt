@@ -1,8 +1,11 @@
-package io.github.jyc228.solidity
+package io.github.jyc228.keth.solidity
 
+import io.github.jyc228.solidity.AbiComponent
+import io.github.jyc228.solidity.AbiItem
+import io.github.jyc228.solidity.AbiOutput
+import io.github.jyc228.solidity.AbiType
 import java.io.File
 import kotlinx.serialization.json.Json
-import org.gradle.configurationcache.extensions.capitalized
 
 class Abi(
     val contractName: String,
@@ -32,7 +35,7 @@ class Abi(
                 internalTuples += AbiOutput(
                     name = "",
                     type = "tuple",
-                    internalType = "struct $contractName.${item.name!!.capitalized()}Output",
+                    internalType = "struct $contractName.${item.name?.replaceFirstChar { it.titlecase() }}Output",
                     components = item.outputs
                 )
             }

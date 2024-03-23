@@ -1,6 +1,7 @@
-package io.github.jyc228.solidity
+package io.github.jyc228.keth.solidity
 
-import org.gradle.configurationcache.extensions.capitalized
+import io.github.jyc228.solidity.AbiComponent
+import io.github.jyc228.solidity.AbiItem
 
 abstract class SolidityCodeGen {
     protected val String.importPackagePath
@@ -39,7 +40,7 @@ abstract class SolidityCodeGen {
             1 -> outputs[0].typeToKotlin
             2 -> "Pair<${outputs.joinToString(", ") { it.typeToKotlin }}>"
             3 -> "Triple<${outputs.joinToString(", ") { it.typeToKotlin }}>"
-            else -> "${name?.capitalized()}Output"
+            else -> "${name?.replaceFirstChar { it.titlecase() }}Output"
         }
     }
 
