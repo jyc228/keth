@@ -1,8 +1,8 @@
 package io.github.jyc228.solidity
 
-import io.github.jyc228.keth.solidity.Abi
 import io.github.jyc228.keth.solidity.ContractGenerator
 import io.github.jyc228.keth.solidity.LibraryGenerator
+import io.github.jyc228.keth.solidity.compile.CompileResult
 import java.io.File
 import org.gradle.api.tasks.Internal
 import org.gradle.api.tasks.SourceTask
@@ -26,18 +26,18 @@ open class GenerateCodeTask : SourceTask() {
     ) {
         val generator = ContractGenerator(
             packagePath = abiFile.relativeTo(solidityRoot).parent.replace("/", "."),
-            abi = Abi.fromFile(abiFile)
+            compileResult = CompileResult.fromAbiFile(abiFile)
         )
         val parentDirectory = File(outputs.files.singleFile, generator.packagePath.replace(".", "/"))
         generator.generateInterface().write(parentDirectory)
         generator.generateDefaultImplementation().write(parentDirectory)
-        generator.abi.topLevelStructures().forEach { io ->
+        generator.compileResult.topLevelStructures().forEach { io ->
             val struct = io.resolveStruct()
             val gen =
                 genLibraryByFullName.getOrPut("${generator.packagePath}._Struct") { LibraryGenerator(generator.packagePath) }
             gen.abiIOByName[struct.name] = io
         }
-        generator.abi.externalStructures().forEach { io ->
+        generator.compileResult.externalStructures().forEach { io ->
             val struct = io.resolveStruct()
             val gen = genLibraryByFullName.getOrPut("${generator.packagePath}.${struct.ownerName}") {
                 LibraryGenerator(generator.packagePath)

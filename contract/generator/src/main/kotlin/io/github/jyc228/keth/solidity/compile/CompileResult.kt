@@ -1,4 +1,4 @@
-package io.github.jyc228.keth.solidity
+package io.github.jyc228.keth.solidity.compile
 
 import io.github.jyc228.solidity.AbiComponent
 import io.github.jyc228.solidity.AbiItem
@@ -7,9 +7,10 @@ import io.github.jyc228.solidity.AbiType
 import java.io.File
 import kotlinx.serialization.json.Json
 
-class Abi(
+class CompileResult(
     val contractName: String,
-    private val items: List<AbiItem>
+    val abi: List<AbiItem>,
+    val bin: String
 ) {
     val overloadingFunctions = mutableMapOf<String, MutableSet<Int>>()
     private val functionIndex = mutableSetOf<Int>()
@@ -20,7 +21,7 @@ class Abi(
 
     init {
         val functionNames = mutableSetOf<String>()
-        items.forEachIndexed { index, item ->
+        abi.forEachIndexed { index, item ->
             item.ioAsSequence().filter { it.type == "tuple" }.forEach {
                 val struct = it.resolveStruct()
                 when (struct.ownerName.isBlank()) {
@@ -66,19 +67,14 @@ class Abi(
     fun topLevelStructures(): Set<AbiComponent> = topLevelTuples.values.toSet()
     fun internalStructures(): Set<AbiComponent> = internalTuples
     fun externalStructures(): Set<AbiComponent> = externalTuples
-    fun functions() = functionIndex.asSequence().map { items[it] }
-    fun events() = eventIndex.asSequence().map { items[it] }
+    fun functions() = functionIndex.asSequence().map { abi[it] }
+    fun events() = eventIndex.asSequence().map { abi[it] }
 
     companion object {
-        fun fromFile(abiFile: File): Abi {
+        fun fromAbiFile(abiFile: File): CompileResult {
             val contractName = abiFile.name.replace(".json", "")
             val jsonString = abiFile.readText()
-            return runCatching { Abi(contractName, Json.decodeFromString<List<AbiItem>>(jsonString)) }
-                .getOrElse {
-                    val deployment = Json.decodeFromString<Deployment>(jsonString)
-                    Abi(contractName, deployment.abi)
-                }
-
+            return CompileResult(contractName, Json.decodeFromString<List<AbiItem>>(jsonString), "")
         }
     }
 }

@@ -1,5 +1,6 @@
 package io.github.jyc228.keth.solidity
 
+import io.github.jyc228.keth.solidity.compile.CompileResult
 import io.github.jyc228.kotlin.codegen.BodyBuilder
 import io.github.jyc228.kotlin.codegen.GenerationContext
 import io.github.jyc228.kotlin.codegen.KtFileBuilder
@@ -13,21 +14,21 @@ import org.bouncycastle.util.encoders.Hex
 
 class ContractGenerator(
     val packagePath: String,
-    val abi: Abi,
+    val compileResult: CompileResult,
 ) : SolidityCodeGen() {
     fun generateInterface() = KtFileBuilder(
         context = GenerationContext { it.importPackagePath },
-        name = abi.contractName,
+        name = compileResult.contractName,
         packagePath = packagePath
-    ).apply { type().buildContractInterface(abi.contractName) }
+    ).apply { type().buildContractInterface(compileResult.contractName) }
 
     private fun TypeBuilder.buildContractInterface(interfaceName: String) = `interface`(interfaceName)
         .inherit { `interface`("Contract").typeParameter("$interfaceName.Event") }
         .body {
-            abi.functions().forEach { item -> addFunction(item) }
-            abi.internalStructures().forEach { addStruct(it, interfaceName) }
+            compileResult.functions().forEach { item -> addFunction(item) }
+            compileResult.internalStructures().forEach { addStruct(it, interfaceName) }
             type().sealedInterface("Event").inherit { `interface`("ContractEvent") }
-            abi.events().forEach { item -> addEvent(item) }
+            compileResult.events().forEach { item -> addEvent(item) }
 
             companionObject()
                 .inherit {
@@ -36,7 +37,7 @@ class ContractGenerator(
                         .invokeConstructor("::${interfaceName}Impl")
                 }
                 .body {
-                    abi.functions().forEach { item -> addFunctionMetadata(item, interfaceName) }
+                    compileResult.functions().forEach { item -> addFunctionMetadata(item, interfaceName) }
                 }
         }
 
@@ -112,9 +113,9 @@ class ContractGenerator(
 
     fun generateDefaultImplementation() = KtFileBuilder(
         context = GenerationContext { it.importPackagePath },
-        name = "${abi.contractName}Impl",
+        name = "${compileResult.contractName}Impl",
         packagePath = packagePath
-    ).apply { type().buildContractInterfaceImplementation(abi.contractName) }
+    ).apply { type().buildContractInterfaceImplementation(compileResult.contractName) }
 
     private fun TypeBuilder.buildContractInterfaceImplementation(interfaceName: String) =
         `class`("${interfaceName}Impl")
@@ -129,7 +130,7 @@ class ContractGenerator(
                     .invokeConstructor("address", "api")
             }
             .body {
-                abi.functions().forEach { item ->
+                compileResult.functions().forEach { item ->
                     val parameters = item.inputs.mapIndexed { i, input ->
                         input.name.ifBlank { "key$i" } to input.typeToKotlin
                     }
@@ -149,7 +150,7 @@ class ContractGenerator(
             }
 
     private fun resolveMetadataPropertyName(item: AbiItem): String {
-        if (item.name!! in abi.overloadingFunctions) {
+        if (item.name!! in compileResult.overloadingFunctions) {
             return when (item.inputs.isEmpty()) {
                 true -> item.name!!
                 false -> "${item.name}_${item.inputs.joinToString("_") { it.type.replace("[]", "Array") }}"
