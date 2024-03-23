@@ -72,7 +72,7 @@ class CompileResult(
 
     companion object {
         fun fromAbiFile(abiFile: File): CompileResult {
-            val contractName = abiFile.name.replace(".json", "")
+            val contractName = abiFile.name.replace(".abi", "")
             val jsonString = abiFile.readText()
             return CompileResult(contractName, Json.decodeFromString<List<AbiItem>>(jsonString), "")
         }

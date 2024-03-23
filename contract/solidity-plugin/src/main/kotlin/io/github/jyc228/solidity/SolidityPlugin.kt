@@ -22,7 +22,7 @@ class SolidityPlugin : Plugin<Project> {
     private fun config(target: Project, sourceSet: SourceSet) {
         val set = target.objects.sourceDirectorySet("solidity", "solidity")
         set.srcDir("src/${sourceSet.name}/solidity")
-        set.include("**/*.json")
+        set.include("**/*.abi")
         val output = File("${target.buildDir.absoluteFile}/generated/kotlinContractWrapper/${sourceSet.name}")
         val taskName = if (sourceSet.name == "main") "" else sourceSet.name.capitalized()
         target.tasks.create<GenerateCodeTask>("generate${taskName}KotlinContractWrapper") {
