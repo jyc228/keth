@@ -14,6 +14,7 @@ class BodyBuilder(val indent: Indent, val context: GenerationContext) {
     fun build(): String = buildString {
         appendLine("{")
         append(properties.flatMap { it.build() }.joinToString("\n") { "$indent$it" })
+        if (properties.isNotEmpty()) appendLine()
         append(functions.joinToString("\n") { "$indent${it.build()}\n" })
         if (functions.isNotEmpty()) appendLine()
         append(types.joinToString("\n") { "$indent${it.build()}\n" })
