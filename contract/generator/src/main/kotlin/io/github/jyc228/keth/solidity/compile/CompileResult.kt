@@ -4,8 +4,6 @@ import io.github.jyc228.solidity.AbiComponent
 import io.github.jyc228.solidity.AbiItem
 import io.github.jyc228.solidity.AbiOutput
 import io.github.jyc228.solidity.AbiType
-import java.io.File
-import kotlinx.serialization.json.Json
 
 class CompileResult(
     val contractName: String,
@@ -70,12 +68,4 @@ class CompileResult(
     fun externalStructures(): Set<AbiComponent> = externalTuples
     fun functions() = functionIndex.asSequence().map { abi[it] }
     fun events() = eventIndex.asSequence().map { abi[it] }
-
-    companion object {
-        fun fromAbiFile(abiFile: File): CompileResult {
-            val contractName = abiFile.name.replace(".abi", "")
-            val jsonString = abiFile.readText()
-            return CompileResult(contractName, Json.decodeFromString<List<AbiItem>>(jsonString), "")
-        }
-    }
 }

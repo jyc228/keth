@@ -15,7 +15,7 @@ class SolidityPluginTest {
         val testSoliditySrcDir = File(testProjectDir, "src/main/solidity").apply { mkdirs() }
         val testInputAbiFileDir = File(testSoliditySrcDir, "com/test/contract").apply { mkdirs() }
 //        val testInputFiles = File("src/test/solidity").listFiles()!!
-        val testInputFiles = listOf(File("src/test/solidity/Colosseum.json"))
+        val testInputFiles = listOf(File("src/test/solidity/Storage.sol"))
         testInputFiles.forEach { it.copyTo(File(testInputAbiFileDir, it.name)) }
 
         val buildResult = GradleRunner.create()
