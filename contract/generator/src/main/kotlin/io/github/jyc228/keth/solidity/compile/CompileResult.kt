@@ -64,6 +64,7 @@ class CompileResult(
         }
     }
 
+    fun constructor() = abi.firstOrNull { it.type == AbiType.constructor }
     fun topLevelStructures(): Set<AbiComponent> = topLevelTuples.values.toSet()
     fun internalStructures(): Set<AbiComponent> = internalTuples
     fun externalStructures(): Set<AbiComponent> = externalTuples

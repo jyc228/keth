@@ -12,7 +12,8 @@ class FunctionBuilder(val name: String, val indent: Indent, val context: Generat
 
     fun suspend() = apply { tokens += "suspend" }
 
-    fun parameters(params: List<Pair<String, String>>) = apply { params.forEach { parameter(it.first, it.second) } }
+    fun parameters(params: List<Pair<String, String>>? = null) =
+        apply { params?.forEach { parameter(it.first, it.second) } }
 
     fun parameter(name: String, type: String) = apply {
         parameters += "$name: $type"
@@ -33,7 +34,10 @@ class FunctionBuilder(val name: String, val indent: Indent, val context: Generat
         body = " {\n${indent.next}$code\n$indent}"
     }
 
-    fun build() = "${tokens.joinToString(" ")} fun $name(${buildParameter()})$returnType$body"
+    fun build() = buildString {
+        if (tokens.isNotEmpty()) append(tokens.joinToString(" "))
+        append("fun $name(${buildParameter()})$returnType$body")
+    }
 
     private fun buildParameter(): String {
         if (parameters.size == 1) {

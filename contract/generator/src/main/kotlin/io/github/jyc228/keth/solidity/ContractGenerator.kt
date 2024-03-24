@@ -6,6 +6,7 @@ import io.github.jyc228.kotlin.codegen.GenerationContext
 import io.github.jyc228.kotlin.codegen.KtFileBuilder
 import io.github.jyc228.kotlin.codegen.TypeBuilder
 import io.github.jyc228.solidity.AbiComponent
+import io.github.jyc228.solidity.AbiInput
 import io.github.jyc228.solidity.AbiItem
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
@@ -37,13 +38,25 @@ class ContractGenerator(
                         .invokeConstructor("::${interfaceName}Impl")
                 }
                 .body {
+                    function("bin")
+                        .returnType("String")
+                        .body("return \"${compileResult.bin}\"")
+
+                    var code = "return \"0x\" + bin()"
+                    compileResult.constructor()?.let { item ->
+                        code += " + encodeParameters(\n${indent.next.next}${item.toJsonStringTemplate()},\n${indent.next.next}${item.inputs.joinToStringNames()}\n${indent.next})"
+                    }
+                    function("encodeDeploymentCallData")
+                        .parameters(compileResult.constructor()?.inputs?.toParameters())
+                        .body(code)
+                        .returnType("String")
                     compileResult.functions().forEach { item -> addFunctionMetadata(item, interfaceName) }
                 }
         }
 
     private fun BodyBuilder.addFunction(item: AbiItem) {
         function(item.name!!)
-            .parameters(item.inputs.mapIndexed { i, input -> input.name.ifBlank { "key$i" } to input.typeToKotlin })
+            .parameters(item.inputs.toParameters())
             .returnType("ContractFunctionRequest", listOf(item.outputToKotlinType() ?: "Unit"))
         context.reportType("Contract")
     }
@@ -65,9 +78,8 @@ class ContractGenerator(
             .immutable()
             .defaultValue("ContractFunctionP${item.inputs.size}") {
                 parameter("$interfaceName::${item.name}")
-                stringTemplateParameter(Json.encodeToString(item))
-                val hash = "${item.name}(${item.inputs.joinToString(",") { it.type }})"
-                stringParameter("0x${hash.keccak256Hash()}")
+                parameter(item.toJsonStringTemplate())
+                stringParameter("0x${item.computeSig()}")
             }
     }
 
@@ -97,7 +109,6 @@ class ContractGenerator(
                     }
                 }
                 companionObject().inherit {
-                    val hash = "${event.name}(${event.inputs.joinToString(",") { it.type }})"
                     val indexedClass = if (hasIndexed) "Indexed" else "Unit"
                     `class`("ContractEventFactory")
                         .typeParameter(event.name!!)
@@ -105,7 +116,7 @@ class ContractGenerator(
                         .invokeConstructor(
                             "${event.name}::class",
                             "${indexedClass}::class",
-                            "\"0x${hash.keccak256Hash()}\""
+                            "\"0x${event.computeSig()}\""
                         )
                 }
             }
@@ -131,12 +142,9 @@ class ContractGenerator(
             }
             .body {
                 compileResult.functions().forEach { item ->
-                    val parameters = item.inputs.mapIndexed { i, input ->
-                        input.name.ifBlank { "key$i" } to input.typeToKotlin
-                    }
                     function(item.name!!)
                         .override()
-                        .parameters(parameters)
+                        .parameters(item.inputs.toParameters())
                         .returnType(
                             "ContractFunctionRequest",
                             when (item.outputs.size > 3) {
@@ -144,7 +152,7 @@ class ContractGenerator(
                                 false -> listOf(item.outputToKotlinType() ?: "Unit")
                             }
                         )
-                        .body("""return $interfaceName.${resolveMetadataPropertyName(item)}(${parameters.joinToString(", ") { it.first }})""")
+                        .body("""return $interfaceName.${resolveMetadataPropertyName(item)}(${item.inputs.joinToStringNames()})""")
                     context.reportType("Contract")
                 }
             }
@@ -166,4 +174,12 @@ class ContractGenerator(
         }
         return Hex.encode(bytes).decodeToString()
     }
+
+    private fun List<AbiInput>.toParameters() =
+        mapIndexed { i, input -> input.name.ifBlank { "key$i" } to input.typeToKotlin }
+
+    private fun List<AbiInput>.joinToStringNames() = joinToString(", ") { it.name }
+
+    private fun AbiItem.toJsonStringTemplate() = "\"\"\"${Json.encodeToString(this)}\"\"\""
+    private fun AbiItem.computeSig() = "${name}(${inputs.joinToString(",") { it.type }})".keccak256Hash()
 }
