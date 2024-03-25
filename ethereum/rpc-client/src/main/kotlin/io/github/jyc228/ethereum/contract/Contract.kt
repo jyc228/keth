@@ -21,7 +21,7 @@ interface Contract<EVENT : ContractEvent> {
     abstract class Factory<T : Contract<*>>(val create: (Address, EthApi) -> T) {
         protected fun encodeParameters(@Language("json") jsonAbi: String, vararg args: Any?): String {
             val abi: AbiItem = Json.decodeFromString(jsonAbi)
-            return Abi.encodeParameters(abi.inputs.map { it.type }, args.toList())
+            return Abi.encodeParameters(abi.inputs.map { it.type }, args.toList()).removePrefix("0x")
         }
     }
 }
