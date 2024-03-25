@@ -35,7 +35,7 @@ class FunctionBuilder(val name: String, val indent: Indent, val context: Generat
     }
 
     fun build() = buildString {
-        if (tokens.isNotEmpty()) append(tokens.joinToString(" "))
+        if (tokens.isNotEmpty()) append(tokens.joinToString(" ")).append(" ")
         append("fun $name(${buildParameter()})$returnType$body")
     }
 
