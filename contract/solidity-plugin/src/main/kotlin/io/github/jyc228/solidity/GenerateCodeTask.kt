@@ -29,9 +29,11 @@ open class GenerateCodeTask : SourceTask() {
         genLibraryByFullName: MutableMap<String, LibraryGenerator>
     ) {
         val outputDir = file.relativeTo(solidityRoot).parent ?: ""
-        val compileOutput = File(outputs.files.singleFile, outputDir)
-        project.exec {
-            commandLine("solc", file.absoluteFile, "--bin", "--abi", "-o", compileOutput.absoluteFile)
+        if (!File(outputs.files.singleFile, "$outputDir/${file.nameWithoutExtension}.bin").exists()) {
+            val compileOutput = File(outputs.files.singleFile, outputDir)
+            project.exec {
+                commandLine("solc", file.absoluteFile, "--bin", "--abi", "-o", compileOutput.absoluteFile)
+            }
         }
         val abiFile = File(outputs.files.singleFile, "$outputDir/${file.nameWithoutExtension}.abi")
         generateContractFromAbi(abiFile, outputs.files.singleFile, genLibraryByFullName)
