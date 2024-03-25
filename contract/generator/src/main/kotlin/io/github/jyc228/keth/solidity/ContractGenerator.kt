@@ -40,7 +40,7 @@ class ContractGenerator(
                 .body {
                     function("bin")
                         .returnType("String")
-                        .body("return \"${compileResult.bin}\"")
+                        .body("return \"${compileResult.bin.trim()}\"")
 
                     var code = "return \"0x\" + bin()"
                     compileResult.constructor()?.let { item ->
@@ -178,7 +178,8 @@ class ContractGenerator(
     private fun List<AbiInput>.toParameters() =
         mapIndexed { i, input -> input.name.ifBlank { "key$i" } to input.typeToKotlin }
 
-    private fun List<AbiInput>.joinToStringNames() = joinToString(", ") { it.name }
+    private fun List<AbiInput>.joinToStringNames() =
+        withIndex().joinToString(", ") { (idx, input) -> input.name.ifBlank { "key$idx" } }
 
     private fun AbiItem.toJsonStringTemplate() = "\"\"\"${Json.encodeToString(this)}\"\"\""
     private fun AbiItem.computeSig() = "${name}(${inputs.joinToString(",") { it.type }})".keccak256Hash()
