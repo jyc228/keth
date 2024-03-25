@@ -66,7 +66,7 @@ class GraalJsAbi(private val context: Context) : Abi, AutoCloseable by context {
     override fun encodeParameters(types: List<String>, parameters: List<*>): String {
         return context.getBindings("js").getMember("encodeParameters").execute(
             ProxyArray.fromList(types),
-            ProxyArray.fromList(parameters)
+            ProxyArray.fromList(parameters.map { (it as? HexString?)?.hex ?: it })
         ).asString()
     }
 
