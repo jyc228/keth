@@ -9,7 +9,7 @@ class KtFileBuilder(val context: GenerationContext, val name: String, val packag
     fun type() = TypeBuilder(indent, context).also { types += it }
 
     fun build() = buildString {
-        appendLine("package $packagePath")
+        if (packagePath.isNotBlank()) appendLine("package $packagePath")
         appendLine()
         context.fullPaths().forEach { appendLine("import $it") }
         if (context.reportedTypes.isNotEmpty()) {

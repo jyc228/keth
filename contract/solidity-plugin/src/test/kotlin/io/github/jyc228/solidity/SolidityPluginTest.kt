@@ -13,7 +13,7 @@ class SolidityPluginTest {
     fun testX() {
         File(testProjectDir, "build.gradle.kts").writeText(buildFileContent())
         val testSoliditySrcDir = File(testProjectDir, "src/main/solidity").apply { mkdirs() }
-        val testInputAbiFileDir = File(testSoliditySrcDir, "com/test/contract").apply { mkdirs() }
+        val testInputAbiFileDir = File(testSoliditySrcDir, "").apply { mkdirs() }
 //        val testInputFiles = File("src/test/solidity").listFiles()!!
         val testInputFiles = listOf(File("src/test/solidity/Storage.sol"))
         testInputFiles.forEach { it.copyTo(File(testInputAbiFileDir, it.name)) }
@@ -28,10 +28,7 @@ class SolidityPluginTest {
 
         println(buildResult.output)
 
-        val result = testProjectDir.walkTopDown()
-            .filter { it.name.endsWith(".kt") }
-            .toList()
-        println(result)
+        testProjectDir.walkTopDown().forEach { println(it.relativeTo(testProjectDir)) }
     }
 
     private fun buildFileContent() = """

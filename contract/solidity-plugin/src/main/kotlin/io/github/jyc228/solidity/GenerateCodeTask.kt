@@ -17,8 +17,10 @@ open class GenerateCodeTask : SourceTask() {
     @TaskAction
     fun execute() {
         val genLibraryByFullName = mutableMapOf<String, LibraryGenerator>()
-        source.filter { it.extension == "sol" }.forEach { file -> generateContractFromSol(file, genLibraryByFullName) }
-        source.filter { it.extension == "abi" }.forEach { file -> generateContractFromAbi(file, genLibraryByFullName) }
+        source.filter { it.extension == "sol" }
+            .forEach { file -> generateContractFromSol(file, genLibraryByFullName) }
+        source.filter { it.extension == "abi" }
+            .forEach { file -> generateContractFromAbi(file, solidityRoot, genLibraryByFullName) }
         genLibraryByFullName.toList().forEach { (fullName, gen) -> generateLibrary(fullName, gen) }
     }
 
@@ -26,21 +28,23 @@ open class GenerateCodeTask : SourceTask() {
         file: File,
         genLibraryByFullName: MutableMap<String, LibraryGenerator>
     ) {
-        val compileOutput = File(outputs.files.singleFile, file.relativeTo(solidityRoot).parent + "/.solc")
+        val outputDir = file.relativeTo(solidityRoot).parent ?: ""
+        val compileOutput = File(outputs.files.singleFile, outputDir)
         project.exec {
             commandLine("solc", file.absoluteFile, "--bin", "--abi", "-o", compileOutput.absoluteFile)
         }
-        val abiFile = File(
-            outputs.files.singleFile,
-            file.relativeTo(solidityRoot).parent + "/.solc/${file.nameWithoutExtension}.abi"
-        )
-        generateContractFromAbi(abiFile, genLibraryByFullName)
+        val abiFile = File(outputs.files.singleFile, "$outputDir/${file.nameWithoutExtension}.abi")
+        generateContractFromAbi(abiFile, outputs.files.singleFile, genLibraryByFullName)
     }
 
-    private fun generateContractFromAbi(abiFile: File, genLibraryByFullName: MutableMap<String, LibraryGenerator>) {
+    private fun generateContractFromAbi(
+        abiFile: File,
+        srcRoot: File,
+        genLibraryByFullName: MutableMap<String, LibraryGenerator>
+    ) {
         val binFile = abiFile.resolveSibling("${abiFile.nameWithoutExtension}.bin")
         val generator = ContractGenerator(
-            packagePath = abiFile.relativeTo(solidityRoot).parent.replace("/", "."),
+            packagePath = abiFile.relativeTo(srcRoot).parent?.replace("/", ".") ?: "",
             compileResult = CompileResult(
                 abiFile.name.replace(".abi", ""),
                 Json.decodeFromString<List<AbiItem>>(abiFile.readText()),
