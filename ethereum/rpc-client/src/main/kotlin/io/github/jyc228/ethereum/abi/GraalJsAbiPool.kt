@@ -8,7 +8,7 @@ class GraalJsAbiPool : Abi {
     private val pool =
         Collections.synchronizedList(mutableListOf(GraalJsAbi.init(), GraalJsAbi.init(), GraalJsAbi.init()))
 
-    override fun decodeLog(inputs: List<AbiInput>, hex: String, topics: List<String>): Map<String, String?> =
+    override fun decodeLog(inputs: List<AbiInput>, hex: String, topics: List<String>): Map<String, Any> =
         withAbi { decodeLog(inputs, hex, topics) }
 
     override fun decodeParameters(types: List<String>, hex: String): List<Any> =

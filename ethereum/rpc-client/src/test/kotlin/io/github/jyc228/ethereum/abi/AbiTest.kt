@@ -3,11 +3,13 @@ package io.github.jyc228.ethereum.abi
 import io.github.jyc228.solidity.AbiInput
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldBeEqualIgnoringCase
+import io.kotest.matchers.types.shouldBeInstanceOf
+import java.math.BigInteger
 import org.junit.jupiter.api.Test
 
 internal class AbiTest {
-    private val abi = GraalJsAbi.init()
 
+    @OptIn(ExperimentalStdlibApi::class)
     @Test
     fun decodeLogTest() {
         // mainnet l1 transaction 0x0aef838f174a0f9a8c19215c958f793824224c56905620d314b627af65832121
@@ -27,7 +29,7 @@ internal class AbiTest {
             "0x000000000000000000000000000000000000000000000000000000000003ad3b"
         )
 
-        val result = abi.decodeLog(
+        val result = Abi.decodeLog(
             inputs.map {
                 AbiInput(
                     name = it["name"].toString(),
@@ -39,9 +41,10 @@ internal class AbiTest {
             topics
         )
 
-        result["_batchRoot"] shouldBeEqualIgnoringCase "0x8C5B901F0037E84123EC2C8289BA4771B95052385BA97DA5F39461C26CA0125E"
-        result["_batchSize"] shouldBe "77"
-        result["_prevTotalElements"] shouldBe "33290334"
+        result["_batchRoot"].shouldBeInstanceOf<ByteArray>()
+            .toHexString() shouldBeEqualIgnoringCase "8C5B901F0037E84123EC2C8289BA4771B95052385BA97DA5F39461C26CA0125E"
+        result["_batchSize"].shouldBeInstanceOf<BigInteger>() shouldBe 77.toBigInteger()
+        result["_prevTotalElements"].shouldBeInstanceOf<BigInteger>() shouldBe 33290334.toBigInteger()
         result["_extraData"] shouldBe null
     }
 
@@ -51,11 +54,13 @@ internal class AbiTest {
         val hex =
             "0x015d8eb9000000000000000000000000000000000000000000000000000000000006cf4900000000000000000000000000000000000000000000000000000000639833b0000000000000000000000000000000000000000000000000000000000000000751c54ac1869a3f078ff0aa2994f27f6aceb5d2bda18ec30f2593fa20d9c052fa000000000000000000000000000000000000000000000000000000000000000000000000000000000000000016cb0a409497493c2ef7688f69534fd8f8f23b74000000000000000000000000000000000000000000000000000000000000083400000000000000000000000000000000000000000000000000000000000f4240"
 
-        val result = abi.decodeParameters(
+        val result = Abi.decodeParameters(
             // Solidity: function setL1BlockValues(uint64 _number, uint64 _timestamp, uint256 _basefee, bytes32 _hash, uint64 _sequenceNumber, bytes32 _batcherHash, uint256 _l1FeeOverhead, uint256 _l1FeeScalar) returns()
             listOf("uint64", "uint64", "uint256", "bytes32", "uint64", "bytes32", "uint256", "uint256"),
-            hex,
+            hex.drop(10),
         )
+
+        println("..")
 
 //        result[0].toString().toBigInteger().toString(16) shouldBe "6cf49"
 //        result[1].toString().toBigInteger().toString(16) shouldBe "639833b0"

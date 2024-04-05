@@ -32,7 +32,7 @@ class GraalJsAbi(private val context: Context) : Abi, AutoCloseable by context {
         .withConfigOverride(BigInteger::class.java) { it.format = JsonFormat.Value.forShape(JsonFormat.Shape.STRING) }
         .build()
 
-    override fun decodeLog(inputs: List<AbiInput>, hex: String, topics: List<String>): Map<String, String?> {
+    override fun decodeLog(inputs: List<AbiInput>, hex: String, topics: List<String>): Map<String, String> {
         val result = context.getBindings("js").getMember("decodeLog").execute(
             ProxyArray.fromList(inputs.map { AbiProxyObject(it) }),
             hex,
@@ -41,7 +41,7 @@ class GraalJsAbi(private val context: Context) : Abi, AutoCloseable by context {
         return inputs.associate { input ->
             val value = result.getMember(input.name)
             input.name to when {
-                value == null || value.isNull -> null
+                value == null || value.isNull -> ""
                 value.isBoolean -> value.asBoolean().toString()
                 else -> value.asString()
             }

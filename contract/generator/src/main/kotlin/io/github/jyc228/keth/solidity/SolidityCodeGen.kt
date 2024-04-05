@@ -44,38 +44,25 @@ abstract class SolidityCodeGen {
         }
     }
 
-    protected val AbiComponent.typeToKotlin
-        get() = when (type) {
-            "tuple" -> requireNotNull(internalType) { "invalid abi" }.split(" ")[1]
-            "tuple[]" -> requireNotNull(internalType) { "invalid abi" }.split(" ")[1].let {
-                "List<${it.removeSuffix("[]")}>"
+    protected val AbiComponent.typeToKotlin: String
+        get() {
+            val arrayStartIndex = type.indexOf('[')
+            val type = if (arrayStartIndex == -1) type else type.take(arrayStartIndex)
+            val kotlinType = when (type) {
+                "tuple" -> requireNotNull(internalType) { "invalid abi" }.split(" ")[1]
+                "bool" -> "Boolean"
+                "address" -> "Address"
+                "string" -> "String"
+                else -> when {
+                    type.startsWith("bytes") -> "ByteArray"
+                    type.startsWith("int") -> "BigInteger"
+                    type.startsWith("uint") -> "BigInteger"
+                    else -> error("unsupported type $this")
+                }
             }
-
-            "address" -> "Address"
-            "address[]" -> "List<Address>"
-            "int24" -> "HexInt"
-            "int256" -> "HexBigInt"
-            "uint8" -> "HexInt"
-            "uint16" -> "HexULong"
-            "uint24" -> "HexULong"
-            "uint32" -> "HexULong"
-            "uint48" -> "HexULong"
-            "uint64" -> "HexULong"
-            "uint96" -> "HexULong"
-            "uint128" -> "HexBigInt"
-            "uint160" -> "HexBigInt"
-            "uint256" -> "HexBigInt"
-            "uint128[]" -> "List<HexBigInt>"
-            "uint256[]" -> "List<HexBigInt>"
-            "bytes" -> "ByteArray"
-            "bytes1" -> "ByteArray"
-            "bytes4" -> "ByteArray"
-            "bytes32" -> "Hash"
-            "string" -> "String"
-            "string[]" -> "List<String>"
-            "bool" -> "Boolean"
-            "bytes[]" -> "List<ByteArray>"
-            "bytes32[]" -> "List<ByteArray>"
-            else -> error("unsupported type $this")
+            if (arrayStartIndex == -1) {
+                return kotlinType
+            }
+            return "List<${kotlinType}>"
         }
 }

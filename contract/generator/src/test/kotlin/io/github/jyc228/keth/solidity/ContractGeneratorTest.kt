@@ -54,9 +54,16 @@ class ContractGeneratorTest : StringSpec({
         println(gen.generateInterface().build())
     }
 
-    "generate" {
+    "generate erc20" {
         compile("/erc/ERC20.sol")
         val gen = newContractGenerator("ERC20")
+        println(gen.generateInterface().build())
+        println(gen.generateDefaultImplementation().build())
+    }
+
+    "generate full test" {
+        compile("/FullTest.sol")
+        val gen = newContractGenerator("FullTest")
         println(gen.generateInterface().build())
         println(gen.generateDefaultImplementation().build())
     }

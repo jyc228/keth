@@ -116,7 +116,8 @@ class ContractGenerator(
                         .invokeConstructor(
                             "${event.name}::class",
                             "${indexedClass}::class",
-                            "\"0x${event.computeSig()}\""
+                            "\"0x${event.computeSig()}\"",
+                            "{ ${event.toJsonStringTemplate()} }"
                         )
                 }
             }

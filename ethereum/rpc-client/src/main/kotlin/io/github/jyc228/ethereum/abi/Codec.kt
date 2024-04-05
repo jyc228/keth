@@ -288,9 +288,9 @@ data object TupleCodec : Codec {
         error("unsupported data $data")
     }
 
-    override fun decode(type: Type, buffer: ByteBuffer): LinkedHashMap<String, Any?> {
+    override fun decode(type: Type, buffer: ByteBuffer): LinkedHashMap<String, Any> {
         require(type is TupleType)
-        val result = LinkedHashMap<String, Any?>(type.components.size)
+        val result = LinkedHashMap<String, Any>(type.components.size)
         val offset = buffer.position()
         type.components.forEachIndexed { i, c ->
             val typeWithField = c as? TypeWithKey

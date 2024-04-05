@@ -1,8 +1,9 @@
 package io.github.jyc228.ethereum.contract
 
 import io.github.jyc228.ethereum.HexData
+import io.github.jyc228.ethereum.HexString
 import io.github.jyc228.ethereum.abi.Abi
-import io.github.jyc228.ethereum.contract.TypeExtensions.decodeEthereumValue
+import io.github.jyc228.solidity.AbiInput
 import io.github.jyc228.solidity.AbiItem
 import kotlin.reflect.KFunction1
 import kotlin.reflect.KFunction10
@@ -16,8 +17,6 @@ import kotlin.reflect.KFunction8
 import kotlin.reflect.KFunction9
 import kotlin.reflect.KType
 import kotlinx.serialization.json.Json
-import org.bouncycastle.jcajce.provider.digest.Keccak
-import org.bouncycastle.util.encoders.Hex
 import org.intellij.lang.annotations.Language
 
 abstract class AbstractContractFunction<R>(
@@ -27,10 +26,23 @@ abstract class AbstractContractFunction<R>(
 ) {
     protected val abi: AbiItem by lazy(LazyThreadSafetyMode.NONE) { Json.decodeFromString(jsonAbi) }
 
+    protected fun encodeFunctionCall(vararg parameters: Any?): String {
+        if (parameters.isEmpty()) return sig
+        val type = abi.inputs.map { createType(it) }
+        return "${sig.take(10)}${Abi.encodeParameters(type, parameters.map { (it as? HexString)?.hex ?: it })}"
+    }
+
+    private fun createType(abi: AbiInput): String {
+        if (abi.type == "tuple" && abi.components.isNotEmpty()) {
+            return abi.components.joinToString(",", prefix = "(", postfix = ")") { createType(it) }
+        }
+        return abi.type
+    }
+
     @Suppress("UNCHECKED_CAST")
     fun decodeResult(result: HexData?): R {
         if (result == null) return null as R
-        return returnType.arguments[0].type?.decodeEthereumValue(result.hex, abi.outputs) as R
+        return Abi.decodeParameters(abi.outputs.map { it.type }, result.hex.removePrefix("0x"))[0] as R
     }
 }
 
@@ -40,17 +52,7 @@ class ContractFunctionP0<R>(
     jsonAbi: String,
     sig: String
 ) : AbstractContractFunction<R>(kFunction.returnType, jsonAbi, sig) {
-    fun encodeFunctionCall(): String {
-        return "${kFunction.name}()".keccak256Hash()
-    }
-
-    private fun String.keccak256Hash(): String {
-        val bytes = with(Keccak.Digest256()) {
-            forEach { update(it.code.toByte()) }
-            digest()
-        }
-        return "0x${Hex.encode(bytes).decodeToString()}"
-    }
+    fun encodeFunctionCall() = super.encodeFunctionCall()
 }
 
 class ContractFunctionP1<P1, R>(
@@ -59,9 +61,7 @@ class ContractFunctionP1<P1, R>(
     jsonAbi: String,
     sig: String
 ) : AbstractContractFunction<R>(kFunction.returnType, jsonAbi, sig) {
-    fun encodeFunctionCall(p1: P1): String {
-        return Abi.encodeFunctionCall(abi, listOf(p1))
-    }
+    fun encodeFunctionCall(p1: P1) = super.encodeFunctionCall(p1)
 }
 
 class ContractFunctionP2<P1, P2, R>(
@@ -70,9 +70,7 @@ class ContractFunctionP2<P1, P2, R>(
     jsonAbi: String,
     sig: String
 ) : AbstractContractFunction<R>(kFunction.returnType, jsonAbi, sig) {
-    fun encodeFunctionCall(p1: P1, p2: P2): String {
-        return Abi.encodeFunctionCall(abi, listOf(p1, p2))
-    }
+    fun encodeFunctionCall(p1: P1, p2: P2) = super.encodeFunctionCall(p1, p2)
 }
 
 class ContractFunctionP3<P1, P2, P3, R>(
@@ -81,9 +79,7 @@ class ContractFunctionP3<P1, P2, P3, R>(
     jsonAbi: String,
     sig: String
 ) : AbstractContractFunction<R>(kFunction.returnType, jsonAbi, sig) {
-    fun encodeFunctionCall(p1: P1, p2: P2, p3: P3): String {
-        return Abi.encodeFunctionCall(abi, listOf(p1, p2, p3))
-    }
+    fun encodeFunctionCall(p1: P1, p2: P2, p3: P3) = super.encodeFunctionCall(p1, p2, p3)
 }
 
 class ContractFunctionP4<P1, P2, P3, P4, R>(
@@ -92,9 +88,7 @@ class ContractFunctionP4<P1, P2, P3, P4, R>(
     jsonAbi: String,
     sig: String
 ) : AbstractContractFunction<R>(kFunction.returnType, jsonAbi, sig) {
-    fun encodeFunctionCall(p1: P1, p2: P2, p3: P3, p4: P4): String {
-        return Abi.encodeFunctionCall(abi, listOf(p1, p2, p3, p4))
-    }
+    fun encodeFunctionCall(p1: P1, p2: P2, p3: P3, p4: P4) = super.encodeFunctionCall(p1, p2, p3, p4)
 }
 
 class ContractFunctionP5<P1, P2, P3, P4, P5, R>(
@@ -103,9 +97,7 @@ class ContractFunctionP5<P1, P2, P3, P4, P5, R>(
     jsonAbi: String,
     sig: String
 ) : AbstractContractFunction<R>(kFunction.returnType, jsonAbi, sig) {
-    fun encodeFunctionCall(p1: P1, p2: P2, p3: P3, p4: P4, p5: P5): String {
-        return Abi.encodeFunctionCall(abi, listOf(p1, p2, p3, p4, p5))
-    }
+    fun encodeFunctionCall(p1: P1, p2: P2, p3: P3, p4: P4, p5: P5) = super.encodeFunctionCall(p1, p2, p3, p4, p5)
 }
 
 class ContractFunctionP6<P1, P2, P3, P4, P5, P6, R>(
@@ -114,9 +106,8 @@ class ContractFunctionP6<P1, P2, P3, P4, P5, P6, R>(
     jsonAbi: String,
     sig: String
 ) : AbstractContractFunction<R>(kFunction.returnType, jsonAbi, sig) {
-    fun encodeFunctionCall(p1: P1, p2: P2, p3: P3, p4: P4, p5: P5, p6: P6): String {
-        return Abi.encodeFunctionCall(abi, listOf(p1, p2, p3, p4, p5, p6))
-    }
+    fun encodeFunctionCall(p1: P1, p2: P2, p3: P3, p4: P4, p5: P5, p6: P6) =
+        super.encodeFunctionCall(p1, p2, p3, p4, p5, p6)
 }
 
 class ContractFunctionP7<P1, P2, P3, P4, P5, P6, P7, R>(
@@ -125,9 +116,8 @@ class ContractFunctionP7<P1, P2, P3, P4, P5, P6, P7, R>(
     jsonAbi: String,
     sig: String
 ) : AbstractContractFunction<R>(kFunction.returnType, jsonAbi, sig) {
-    fun encodeFunctionCall(p1: P1, p2: P2, p3: P3, p4: P4, p5: P5, p6: P6, p7: P7): String {
-        return Abi.encodeFunctionCall(abi, listOf(p1, p2, p3, p4, p5, p6, p7))
-    }
+    fun encodeFunctionCall(p1: P1, p2: P2, p3: P3, p4: P4, p5: P5, p6: P6, p7: P7) =
+        super.encodeFunctionCall(p1, p2, p3, p4, p5, p6, p7)
 }
 
 class ContractFunctionP8<P1, P2, P3, P4, P5, P6, P7, P8, R>(
@@ -136,9 +126,8 @@ class ContractFunctionP8<P1, P2, P3, P4, P5, P6, P7, P8, R>(
     jsonAbi: String,
     sig: String
 ) : AbstractContractFunction<R>(kFunction.returnType, jsonAbi, sig) {
-    fun encodeFunctionCall(p1: P1, p2: P2, p3: P3, p4: P4, p5: P5, p6: P6, p7: P7, p8: P8): String {
-        return Abi.encodeFunctionCall(abi, listOf(p1, p2, p3, p4, p5, p6, p7, p8))
-    }
+    fun encodeFunctionCall(p1: P1, p2: P2, p3: P3, p4: P4, p5: P5, p6: P6, p7: P7, p8: P8) =
+        super.encodeFunctionCall(p1, p2, p3, p4, p5, p6, p7, p8)
 }
 
 class ContractFunctionP9<P1, P2, P3, P4, P5, P6, P7, P8, P9, R>(
@@ -147,9 +136,8 @@ class ContractFunctionP9<P1, P2, P3, P4, P5, P6, P7, P8, P9, R>(
     jsonAbi: String,
     sig: String
 ) : AbstractContractFunction<R>(kFunction.returnType, jsonAbi, sig) {
-    fun encodeFunctionCall(p1: P1, p2: P2, p3: P3, p4: P4, p5: P5, p6: P6, p7: P7, p8: P8, p9: P9): String {
-        return Abi.encodeFunctionCall(abi, listOf(p1, p2, p3, p4, p5, p6, p7, p8, p9))
-    }
+    fun encodeFunctionCall(p1: P1, p2: P2, p3: P3, p4: P4, p5: P5, p6: P6, p7: P7, p8: P8, p9: P9) =
+        super.encodeFunctionCall(p1, p2, p3, p4, p5, p6, p7, p8, p9)
 
     @Suppress("UNCHECKED_CAST")
     fun <R> decodeFunctionCall(input: String, callParameter: (P1, P2, P3, P4, P5, P6, P7, P8, P9) -> R): R {
@@ -159,15 +147,15 @@ class ContractFunctionP9<P1, P2, P3, P4, P5, P6, P7, P8, P9, R>(
             input.drop(10),
         )
         return callParameter(
-            kFunction.parameters[1].type.decodeEthereumValue(params[0].toString()) as P1,
-            kFunction.parameters[2].type.decodeEthereumValue(params[1].toString()) as P2,
-            kFunction.parameters[3].type.decodeEthereumValue(params[2].toString()) as P3,
-            kFunction.parameters[4].type.decodeEthereumValue(params[3].toString()) as P4,
-            kFunction.parameters[5].type.decodeEthereumValue(params[4].toString()) as P5,
-            kFunction.parameters[6].type.decodeEthereumValue(params[5].toString()) as P6,
-            kFunction.parameters[7].type.decodeEthereumValue(params[6].toString()) as P7,
-            kFunction.parameters[8].type.decodeEthereumValue(params[7].toString()) as P8,
-            kFunction.parameters[9].type.decodeEthereumValue(params[8].toString()) as P9,
+            params[0] as P1,
+            params[1] as P2,
+            params[2] as P3,
+            params[3] as P4,
+            params[4] as P5,
+            params[5] as P6,
+            params[6] as P7,
+            params[7] as P8,
+            params[8] as P9,
         )
     }
 }
