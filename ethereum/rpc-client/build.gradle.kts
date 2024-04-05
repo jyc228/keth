@@ -6,7 +6,6 @@ plugins {
 
 dependencies {
     api(project(":contract:abi"))
-    implementation("org.graalvm.js:js:22.0.0")
 
     implementation("org.bouncycastle:bcprov-jdk15on:1.70")
 
@@ -28,31 +27,6 @@ dependencies {
     implementation("io.ktor:ktor-client-content-negotiation:$ktorVersion")
     implementation("io.ktor:ktor-serialization-jackson:$ktorVersion")
     implementation("io.ktor:ktor-serialization-kotlinx-json:$ktorVersion")
-}
-
-tasks.compileKotlin {
-    finalizedBy("buildJs")
-    kotlinOptions {
-        freeCompilerArgs = listOf("-Xjsr305=strict")
-        jvmTarget = "17"
-    }
-}
-
-tasks.create<Exec>("buildJs") {
-    group = "js"
-    finalizedBy(tasks.jar)
-    workingDir("$projectDir/src/main/js")
-    commandLine("npm", "run", "build", "--", "--output-path=${buildDir}/classes/kotlin/main/js")
-}
-
-tasks.create<Exec>("npmInstall") {
-    group = "js"
-    workingDir("src/main/js")
-    commandLine("npm", "install")
-}
-
-tasks.jar {
-    enabled = true
 }
 
 publishing(createGPRPublisher { artifactId = "rpc-client" })
