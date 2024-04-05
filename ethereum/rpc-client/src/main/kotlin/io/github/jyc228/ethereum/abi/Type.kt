@@ -5,6 +5,8 @@ sealed interface Type {
     val size: Int?
     val dynamic: Boolean
 
+    fun withKey(key: String): TypeWithKey = TypeWithKey(key, this)
+
     companion object {
         fun of(typeName: String, key: String? = null): Type {
             val type = when {

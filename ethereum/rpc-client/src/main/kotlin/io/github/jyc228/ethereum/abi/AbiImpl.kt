@@ -8,7 +8,7 @@ object AbiImpl : Abi {
     override fun decodeLog(inputs: List<AbiInput>, hex: String, topics: List<String>): Map<String, Any> {
         val types = inputs.fold(LogTypes()) { types, abi -> types.add(abi) }
         val result = TupleCodec.decode(TupleType(types.nonIndexed), hexToByteBuffer(hex))
-        types.indexed.forEachIndexed { i, t -> result[t.name] = Codec.decode(t, topics[i + 1]) }
+        types.indexed.forEachIndexed { i, t -> result[t.key] = Codec.decode(t.type, topics[i + 1]) }
         return result
     }
 
@@ -29,14 +29,14 @@ object AbiImpl : Abi {
     }
 
     private data class LogTypes(
-        val indexed: MutableList<Type> = mutableListOf(),
-        val nonIndexed: MutableList<Type> = mutableListOf()
+        val indexed: MutableList<TypeWithKey> = mutableListOf(),
+        val nonIndexed: MutableList<TypeWithKey> = mutableListOf()
     ) {
         fun add(abi: AbiInput) = apply {
             when (abi.indexed == true) {
-                true -> indexed += Type.of(abi.type)
-                false -> nonIndexed += Type.of(abi.type, abi.name)
-            }
+                true -> indexed
+                false -> nonIndexed
+            } += Type.of(abi.type).withKey(abi.name)
         }
     }
 }

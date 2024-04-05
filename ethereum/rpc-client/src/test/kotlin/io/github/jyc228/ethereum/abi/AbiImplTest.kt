@@ -1,5 +1,6 @@
 package io.github.jyc228.ethereum.abi
 
+import io.github.jyc228.ethereum.Address
 import io.kotest.assertions.throwables.shouldThrowAny
 import io.kotest.core.spec.style.DescribeSpec
 import io.kotest.core.spec.style.scopes.ContainerScope
@@ -40,7 +41,7 @@ class AbiImplTest : DescribeSpec({
         }
 
         context("decode") {
-            decodeTest({ it.shouldBeInstanceOf<String>().lowercase() }) {
+            decodeTest({ it.shouldBeInstanceOf<Address>().hex }) {
                 "000000000000000000000000e6004226bc1f1ba37e5c2c4689693b94b863cd58" decode "address".type shouldBe "e6004226bc1f1ba37e5c2c4689693b94b863cd58"
                 "000000000000000000000000e6004226bc1f1ba37e5c2c4689693b94b863cd580000000000000000000000000000000000000000000000000000000000000001" decode "address".type shouldBe "e6004226bc1f1ba37e5c2c4689693b94b863cd58" withRemaining "0000000000000000000000000000000000000000000000000000000000000001"
             }

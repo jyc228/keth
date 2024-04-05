@@ -1,56 +1,62 @@
 package io.github.jyc228.ethereum.abi
 
-import io.github.jyc228.solidity.AbiInput
+import io.github.jyc228.solidity.AbiItem
+import io.kotest.core.spec.style.DescribeSpec
+import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldBeEqualIgnoringCase
 import io.kotest.matchers.types.shouldBeInstanceOf
 import java.math.BigInteger
-import org.junit.jupiter.api.Test
+import kotlinx.serialization.json.Json
 
-internal class AbiTest {
+@OptIn(ExperimentalStdlibApi::class)
+internal class AbiTest : DescribeSpec({
 
-    @OptIn(ExperimentalStdlibApi::class)
-    @Test
-    fun decodeLogTest() {
-        // mainnet l1 transaction 0x0aef838f174a0f9a8c19215c958f793824224c56905620d314b627af65832121
-        val inputs = listOf(
-            mapOf("type" to "uint256", "name" to "_batchIndex", "indexed" to true),
-            mapOf("type" to "bytes32", "name" to "_batchRoot"),
-            mapOf("type" to "uint256", "name" to "_batchSize"),
-            mapOf("type" to "uint256", "name" to "_prevTotalElements"),
-            mapOf("type" to "bytes", "name" to "_extraData")
-        )
+    context("decodeLog") {
+        it("TransactionBatchAppended") {
+            val abi = // mainnet l1 transaction 0x0aef838f174a0f9a8c19215c958f793824224c56905620d314b627af65832121
+                Json.decodeFromString<AbiItem>("""{"anonymous":false,"inputs":[{"indexed":true,"internalType":"uint256","name":"_batchIndex","type":"uint256"},{"indexed":false,"internalType":"bytes32","name":"_batchRoot","type":"bytes32"},{"indexed":false,"internalType":"uint256","name":"_batchSize","type":"uint256"},{"indexed":false,"internalType":"uint256","name":"_prevTotalElements","type":"uint256"},{"indexed":false,"internalType":"bytes","name":"_extraData","type":"bytes"}],"name":"TransactionBatchAppended","type":"event"}""")
 
-        val hex =
-            "0x8c5b901f0037e84123ec2c8289ba4771b95052385ba97da5f39461c26ca0125e000000000000000000000000000000000000000000000000000000000000004d0000000000000000000000000000000000000000000000000000000001fbf85e00000000000000000000000000000000000000000000000000000000000000800000000000000000000000000000000000000000000000000000000000000000"
+            val hex =
+                "0x8c5b901f0037e84123ec2c8289ba4771b95052385ba97da5f39461c26ca0125e000000000000000000000000000000000000000000000000000000000000004d0000000000000000000000000000000000000000000000000000000001fbf85e00000000000000000000000000000000000000000000000000000000000000800000000000000000000000000000000000000000000000000000000000000000"
 
-        val topics = listOf(
-            "0x127186556e7be68c7e31263195225b4de02820707889540969f62c05cf73525e",
-            "0x000000000000000000000000000000000000000000000000000000000003ad3b"
-        )
+            val topics = listOf(
+                "0x127186556e7be68c7e31263195225b4de02820707889540969f62c05cf73525e",
+                "0x000000000000000000000000000000000000000000000000000000000003ad3b"
+            )
 
-        val result = Abi.decodeLog(
-            inputs.map {
-                AbiInput(
-                    name = it["name"].toString(),
-                    type = it["type"].toString(),
-                    indexed = it["indexed"]?.toString()?.toBoolean()
-                )
-            },
-            hex,
-            topics
-        )
+            val result = Abi.decodeLog(abi.inputs, hex, topics)
 
-        result["_batchRoot"].shouldBeInstanceOf<ByteArray>()
-            .toHexString() shouldBeEqualIgnoringCase "8C5B901F0037E84123EC2C8289BA4771B95052385BA97DA5F39461C26CA0125E"
-        result["_batchSize"].shouldBeInstanceOf<BigInteger>() shouldBe 77.toBigInteger()
-        result["_prevTotalElements"].shouldBeInstanceOf<BigInteger>() shouldBe 33290334.toBigInteger()
-        result["_extraData"] shouldBe null
+            result["_batchIndex"].shouldBeInstanceOf<BigInteger>() shouldBe 240955.toBigInteger()
+            result["_batchRoot"].shouldBeInstanceOf<ByteArray>()
+                .toHexString() shouldBeEqualIgnoringCase "8C5B901F0037E84123EC2C8289BA4771B95052385BA97DA5F39461C26CA0125E"
+            result["_batchSize"].shouldBeInstanceOf<BigInteger>() shouldBe 77.toBigInteger()
+            result["_prevTotalElements"].shouldBeInstanceOf<BigInteger>() shouldBe 33290334.toBigInteger()
+            result["_extraData"].shouldBeInstanceOf<ByteArray>() shouldHaveSize 0
+        }
+
+        it("Transfer") {
+            val abi =
+                Json.decodeFromString<AbiItem>("""{"anonymous":false,"inputs":[{"indexed":true,"internalType":"address","name":"from","type":"address"},{"indexed":true,"internalType":"address","name":"to","type":"address"},{"indexed":false,"internalType":"uint256","name":"value","type":"uint256"}],"name":"Transfer","type":"event"}""")
+
+            val hex =
+                "0x00000000000000000000000000000000000000000000000000000000085a9fed"
+
+            val topics = listOf(
+                "0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef",
+                "0x0000000000000000000000009995287b63185310209478156318390715f2546e",
+                "0x00000000000000000000000044638da736fed84089f616227ea9aefc033586eb",
+            )
+
+            val result = Abi.decodeLog(abi.inputs, hex, topics)
+
+            result["from"].shouldBeInstanceOf<String>() shouldBeEqualIgnoringCase "9995287B63185310209478156318390715F2546e"
+            result["to"].shouldBeInstanceOf<String>() shouldBeEqualIgnoringCase "44638Da736fEd84089F616227eA9aefc033586EB"
+            result["value"].shouldBeInstanceOf<BigInteger>() shouldBe 140156909.toBigInteger()
+        }
     }
 
-
-    @Test
-    fun decodeParametersTest() {
+    context("decodeParameters") {
         val hex =
             "0x015d8eb9000000000000000000000000000000000000000000000000000000000006cf4900000000000000000000000000000000000000000000000000000000639833b0000000000000000000000000000000000000000000000000000000000000000751c54ac1869a3f078ff0aa2994f27f6aceb5d2bda18ec30f2593fa20d9c052fa000000000000000000000000000000000000000000000000000000000000000000000000000000000000000016cb0a409497493c2ef7688f69534fd8f8f23b74000000000000000000000000000000000000000000000000000000000000083400000000000000000000000000000000000000000000000000000000000f4240"
 
@@ -79,4 +85,4 @@ internal class AbiTest {
         val expectedOutput =
             """{"method":"setL1BlockValues","types":["uint64","uint64","uint256","bytes32","uint64","bytes32","uint256","uint256"],"inputs":[{"type":"BigNumber","hex":"0x06cf49"},{"type":"BigNumber","hex":"0x639833b0"},{"type":"BigNumber","hex":"0x07"},"0x51c54ac1869a3f078ff0aa2994f27f6aceb5d2bda18ec30f2593fa20d9c052fa",{"type":"BigNumber","hex":"0x00"},"0x00000000000000000000000016cb0a409497493c2ef7688f69534fd8f8f23b74",{"type":"BigNumber","hex":"0x0834"},{"type":"BigNumber","hex":"0x0f4240"}],"names":["_number","_timestamp","_basefee","_hash","_sequenceNumber","_batcherHash","_l1FeeOverhead","_l1FeeScalar"]}"""
     }
-}
+})

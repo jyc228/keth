@@ -1,5 +1,6 @@
 package io.github.jyc228.ethereum.abi
 
+import io.github.jyc228.ethereum.Address
 import java.math.BigInteger
 import java.nio.ByteBuffer
 import kotlin.math.ceil
@@ -193,12 +194,12 @@ data object AddressCodec : Codec {
         buffer.position(12).putHexString(address)
     }
 
-    override fun decode(type: Type, buffer: ByteBuffer): String = decode(buffer)
+    override fun decode(type: Type, buffer: ByteBuffer): Address = decode(buffer)
 
     @OptIn(ExperimentalStdlibApi::class)
-    fun decode(data: ByteBuffer): String {
+    fun decode(data: ByteBuffer): Address {
         repeat(12) { require(data.get() == 0.toByte()) }
-        return ByteArray(20).also { data.get(it) }.toHexString().lowercase()
+        return Address(ByteArray(20).also { data.get(it) }.toHexString().lowercase())
     }
 }
 
