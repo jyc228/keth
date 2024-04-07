@@ -17,14 +17,13 @@ import kotlin.reflect.KFunction8
 import kotlin.reflect.KFunction9
 import kotlin.reflect.KType
 import kotlinx.serialization.json.Json
-import org.intellij.lang.annotations.Language
 
 abstract class AbstractContractFunction<R>(
     private val returnType: KType,
-    jsonAbi: String,
-    private val sig: String
+    private val sig: String,
+    jsonAbi: () -> String,
 ) {
-    private val abi: AbiItem by lazy(LazyThreadSafetyMode.NONE) { Json.decodeFromString(jsonAbi) }
+    private val abi: AbiItem by lazy(LazyThreadSafetyMode.NONE) { Json.decodeFromString(jsonAbi()) }
 
     protected fun encodeFunctionCall(vararg parameters: Any?): String {
         if (parameters.isEmpty()) return sig
@@ -53,19 +52,17 @@ abstract class AbstractContractFunction<R>(
 
 class ContractFunctionP0<R>(
     private val kFunction: KFunction1<*, ContractFunctionRequest<R>>,
-    @Language("json")
-    jsonAbi: String,
-    sig: String
-) : AbstractContractFunction<R>(kFunction.returnType, jsonAbi, sig) {
+    sig: String,
+    jsonAbi: () -> String,
+) : AbstractContractFunction<R>(kFunction.returnType, sig, jsonAbi) {
     fun encodeFunctionCall() = super.encodeFunctionCall()
 }
 
 class ContractFunctionP1<P1, R>(
     private val kFunction: KFunction2<*, P1, ContractFunctionRequest<R>>,
-    @Language("json")
-    jsonAbi: String,
-    sig: String
-) : AbstractContractFunction<R>(kFunction.returnType, jsonAbi, sig) {
+    sig: String,
+    jsonAbi: () -> String,
+) : AbstractContractFunction<R>(kFunction.returnType, sig, jsonAbi) {
     fun encodeFunctionCall(p1: P1) = super.encodeFunctionCall(p1)
 
     @Suppress("UNCHECKED_CAST")
@@ -77,10 +74,9 @@ class ContractFunctionP1<P1, R>(
 
 class ContractFunctionP2<P1, P2, R>(
     private val kFunction: KFunction3<*, P1, P2, ContractFunctionRequest<R>>,
-    @Language("json")
-    jsonAbi: String,
-    sig: String
-) : AbstractContractFunction<R>(kFunction.returnType, jsonAbi, sig) {
+    sig: String,
+    jsonAbi: () -> String,
+) : AbstractContractFunction<R>(kFunction.returnType, sig, jsonAbi) {
     fun encodeFunctionCall(p1: P1, p2: P2) = super.encodeFunctionCall(p1, p2)
 
     @Suppress("UNCHECKED_CAST")
@@ -92,10 +88,9 @@ class ContractFunctionP2<P1, P2, R>(
 
 class ContractFunctionP3<P1, P2, P3, R>(
     private val kFunction: KFunction4<*, P1, P2, P3, ContractFunctionRequest<R>>,
-    @Language("json")
-    jsonAbi: String,
-    sig: String
-) : AbstractContractFunction<R>(kFunction.returnType, jsonAbi, sig) {
+    sig: String,
+    jsonAbi: () -> String,
+) : AbstractContractFunction<R>(kFunction.returnType, sig, jsonAbi) {
     fun encodeFunctionCall(p1: P1, p2: P2, p3: P3) = super.encodeFunctionCall(p1, p2, p3)
 
     @Suppress("UNCHECKED_CAST")
@@ -107,10 +102,9 @@ class ContractFunctionP3<P1, P2, P3, R>(
 
 class ContractFunctionP4<P1, P2, P3, P4, R>(
     private val kFunction: KFunction5<*, P1, P2, P3, P4, ContractFunctionRequest<R>>,
-    @Language("json")
-    jsonAbi: String,
-    sig: String
-) : AbstractContractFunction<R>(kFunction.returnType, jsonAbi, sig) {
+    sig: String,
+    jsonAbi: () -> String,
+) : AbstractContractFunction<R>(kFunction.returnType, sig, jsonAbi) {
     fun encodeFunctionCall(p1: P1, p2: P2, p3: P3, p4: P4) = super.encodeFunctionCall(p1, p2, p3, p4)
 
     @Suppress("UNCHECKED_CAST")
@@ -122,10 +116,9 @@ class ContractFunctionP4<P1, P2, P3, P4, R>(
 
 class ContractFunctionP5<P1, P2, P3, P4, P5, R>(
     private val kFunction: KFunction6<*, P1, P2, P3, P4, P5, ContractFunctionRequest<R>>,
-    @Language("json")
-    jsonAbi: String,
-    sig: String
-) : AbstractContractFunction<R>(kFunction.returnType, jsonAbi, sig) {
+    sig: String,
+    jsonAbi: () -> String,
+) : AbstractContractFunction<R>(kFunction.returnType, sig, jsonAbi) {
     fun encodeFunctionCall(p1: P1, p2: P2, p3: P3, p4: P4, p5: P5) = super.encodeFunctionCall(p1, p2, p3, p4, p5)
 
     @Suppress("UNCHECKED_CAST")
@@ -137,10 +130,9 @@ class ContractFunctionP5<P1, P2, P3, P4, P5, R>(
 
 class ContractFunctionP6<P1, P2, P3, P4, P5, P6, R>(
     private val kFunction: KFunction7<*, P1, P2, P3, P4, P5, P6, ContractFunctionRequest<R>>,
-    @Language("json")
-    jsonAbi: String,
-    sig: String
-) : AbstractContractFunction<R>(kFunction.returnType, jsonAbi, sig) {
+    sig: String,
+    jsonAbi: () -> String,
+) : AbstractContractFunction<R>(kFunction.returnType, sig, jsonAbi) {
     fun encodeFunctionCall(p1: P1, p2: P2, p3: P3, p4: P4, p5: P5, p6: P6) =
         super.encodeFunctionCall(p1, p2, p3, p4, p5, p6)
 
@@ -160,10 +152,9 @@ class ContractFunctionP6<P1, P2, P3, P4, P5, P6, R>(
 
 class ContractFunctionP7<P1, P2, P3, P4, P5, P6, P7, R>(
     private val kFunction: KFunction8<*, P1, P2, P3, P4, P5, P6, P7, ContractFunctionRequest<R>>,
-    @Language("json")
-    jsonAbi: String,
-    sig: String
-) : AbstractContractFunction<R>(kFunction.returnType, jsonAbi, sig) {
+    sig: String,
+    jsonAbi: () -> String,
+) : AbstractContractFunction<R>(kFunction.returnType, sig, jsonAbi) {
     fun encodeFunctionCall(p1: P1, p2: P2, p3: P3, p4: P4, p5: P5, p6: P6, p7: P7) =
         super.encodeFunctionCall(p1, p2, p3, p4, p5, p6, p7)
 
@@ -184,10 +175,9 @@ class ContractFunctionP7<P1, P2, P3, P4, P5, P6, P7, R>(
 
 class ContractFunctionP8<P1, P2, P3, P4, P5, P6, P7, P8, R>(
     private val kFunction: KFunction9<*, P1, P2, P3, P4, P5, P6, P7, P8, ContractFunctionRequest<R>>,
-    @Language("json")
-    jsonAbi: String,
-    sig: String
-) : AbstractContractFunction<R>(kFunction.returnType, jsonAbi, sig) {
+    sig: String,
+    jsonAbi: () -> String,
+) : AbstractContractFunction<R>(kFunction.returnType, sig, jsonAbi) {
     fun encodeFunctionCall(p1: P1, p2: P2, p3: P3, p4: P4, p5: P5, p6: P6, p7: P7, p8: P8) =
         super.encodeFunctionCall(p1, p2, p3, p4, p5, p6, p7, p8)
 
@@ -209,10 +199,9 @@ class ContractFunctionP8<P1, P2, P3, P4, P5, P6, P7, P8, R>(
 
 class ContractFunctionP9<P1, P2, P3, P4, P5, P6, P7, P8, P9, R>(
     private val kFunction: KFunction10<*, P1, P2, P3, P4, P5, P6, P7, P8, P9, ContractFunctionRequest<R>>,
-    @Language("json")
-    jsonAbi: String,
-    sig: String
-) : AbstractContractFunction<R>(kFunction.returnType, jsonAbi, sig) {
+    sig: String,
+    jsonAbi: () -> String,
+) : AbstractContractFunction<R>(kFunction.returnType, sig, jsonAbi) {
     fun encodeFunctionCall(p1: P1, p2: P2, p3: P3, p4: P4, p5: P5, p6: P6, p7: P7, p8: P8, p9: P9) =
         super.encodeFunctionCall(p1, p2, p3, p4, p5, p6, p7, p8, p9)
 

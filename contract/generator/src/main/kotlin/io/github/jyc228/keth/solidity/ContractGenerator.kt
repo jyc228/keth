@@ -78,8 +78,8 @@ class ContractGenerator(
             .immutable()
             .defaultValue("ContractFunctionP${item.inputs.size}") {
                 parameter("$interfaceName::${item.name}")
-                parameter(item.toJsonStringTemplate())
                 stringParameter("0x${item.computeSig()}")
+                parameter("{ ${item.toJsonStringTemplate()} }")
             }
     }
 
