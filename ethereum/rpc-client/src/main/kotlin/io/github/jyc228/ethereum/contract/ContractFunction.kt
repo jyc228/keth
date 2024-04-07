@@ -24,13 +24,18 @@ abstract class AbstractContractFunction<R>(
     jsonAbi: String,
     private val sig: String
 ) {
-    protected val abi: AbiItem by lazy(LazyThreadSafetyMode.NONE) { Json.decodeFromString(jsonAbi) }
+    private val abi: AbiItem by lazy(LazyThreadSafetyMode.NONE) { Json.decodeFromString(jsonAbi) }
 
     protected fun encodeFunctionCall(vararg parameters: Any?): String {
         if (parameters.isEmpty()) return sig
         val type = abi.inputs.map { createType(it) }
         return "${sig.take(10)}${Abi.encodeParameters(type, parameters.map { (it as? HexString)?.hex ?: it })}"
     }
+
+    protected fun decodeFunctionParameter(input: String) = Abi.decodeParameters(
+        abi.inputs.map { it.type },
+        input.drop(10), // remove 0x and function signature (4 bytes)
+    )
 
     private fun createType(abi: AbiInput): String {
         if (abi.type == "tuple" && abi.components.isNotEmpty()) {
@@ -62,6 +67,12 @@ class ContractFunctionP1<P1, R>(
     sig: String
 ) : AbstractContractFunction<R>(kFunction.returnType, jsonAbi, sig) {
     fun encodeFunctionCall(p1: P1) = super.encodeFunctionCall(p1)
+
+    @Suppress("UNCHECKED_CAST")
+    fun <R> decodeFunctionCall(input: String, callParameter: (P1) -> R): R {
+        val params = decodeFunctionParameter(input)
+        return callParameter(params[0] as P1)
+    }
 }
 
 class ContractFunctionP2<P1, P2, R>(
@@ -71,6 +82,12 @@ class ContractFunctionP2<P1, P2, R>(
     sig: String
 ) : AbstractContractFunction<R>(kFunction.returnType, jsonAbi, sig) {
     fun encodeFunctionCall(p1: P1, p2: P2) = super.encodeFunctionCall(p1, p2)
+
+    @Suppress("UNCHECKED_CAST")
+    fun <R> decodeFunctionCall(input: String, callParameter: (P1, P2) -> R): R {
+        val params = decodeFunctionParameter(input)
+        return callParameter(params[0] as P1, params[1] as P2)
+    }
 }
 
 class ContractFunctionP3<P1, P2, P3, R>(
@@ -80,6 +97,12 @@ class ContractFunctionP3<P1, P2, P3, R>(
     sig: String
 ) : AbstractContractFunction<R>(kFunction.returnType, jsonAbi, sig) {
     fun encodeFunctionCall(p1: P1, p2: P2, p3: P3) = super.encodeFunctionCall(p1, p2, p3)
+
+    @Suppress("UNCHECKED_CAST")
+    fun <R> decodeFunctionCall(input: String, callParameter: (P1, P2, P3) -> R): R {
+        val params = decodeFunctionParameter(input)
+        return callParameter(params[0] as P1, params[1] as P2, params[2] as P3)
+    }
 }
 
 class ContractFunctionP4<P1, P2, P3, P4, R>(
@@ -89,6 +112,12 @@ class ContractFunctionP4<P1, P2, P3, P4, R>(
     sig: String
 ) : AbstractContractFunction<R>(kFunction.returnType, jsonAbi, sig) {
     fun encodeFunctionCall(p1: P1, p2: P2, p3: P3, p4: P4) = super.encodeFunctionCall(p1, p2, p3, p4)
+
+    @Suppress("UNCHECKED_CAST")
+    fun <R> decodeFunctionCall(input: String, callParameter: (P1, P2, P3, P4) -> R): R {
+        val params = decodeFunctionParameter(input)
+        return callParameter(params[0] as P1, params[1] as P2, params[2] as P3, params[3] as P4)
+    }
 }
 
 class ContractFunctionP5<P1, P2, P3, P4, P5, R>(
@@ -98,6 +127,12 @@ class ContractFunctionP5<P1, P2, P3, P4, P5, R>(
     sig: String
 ) : AbstractContractFunction<R>(kFunction.returnType, jsonAbi, sig) {
     fun encodeFunctionCall(p1: P1, p2: P2, p3: P3, p4: P4, p5: P5) = super.encodeFunctionCall(p1, p2, p3, p4, p5)
+
+    @Suppress("UNCHECKED_CAST")
+    fun <R> decodeFunctionCall(input: String, callParameter: (P1, P2, P3, P4, P5) -> R): R {
+        val params = decodeFunctionParameter(input)
+        return callParameter(params[0] as P1, params[1] as P2, params[2] as P3, params[3] as P4, params[4] as P5)
+    }
 }
 
 class ContractFunctionP6<P1, P2, P3, P4, P5, P6, R>(
@@ -108,6 +143,19 @@ class ContractFunctionP6<P1, P2, P3, P4, P5, P6, R>(
 ) : AbstractContractFunction<R>(kFunction.returnType, jsonAbi, sig) {
     fun encodeFunctionCall(p1: P1, p2: P2, p3: P3, p4: P4, p5: P5, p6: P6) =
         super.encodeFunctionCall(p1, p2, p3, p4, p5, p6)
+
+    @Suppress("UNCHECKED_CAST")
+    fun <R> decodeFunctionCall(input: String, callParameter: (P1, P2, P3, P4, P5, P6) -> R): R {
+        val params = decodeFunctionParameter(input)
+        return callParameter(
+            params[0] as P1,
+            params[1] as P2,
+            params[2] as P3,
+            params[3] as P4,
+            params[4] as P5,
+            params[5] as P6
+        )
+    }
 }
 
 class ContractFunctionP7<P1, P2, P3, P4, P5, P6, P7, R>(
@@ -118,6 +166,20 @@ class ContractFunctionP7<P1, P2, P3, P4, P5, P6, P7, R>(
 ) : AbstractContractFunction<R>(kFunction.returnType, jsonAbi, sig) {
     fun encodeFunctionCall(p1: P1, p2: P2, p3: P3, p4: P4, p5: P5, p6: P6, p7: P7) =
         super.encodeFunctionCall(p1, p2, p3, p4, p5, p6, p7)
+
+    @Suppress("UNCHECKED_CAST")
+    fun <R> decodeFunctionCall(input: String, callParameter: (P1, P2, P3, P4, P5, P6, P7) -> R): R {
+        val params = decodeFunctionParameter(input)
+        return callParameter(
+            params[0] as P1,
+            params[1] as P2,
+            params[2] as P3,
+            params[3] as P4,
+            params[4] as P5,
+            params[5] as P6,
+            params[6] as P7,
+        )
+    }
 }
 
 class ContractFunctionP8<P1, P2, P3, P4, P5, P6, P7, P8, R>(
@@ -128,6 +190,21 @@ class ContractFunctionP8<P1, P2, P3, P4, P5, P6, P7, P8, R>(
 ) : AbstractContractFunction<R>(kFunction.returnType, jsonAbi, sig) {
     fun encodeFunctionCall(p1: P1, p2: P2, p3: P3, p4: P4, p5: P5, p6: P6, p7: P7, p8: P8) =
         super.encodeFunctionCall(p1, p2, p3, p4, p5, p6, p7, p8)
+
+    @Suppress("UNCHECKED_CAST")
+    fun <R> decodeFunctionCall(input: String, callParameter: (P1, P2, P3, P4, P5, P6, P7, P8) -> R): R {
+        val params = decodeFunctionParameter(input)
+        return callParameter(
+            params[0] as P1,
+            params[1] as P2,
+            params[2] as P3,
+            params[3] as P4,
+            params[4] as P5,
+            params[5] as P6,
+            params[6] as P7,
+            params[7] as P8,
+        )
+    }
 }
 
 class ContractFunctionP9<P1, P2, P3, P4, P5, P6, P7, P8, P9, R>(
@@ -141,11 +218,7 @@ class ContractFunctionP9<P1, P2, P3, P4, P5, P6, P7, P8, P9, R>(
 
     @Suppress("UNCHECKED_CAST")
     fun <R> decodeFunctionCall(input: String, callParameter: (P1, P2, P3, P4, P5, P6, P7, P8, P9) -> R): R {
-        val params = Abi.decodeParameters(
-            abi.inputs.map { it.type },
-            // remove 0x and function signature (4 bytes)
-            input.drop(10),
-        )
+        val params = decodeFunctionParameter(input)
         return callParameter(
             params[0] as P1,
             params[1] as P2,
