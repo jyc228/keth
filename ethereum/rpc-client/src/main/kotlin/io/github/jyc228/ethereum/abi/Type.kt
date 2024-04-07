@@ -5,17 +5,11 @@ sealed interface Type {
     val size: Int?
     val dynamic: Boolean
 
-    fun withKey(key: String): TypeWithKey = TypeWithKey(key, this)
-
     companion object {
-        fun of(typeName: String, key: String? = null): Type {
-            val type = when {
-                typeName.endsWith(']') -> arrayType(typeName)
-                typeName.startsWith('(') || typeName.startsWith("tuple(") -> tupleType(typeName)
-                else -> primitiveType(typeName)
-            }
-            if (key.isNullOrBlank()) return type
-            return TypeWithKey(key, type)
+        fun of(typeName: String): Type = when {
+            typeName.endsWith(']') -> arrayType(typeName)
+            typeName.startsWith('(') || typeName.startsWith("tuple(") -> tupleType(typeName)
+            else -> primitiveType(typeName)
         }
 
         private fun arrayType(typeName: String): ArrayType {
@@ -77,8 +71,4 @@ data class TupleType(val components: List<Type>) : Type {
     override val size: Int get() = components.size
     override val dynamic: Boolean = components.any { it.dynamic }
     override fun toString(): String = "$name(${components.joinToString(",")})"
-}
-
-class TypeWithKey(val key: String, val type: Type) : Type by type {
-    override fun toString(): String = "$key:${type}"
 }

@@ -163,35 +163,21 @@ class AbiImplTest : DescribeSpec({
                     .let { it encode "(uint8,bool)".type shouldBe "00000000000000000000000000000000000000000000000000000000000000450000000000000000000000000000000000000000000000000000000000000001" }
                 listOf(true, listOf(69, true))
                     .let { it encode "(bool,(uint8,bool))".type shouldBe "000000000000000000000000000000000000000000000000000000000000000100000000000000000000000000000000000000000000000000000000000000450000000000000000000000000000000000000000000000000000000000000001" }
-                mapOf("y" to false, "z" to true) encode TupleType(
-                    Type.of("bool", "y"),
-                    Type.of("bool", "z"),
-                ) shouldBe "00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000001"
+                listOf(false, true)
+                    .let { it encode "(bool,bool)".type shouldBe "00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000001" }
             }
         }
 
         context("decode") {
-            decodeTest({ it.shouldBeInstanceOf<Map<*, *>>() }) {
+            decodeTest({ it.shouldBeInstanceOf<List<*>>() }) {
+                // @formatter:off
                 "00000000000000000000000000000000000000000000000000000000000000450000000000000000000000000000000000000000000000000000000000000001"
-                    .let { it decode "(uint8,bool)".type shouldBe mapOf("0" to 69.toBigInteger(), "1" to true) }
+                    .let { it decode "(uint8,bool)".type shouldBe listOf(69.toBigInteger(), true) }
                 "000000000000000000000000000000000000000000000000000000000000000100000000000000000000000000000000000000000000000000000000000000450000000000000000000000000000000000000000000000000000000000000001"
-                    .let {
-                        it decode TupleType(
-                            "bool".type,
-                            Type.of("(uint8,bool)", "subTuple")
-                        ) shouldBe mapOf("0" to true, "subTuple" to mapOf("0" to 69.toBigInteger(), "1" to true))
-                    }
+                    .let { it decode "(bool,(uint8,bool))".type shouldBe listOf(true, listOf(69.toBigInteger(), true)) }
                 "0000000000000000000000000000000000000000000000000000000000000060000000000000000000000000000000000000000000000000000000000000000100000000000000000000000000000000000000000000000000000000000000a000000000000000000000000000000000000000000000000000000000000000116d6172696e31323331323331323331323300000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000010000000000000000000000000000000000000000000000000000000000000040000000000000000000000000000000000000000000000000000000000000003c776562336a7374657374696e676c6f6e6773747269696969696969696969696969696969696969696969696969696969696969696969696969696e6700000000"
-                    .let {
-                        it decode "(string,bool,(bool,string))".type shouldBe mapOf(
-                            "0" to "marin123123123123",
-                            "1" to true,
-                            "2" to mapOf(
-                                "0" to true,
-                                "1" to "web3jstestinglongstriiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiing"
-                            )
-                        )
-                    }
+                    .let { it decode "(string,bool,(bool,string))".type shouldBe listOf("marin123123123123", true, listOf(true, "web3jstestinglongstriiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiing")) }
+                // @formatter:on
             }
         }
     }

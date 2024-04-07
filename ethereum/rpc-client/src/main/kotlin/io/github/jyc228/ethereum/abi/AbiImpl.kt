@@ -7,13 +7,21 @@ import java.nio.ByteBuffer
 object AbiImpl : Abi {
     override fun decodeLog(inputs: List<AbiInput>, hex: String, topics: List<String>): Map<String, Any> {
         val types = inputs.fold(LogTypes()) { types, abi -> types.add(abi) }
-        val result = TupleCodec.decode(TupleType(types.nonIndexed), hexToByteBuffer(hex))
-        types.indexed.forEachIndexed { i, t -> result[t.key] = Codec.decode(t.type, topics[i + 1]) }
-        return result
+        val indexedResult = types.indexed.mapIndexed { i, t -> Codec.decode(t, topics[i + 1]) }.iterator()
+        val nonIndexedResult = TupleCodec.decode(TupleType(types.nonIndexed), hexToByteBuffer(hex)).iterator()
+        return buildMap(inputs.size) {
+            for (input in inputs) {
+                this[input.name] = when (input.indexed == true) {
+                    true -> indexedResult
+                    false -> nonIndexedResult
+                }.next()
+            }
+            require(!indexedResult.hasNext() && !nonIndexedResult.hasNext())
+        }
     }
 
     override fun decodeParameters(types: List<String>, hex: String): List<Any> {
-        return TupleCodec.decode(TupleType(types.map(Type::of)), hexToByteBuffer(hex)).values.toList()
+        return TupleCodec.decode(TupleType(types.map(Type::of)), hexToByteBuffer(hex))
     }
 
     @OptIn(ExperimentalStdlibApi::class)
@@ -29,14 +37,14 @@ object AbiImpl : Abi {
     }
 
     private data class LogTypes(
-        val indexed: MutableList<TypeWithKey> = mutableListOf(),
-        val nonIndexed: MutableList<TypeWithKey> = mutableListOf()
+        val indexed: MutableList<Type> = mutableListOf(),
+        val nonIndexed: MutableList<Type> = mutableListOf()
     ) {
         fun add(abi: AbiInput) = apply {
             when (abi.indexed == true) {
                 true -> indexed
                 false -> nonIndexed
-            } += Type.of(abi.type).withKey(abi.name)
+            } += Type.of(abi.type)
         }
     }
 }

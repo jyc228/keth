@@ -278,35 +278,27 @@ data object TupleCodec : Codec {
     }
 
     private fun asSequence(type: Type, data: Any?): Sequence<Pair<Type, Any?>> {
-        require(type is TupleType)
-        if (data is Collection<*>) {
-            val dataIterator = data.iterator()
-            return type.components.asSequence().map { it to dataIterator.next() }
-        }
-        if (data is Map<*, *>) {
-            return type.components.asSequence().map { it to data[(it as TypeWithKey).key] }
-        }
-        error("unsupported data $data")
+        require(type is TupleType && data is Collection<*>)
+        val dataIterator = data.iterator()
+        return type.components.asSequence().map { it to dataIterator.next() }
     }
 
-    override fun decode(type: Type, buffer: ByteBuffer): LinkedHashMap<String, Any> {
+    override fun decode(type: Type, buffer: ByteBuffer): List<Any> {
         require(type is TupleType)
-        val result = LinkedHashMap<String, Any>(type.components.size)
         val offset = buffer.position()
-        type.components.forEachIndexed { i, c ->
-            val typeWithField = c as? TypeWithKey
+        return type.components.mapIndexed { i, c ->
             if (c.dynamic) {
                 val offsetSize = NumberCodec.decode(Type.of("uint32"), buffer)
                 buffer.position(offset + offsetSize.toInt())
-                result[typeWithField?.key ?: i.toString()] = Codec.decode(typeWithField?.type ?: c, buffer)
+                val result = Codec.decode(c, buffer)
                 if (i < type.components.lastIndex) {
                     buffer.position(offset + (i + 1) * 32)
                 }
+                result
             } else {
-                result[typeWithField?.key ?: i.toString()] = Codec.decode(typeWithField?.type ?: c, buffer)
+                Codec.decode(c, buffer)
             }
         }
-        return result
     }
 }
 
