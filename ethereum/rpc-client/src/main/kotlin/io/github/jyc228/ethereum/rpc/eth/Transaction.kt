@@ -45,7 +45,7 @@ interface Transaction {
 }
 
 @Serializable
-data class Access(val address: Address, val storageKey: List<Hash> = emptyList())
+data class Access(val address: Address, val storageKeys: List<Hash> = emptyList())
 
 interface LegacyTransaction : Transaction
 

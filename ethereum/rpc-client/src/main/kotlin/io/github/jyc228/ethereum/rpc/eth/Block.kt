@@ -15,7 +15,7 @@ interface BlockHeader {
     val hash: Hash
     val parentHash: Hash
     val sha3Uncles: Hash
-    val coinbase: Address?
+    val miner: Address?
     val stateRoot: Hash
     val transactionsRoot: Hash
     val receiptsRoot: Hash
@@ -28,12 +28,16 @@ interface BlockHeader {
     val extraData: String
     val mixHash: Hash
     val nonce: HexULong
+    val totalDifficulty: HexBigInt?
 
     // BaseFee was added by EIP-1559 and is ignored in legacy headers.
     val baseFeePerGas: HexBigInt?
 
     // WithdrawalsHash was added by EIP-4895 and is ignored in legacy headers.
     val withdrawalsRoot: Hash?
+    val parentBeaconBlockRoot: Hash?
+    val blobGasUsed: HexBigInt?
+    val excessBlobGas: HexBigInt?
 }
 
 @Serializable
@@ -41,7 +45,7 @@ data class SimpleBlockHeader(
     override val hash: Hash,
     override val parentHash: Hash,
     override val sha3Uncles: Hash,
-    override val coinbase: Address? = null,
+    override val miner: Address? = null,
     override val stateRoot: Hash,
     override val transactionsRoot: Hash,
     override val receiptsRoot: Hash,
@@ -55,14 +59,16 @@ data class SimpleBlockHeader(
     override val extraData: String,
     override val mixHash: Hash,
     override val nonce: HexULong,
+    override val totalDifficulty: HexBigInt?,
     override val baseFeePerGas: HexBigInt? = null,
     override val withdrawalsRoot: Hash? = null,
+    override val parentBeaconBlockRoot: Hash?,
+    override val blobGasUsed: HexBigInt?,
+    override val excessBlobGas: HexBigInt?,
 ) : BlockHeader
 
 interface Block : BlockHeader {
-    val miner: String
     val size: HexData
-    val totalDifficulty: HexBigInt?
     val transactions: Transactions
     val uncles: List<String>
     val withdrawals: List<Withdrawal>
@@ -74,7 +80,6 @@ interface Block : BlockHeader {
 
 @Serializable
 data class SimpleBlock(
-    override val coinbase: Address? = null,
     override val baseFeePerGas: HexBigInt? = null,
     override val difficulty: HexBigInt,
     override val extraData: String = "",
@@ -82,7 +87,7 @@ data class SimpleBlock(
     override val gasUsed: HexBigInt,
     override val hash: Hash,
     override val logsBloom: String = "",
-    override val miner: String = "",
+    override val miner: Address? = null,
     override val mixHash: Hash,
     override val nonce: HexULong,
     override val number: HexULong,
@@ -98,7 +103,10 @@ data class SimpleBlock(
     override val transactionsRoot: Hash,
     override val uncles: List<String> = emptyList(),
     override val withdrawals: List<Withdrawal> = emptyList(),
-    override val withdrawalsRoot: Hash? = null
+    override val withdrawalsRoot: Hash? = null,
+    override val parentBeaconBlockRoot: Hash?,
+    override val blobGasUsed: HexBigInt?,
+    override val excessBlobGas: HexBigInt?
 ) : Block {
 
     @Serializable(TransactionHashesSerializer::class)
@@ -108,7 +116,6 @@ data class SimpleBlock(
 
 @Serializable
 data class FullBlock(
-    override val coinbase: Address? = null,
     override val baseFeePerGas: HexBigInt? = null,
     override val difficulty: HexBigInt,
     override val extraData: String = "",
@@ -116,7 +123,7 @@ data class FullBlock(
     override val gasUsed: HexBigInt,
     override val hash: Hash,
     override val logsBloom: String = "",
-    override val miner: String = "",
+    override val miner: Address? = null,
     override val mixHash: Hash,
     override val nonce: HexULong,
     override val number: HexULong,
@@ -132,7 +139,10 @@ data class FullBlock(
     override val transactionsRoot: Hash,
     override val uncles: List<String> = emptyList(),
     override val withdrawals: List<Withdrawal> = emptyList(),
-    override val withdrawalsRoot: Hash? = null
+    override val withdrawalsRoot: Hash? = null,
+    override val parentBeaconBlockRoot: Hash?,
+    override val blobGasUsed: HexBigInt?,
+    override val excessBlobGas: HexBigInt?
 ) : Block {
 
     override fun toString(): String {

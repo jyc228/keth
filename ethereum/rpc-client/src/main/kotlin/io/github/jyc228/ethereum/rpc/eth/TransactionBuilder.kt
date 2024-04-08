@@ -42,7 +42,7 @@ internal fun TransactionBuilder.toWeb3jTransaction(): RawTransaction {
             to?.hex,
             value.number,
             input,
-            accessList.map { AccessListObject(it.address.hex, it.storageKey.map { k -> k.hex }) }
+            accessList.map { AccessListObject(it.address.hex, it.storageKeys.map { k -> k.hex }) }
         )
 
         else -> RawTransaction.createTransaction(
