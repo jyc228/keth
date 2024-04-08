@@ -50,6 +50,15 @@ class EthJsonRpcApi(client: JsonRpcClient) : EthApi, AbstractJsonRpcApi(client) 
         false -> "eth_getBlockByNumber"<SimpleBlock, BlockReference, Boolean>(target, false)
     }
 
+    override suspend fun getBlockTransactionCountByHash(hash: Hash): ApiResult<HexULong> =
+        "eth_getBlockTransactionCountByHash"(hash)
+
+    override suspend fun getBlockTransactionCountByNumber(number: ULong): ApiResult<HexULong> =
+        "eth_getBlockTransactionCountByNumber"(number)
+
+    override suspend fun getBlockTransactionCountByNumber(tag: BlockReference): ApiResult<HexULong> =
+        "eth_getBlockTransactionCountByNumber"(tag)
+
     override suspend fun getTransactionCount(
         address: Address,
         target: BlockReference

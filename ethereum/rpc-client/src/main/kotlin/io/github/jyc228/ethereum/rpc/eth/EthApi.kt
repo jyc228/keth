@@ -19,12 +19,17 @@ interface EthApi {
     suspend fun getHeaderByHash(hash: Hash): ApiResult<out BlockHeader>
     suspend fun getHeaderByNumber(number: ULong): ApiResult<out BlockHeader>
     suspend fun getHeaderByNumber(tag: BlockReference = BlockReference.latest): ApiResult<out BlockHeader>
+
     suspend fun getBlockByHash(hash: Hash, fullTransaction: Boolean): ApiResult<out Block?>
     suspend fun getBlockByNumber(number: ULong, fullTransaction: Boolean): ApiResult<out Block?>
     suspend fun getBlockByNumber(
         tag: BlockReference = BlockReference.latest,
         fullTransaction: Boolean
     ): ApiResult<out Block?>
+
+    suspend fun getBlockTransactionCountByHash(hash: Hash): ApiResult<HexULong>
+    suspend fun getBlockTransactionCountByNumber(number: ULong): ApiResult<HexULong>
+    suspend fun getBlockTransactionCountByNumber(tag: BlockReference = BlockReference.latest): ApiResult<HexULong>
 
     suspend fun getTransactionCount(
         address: Address,
