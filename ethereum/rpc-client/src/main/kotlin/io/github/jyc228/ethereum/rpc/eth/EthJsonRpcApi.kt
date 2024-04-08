@@ -20,6 +20,13 @@ class EthJsonRpcApi(client: JsonRpcClient) : EthApi, AbstractJsonRpcApi(client) 
     override suspend fun gasPrice(): ApiResult<HexBigInt> = "eth_gasPrice"()
     override suspend fun blockNumber(): ApiResult<HexULong> = "eth_blockNumber"()
 
+    override suspend fun getHeaderByHash(hash: Hash): ApiResult<SimpleBlockHeader> = "eth_getHeaderByHash"(hash)
+    override suspend fun getHeaderByNumber(number: ULong): ApiResult<SimpleBlockHeader> =
+        "eth_getHeaderByNumber"(number)
+
+    override suspend fun getHeaderByNumber(tag: BlockReference): ApiResult<SimpleBlockHeader> =
+        "eth_getHeaderByNumber"(tag)
+
     override suspend fun getBlockByHash(
         hash: Hash,
         fullTransaction: Boolean
@@ -47,6 +54,18 @@ class EthJsonRpcApi(client: JsonRpcClient) : EthApi, AbstractJsonRpcApi(client) 
         address: Address,
         target: BlockReference
     ): ApiResult<HexULong> = "eth_getTransactionCount"(address, target)
+
+    override suspend fun getRawTransactionByHash(hash: Hash): ApiResult<HexData?> = "eth_getRawTransactionByHash"(hash)
+
+    override suspend fun getRawTransactionByBlockHashAndIndex(
+        blockHash: Hash,
+        index: Int
+    ): ApiResult<HexData?> = "eth_getRawTransactionByBlockHashAndIndex"(blockHash, index)
+
+    override suspend fun getRawTransactionByBlockNumberAndIndex(
+        blockNumber: ULong,
+        index: Int
+    ): ApiResult<HexData?> = "eth_getRawTransactionByBlockNumberAndIndex"(blockNumber, index)
 
     override suspend fun getTransactionByHash(hash: Hash): ApiResult<Transaction?> = "eth_getTransactionByHash"(hash)
 

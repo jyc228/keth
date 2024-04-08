@@ -36,6 +36,29 @@ interface BlockHeader {
     val withdrawalsRoot: Hash?
 }
 
+@Serializable
+data class SimpleBlockHeader(
+    override val hash: Hash,
+    override val parentHash: Hash,
+    override val sha3Uncles: Hash,
+    override val coinbase: Address? = null,
+    override val stateRoot: Hash,
+    override val transactionsRoot: Hash,
+    override val receiptsRoot: Hash,
+    override val logsBloom: String,
+    override val difficulty: HexBigInt,
+    override val number: HexULong,
+    override val gasLimit: HexBigInt,
+    override val gasUsed: HexBigInt,
+    @Serializable(InstantSerializer::class)
+    override val timestamp: Instant,
+    override val extraData: String,
+    override val mixHash: Hash,
+    override val nonce: HexULong,
+    override val baseFeePerGas: HexBigInt? = null,
+    override val withdrawalsRoot: Hash? = null,
+) : BlockHeader
+
 interface Block : BlockHeader {
     val miner: String
     val size: HexData

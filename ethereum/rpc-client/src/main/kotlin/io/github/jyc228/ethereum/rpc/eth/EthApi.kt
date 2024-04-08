@@ -16,6 +16,9 @@ interface EthApi {
     suspend fun gasPrice(): ApiResult<HexBigInt>
     suspend fun blockNumber(): ApiResult<HexULong>
 
+    suspend fun getHeaderByHash(hash: Hash): ApiResult<out BlockHeader>
+    suspend fun getHeaderByNumber(number: ULong): ApiResult<out BlockHeader>
+    suspend fun getHeaderByNumber(tag: BlockReference = BlockReference.latest): ApiResult<out BlockHeader>
     suspend fun getBlockByHash(hash: Hash, fullTransaction: Boolean): ApiResult<out Block?>
     suspend fun getBlockByNumber(number: ULong, fullTransaction: Boolean): ApiResult<out Block?>
     suspend fun getBlockByNumber(
@@ -28,9 +31,14 @@ interface EthApi {
         target: BlockReference = BlockReference.latest
     ): ApiResult<HexULong>
 
+    suspend fun getRawTransactionByHash(hash: Hash): ApiResult<HexData?>
+    suspend fun getRawTransactionByBlockHashAndIndex(blockHash: Hash, index: Int): ApiResult<HexData?>
+    suspend fun getRawTransactionByBlockNumberAndIndex(blockNumber: ULong, index: Int): ApiResult<HexData?>
+
     suspend fun getTransactionByHash(hash: Hash): ApiResult<Transaction?>
     suspend fun getTransactionByBlockHashAndIndex(blockHash: Hash, index: Int): ApiResult<Transaction?>
     suspend fun getTransactionByBlockNumberAndIndex(blockNumber: ULong, index: Int): ApiResult<Transaction?>
+
     suspend fun getTransactionReceipt(hash: Hash): ApiResult<TransactionReceipt?>
 
     suspend fun getUncleByBlockHashAndIndex(blockHash: Hash, index: Int): ApiResult<Block?>
