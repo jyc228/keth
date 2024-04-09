@@ -59,12 +59,12 @@ data class SimpleBlockHeader(
     override val extraData: String,
     override val mixHash: Hash,
     override val nonce: HexULong,
-    override val totalDifficulty: HexBigInt?,
+    override val totalDifficulty: HexBigInt? = null,
     override val baseFeePerGas: HexBigInt? = null,
     override val withdrawalsRoot: Hash? = null,
-    override val parentBeaconBlockRoot: Hash?,
-    override val blobGasUsed: HexBigInt?,
-    override val excessBlobGas: HexBigInt?,
+    override val parentBeaconBlockRoot: Hash? = null,
+    override val blobGasUsed: HexBigInt? = null,
+    override val excessBlobGas: HexBigInt? = null,
 ) : BlockHeader
 
 interface Block : BlockHeader {
@@ -98,15 +98,15 @@ data class SimpleBlock(
     override val stateRoot: Hash,
     @Serializable(InstantSerializer::class)
     override val timestamp: Instant,
-    override val totalDifficulty: HexBigInt?,
+    override val totalDifficulty: HexBigInt? = null,
     override val transactions: TransactionHashes,
     override val transactionsRoot: Hash,
     override val uncles: List<String> = emptyList(),
     override val withdrawals: List<Withdrawal> = emptyList(),
     override val withdrawalsRoot: Hash? = null,
-    override val parentBeaconBlockRoot: Hash?,
-    override val blobGasUsed: HexBigInt?,
-    override val excessBlobGas: HexBigInt?
+    override val parentBeaconBlockRoot: Hash? = null,
+    override val blobGasUsed: HexBigInt? = null,
+    override val excessBlobGas: HexBigInt? = null,
 ) : Block {
 
     @Serializable(TransactionHashesSerializer::class)
@@ -134,15 +134,15 @@ data class FullBlock(
     override val stateRoot: Hash,
     @Serializable(InstantSerializer::class)
     override val timestamp: Instant,
-    override val totalDifficulty: HexBigInt?,
+    override val totalDifficulty: HexBigInt? = null,
     override val transactions: Transactions,
     override val transactionsRoot: Hash,
     override val uncles: List<String> = emptyList(),
     override val withdrawals: List<Withdrawal> = emptyList(),
     override val withdrawalsRoot: Hash? = null,
-    override val parentBeaconBlockRoot: Hash?,
-    override val blobGasUsed: HexBigInt?,
-    override val excessBlobGas: HexBigInt?
+    override val parentBeaconBlockRoot: Hash? = null,
+    override val blobGasUsed: HexBigInt? = null,
+    override val excessBlobGas: HexBigInt? = null,
 ) : Block {
 
     override fun toString(): String {
