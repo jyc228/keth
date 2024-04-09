@@ -1,7 +1,6 @@
 package io.github.jyc228.ethereum.rpc.eth
 
 import io.github.jyc228.ethereum.Address
-import io.github.jyc228.ethereum.Hash
 import io.github.jyc228.ethereum.HexBigInt
 import io.github.jyc228.ethereum.HexInt
 import kotlinx.serialization.Serializable
@@ -37,7 +36,6 @@ data class Withdrawal(
 value class BlockReference private constructor(val value: String) {
     constructor(number: ULong) : this("0x${number.toString(16)}")
     constructor(number: Int) : this("0x${number.toString(16)}")
-    constructor(hash: Hash) : this(hash.hex)
 
     companion object {
         val latest = BlockReference("latest")

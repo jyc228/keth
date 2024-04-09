@@ -18,23 +18,37 @@ interface EthApi {
 
     suspend fun getHeaderByHash(hash: Hash): ApiResult<out BlockHeader>
     suspend fun getHeaderByNumber(number: ULong): ApiResult<out BlockHeader>
-    suspend fun getHeaderByNumber(tag: BlockReference = BlockReference.latest): ApiResult<out BlockHeader>
+    suspend fun getHeaderByNumber(tag: String): ApiResult<out BlockHeader>
+    suspend fun getHeaderByNumber(ref: BlockReference = BlockReference.latest): ApiResult<out BlockHeader>
+    suspend fun getHeaders(numbers: ULongProgression) = numbers.map { getHeaderByNumber(it) }
 
-    suspend fun getBlockByHash(hash: Hash, fullTransaction: Boolean): ApiResult<out Block?>
-    suspend fun getBlockByNumber(number: ULong, fullTransaction: Boolean): ApiResult<out Block?>
-    suspend fun getBlockByNumber(
-        tag: BlockReference = BlockReference.latest,
-        fullTransaction: Boolean
-    ): ApiResult<out Block?>
+    suspend fun getBlockByHash(hash: Hash, fullTx: Boolean): ApiResult<out Block?>
+    suspend fun getBlockByNumber(number: ULong, fullTx: Boolean): ApiResult<out Block?>
+    suspend fun getBlockByNumber(tag: String, fullTx: Boolean): ApiResult<out Block?>
+    suspend fun getBlockByNumber(ref: BlockReference = BlockReference.latest, fullTx: Boolean): ApiResult<out Block?>
+
+    suspend fun getFullBlock(hash: Hash) = getBlockByHash(hash, true) as ApiResult<FullBlock?>
+    suspend fun getFullBlock(number: ULong) = getFullBlock(BlockReference(number))
+    suspend fun getFullBlock(tag: String) = getFullBlock(BlockReference.fromTag(tag))
+    suspend fun getFullBlock(ref: BlockReference = BlockReference.latest) =
+        getBlockByNumber(ref, true) as ApiResult<FullBlock?>
+
+    suspend fun getFullBlocks(numbers: ULongProgression) = numbers.map { getFullBlock(it) }
+
+    suspend fun getSimpleBlock(hash: Hash) = getBlockByHash(hash, false) as ApiResult<SimpleBlock?>
+    suspend fun getSimpleBlock(number: ULong) = getSimpleBlock(BlockReference(number))
+    suspend fun getSimpleBlock(tag: String) = getSimpleBlock(BlockReference.fromTag(tag))
+    suspend fun getSimpleBlock(ref: BlockReference = BlockReference.latest) =
+        getBlockByNumber(ref, false) as ApiResult<SimpleBlock?>
+
+    suspend fun getSimpleBlocks(numbers: ULongProgression) = numbers.map { getSimpleBlock(it) }
 
     suspend fun getBlockTransactionCountByHash(hash: Hash): ApiResult<HexULong>
     suspend fun getBlockTransactionCountByNumber(number: ULong): ApiResult<HexULong>
-    suspend fun getBlockTransactionCountByNumber(tag: BlockReference = BlockReference.latest): ApiResult<HexULong>
+    suspend fun getBlockTransactionCountByNumber(tag: String): ApiResult<HexULong>
+    suspend fun getBlockTransactionCountByNumber(ref: BlockReference = BlockReference.latest): ApiResult<HexULong>
 
-    suspend fun getTransactionCount(
-        address: Address,
-        target: BlockReference = BlockReference.latest
-    ): ApiResult<HexULong>
+    suspend fun getTransactionCount(address: Address, ref: BlockReference = BlockReference.latest): ApiResult<HexULong>
 
     suspend fun getRawTransactionByHash(hash: Hash): ApiResult<HexData?>
     suspend fun getRawTransactionByBlockHashAndIndex(blockHash: Hash, index: Int): ApiResult<HexData?>
@@ -50,30 +64,16 @@ interface EthApi {
     suspend fun getUncleByBlockNumberAndIndex(blockNumber: ULong, index: Int): ApiResult<Block?>
 
     suspend fun getLogs(request: GetLogsRequest): ApiResult<List<Log>>
-    suspend fun getBalance(address: Address, target: BlockReference = BlockReference.latest): ApiResult<HexBigInt?>
-    suspend fun getCode(address: Address, target: BlockReference = BlockReference.latest): ApiResult<HexData?>
+    suspend fun getBalance(address: Address, ref: BlockReference = BlockReference.latest): ApiResult<HexBigInt?>
+    suspend fun getCode(address: Address, ref: BlockReference = BlockReference.latest): ApiResult<HexData?>
 
-    suspend fun call(request: CallRequest, target: BlockReference = BlockReference.latest): ApiResult<HexData?>
+    suspend fun call(request: CallRequest, ref: BlockReference = BlockReference.latest): ApiResult<HexData?>
     suspend fun estimateGas(request: CallRequest): ApiResult<HexBigInt>
     suspend fun sendRawTransaction(signedTransactionData: String): ApiResult<Hash>
     suspend fun sendTransaction(
         account: AccountWithPrivateKey,
         build: suspend TransactionBuilder.() -> Unit
     ): ApiResult<Hash>
-
-    suspend fun getFullBlock(hash: Hash) = getBlockByHash(hash, true) as ApiResult<FullBlock?>
-    suspend fun getFullBlock(number: ULong) = getBlockByNumber(number, true) as ApiResult<FullBlock?>
-    suspend fun getFullBlock(tag: BlockReference = BlockReference.latest) =
-        getBlockByNumber(tag, true) as ApiResult<FullBlock?>
-
-    suspend fun getFullBlocks(numbers: ULongProgression) = numbers.map { getFullBlock(it) }
-
-    suspend fun getSimpleBlock(hash: Hash) = getBlockByHash(hash, false) as ApiResult<SimpleBlock?>
-    suspend fun getSimpleBlock(number: ULong) = getBlockByNumber(number, false) as ApiResult<SimpleBlock?>
-    suspend fun getSimpleBlock(tag: BlockReference = BlockReference.latest) =
-        getBlockByNumber(tag, false) as ApiResult<SimpleBlock?>
-
-    suspend fun getSimpleBlocks(numbers: ULongProgression) = numbers.map { getSimpleBlock(it) }
 
     suspend fun getLogs(init: GetLogsRequest.() -> Unit): ApiResult<List<Log>> = getLogs(GetLogsRequest().apply(init))
 
@@ -84,8 +84,6 @@ interface EthApi {
         .awaitOrThrow()
         .mapNotNull { log -> event.decodeIf(log.data, log.topics)?.let { e -> e to log } }
 
-    suspend fun call(
-        target: BlockReference = BlockReference.latest,
-        init: CallRequest.() -> Unit
-    ): ApiResult<HexData?> = call(CallRequest().apply(init), target)
+    suspend fun call(ref: BlockReference = BlockReference.latest, init: CallRequest.() -> Unit): ApiResult<HexData?> =
+        call(CallRequest().apply(init), ref)
 }
