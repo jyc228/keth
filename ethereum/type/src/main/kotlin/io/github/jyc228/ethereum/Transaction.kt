@@ -2,7 +2,13 @@ package io.github.jyc228.ethereum
 
 import kotlinx.serialization.Serializable
 
-interface Transaction {
+interface ECDSASignature {
+    val v: HexBigInt?
+    val r: HexBigInt?
+    val s: HexBigInt?
+}
+
+interface Transaction : ECDSASignature {
     val blockHash: Hash
     val blockNumber: HexULong
     val hash: Hash
@@ -15,9 +21,6 @@ interface Transaction {
     val gasPrice: HexBigInt?
     val transactionIndex: HexInt
     val type: TransactionType
-    val v: HexBigInt?
-    val r: HexBigInt?
-    val s: HexBigInt?
     val accessList: List<Access>
     val maxFeePerGas: HexBigInt
     val maxPriorityFeePerGas: HexBigInt

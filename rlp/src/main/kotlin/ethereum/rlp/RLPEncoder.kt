@@ -13,7 +13,7 @@ object RLPEncoder {
         val prefix = input.size.toHexString().chunked(2)
         return byteArrayOf(
             (183 + prefix.size).toByte(),
-            *prefix.map { it.toByte(16) }.toByteArray(),
+            *prefix.map { it.toUByte(16).toByte() }.toByteArray(),
             *input
         )
     }

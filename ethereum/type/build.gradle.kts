@@ -4,6 +4,8 @@ plugins {
 }
 
 dependencies {
+    implementation(project(":rlp"))
+
     implementation("org.jetbrains.kotlin:kotlin-reflect")
 
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.2")
