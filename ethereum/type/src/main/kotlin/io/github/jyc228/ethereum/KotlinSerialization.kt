@@ -1,17 +1,6 @@
 package io.github.jyc228.ethereum
 
-import io.github.jyc228.ethereum.eth.Block
-import io.github.jyc228.ethereum.eth.FullBlock
-import io.github.jyc228.ethereum.eth.MutableAccessListTransaction
-import io.github.jyc228.ethereum.eth.MutableBlobTransaction
-import io.github.jyc228.ethereum.eth.MutableDynamicFeeTransaction
-import io.github.jyc228.ethereum.eth.MutableLegacyTransaction
-import io.github.jyc228.ethereum.eth.SimpleBlock
-import io.github.jyc228.ethereum.eth.Transaction
-import io.github.jyc228.ethereum.eth.TransactionStatus
-import io.github.jyc228.ethereum.eth.TransactionType
 import kotlinx.datetime.Instant
-import kotlinx.serialization.DeserializationStrategy
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.builtins.ListSerializer
 import kotlinx.serialization.descriptors.PrimitiveKind
@@ -19,12 +8,6 @@ import kotlinx.serialization.descriptors.PrimitiveSerialDescriptor
 import kotlinx.serialization.descriptors.SerialDescriptor
 import kotlinx.serialization.encoding.Decoder
 import kotlinx.serialization.encoding.Encoder
-import kotlinx.serialization.json.JsonContentPolymorphicSerializer
-import kotlinx.serialization.json.JsonElement
-import kotlinx.serialization.json.JsonPrimitive
-import kotlinx.serialization.json.jsonArray
-import kotlinx.serialization.json.jsonObject
-import kotlinx.serialization.json.jsonPrimitive
 
 internal abstract class HexStringSerializer<T : HexString>(val toObject: (String) -> T) : KSerializer<T> {
     override val descriptor = PrimitiveSerialDescriptor(this::class.qualifiedName ?: error(""), PrimitiveKind.STRING)
@@ -38,8 +21,6 @@ internal object HexIntSerializer : HexStringSerializer<HexInt>(::HexInt)
 internal object HexULongSerializer : HexStringSerializer<HexULong>(::HexULong)
 internal object HexBigIntSerializer : HexStringSerializer<HexBigInt>(::HexBigInt)
 internal object HexDataSerializer : HexStringSerializer<HexData>(::HexData)
-internal object TransactionTypeSerializer : HexStringSerializer<TransactionType>(TransactionType.Companion::from)
-internal object TransactionStatusSerializer : HexStringSerializer<TransactionStatus>(TransactionStatus.Companion::from)
 
 internal object InstantSerializer : KSerializer<Instant> {
     override val descriptor = PrimitiveSerialDescriptor("io.github.jyc228.ethereum.Instant", PrimitiveKind.STRING)
@@ -48,60 +29,44 @@ internal object InstantSerializer : KSerializer<Instant> {
         Instant.fromEpochSeconds(decoder.decodeString().removePrefix("0x").toLong(16))
 }
 
-internal object BlockSerializer : JsonContentPolymorphicSerializer<Block>(Block::class) {
-    override fun selectDeserializer(element: JsonElement): DeserializationStrategy<Block> {
-        if (element.jsonObject["transactions"]?.jsonArray?.get(0) is JsonPrimitive) {
-            return SimpleBlock.serializer()
-        }
-        return FullBlock.serializer()
+internal abstract class NullSerializer<T>(
+    private val serializer: KSerializer<T>,
+    private val default: T
+) : KSerializer<T> by serializer {
+    override fun deserialize(decoder: Decoder): T = decoder.decodeNullableSerializableValue(serializer) ?: default
+}
+
+internal object TransactionHashesSerializer : KSerializer<TransactionHashes> {
+    private val serializer = ListSerializer(HashSerializer)
+    override val descriptor: SerialDescriptor get() = serializer.descriptor
+
+    override fun deserialize(decoder: Decoder): TransactionHashes {
+        return TransactionHashes(serializer.deserialize(decoder))
+    }
+
+    override fun serialize(encoder: Encoder, value: TransactionHashes) {
+        serializer.serialize(encoder, value)
     }
 }
 
-internal object BlockTransactionsSerializer :
-    JsonContentPolymorphicSerializer<Block.Transactions>(Block.Transactions::class) {
-    override fun selectDeserializer(element: JsonElement): DeserializationStrategy<Block.Transactions> {
-        if (element.jsonArray.isEmpty() || element.jsonArray[0] is JsonPrimitive) {
-            return TransactionHashesSerializer
-        }
-        return TransactionsSerializer
+internal object TransactionObjectsSerializer : KSerializer<TransactionObjects> {
+    private val serializer = ListSerializer(RpcTransaction.serializer())
+    override val descriptor: SerialDescriptor get() = serializer.descriptor
+
+    override fun deserialize(decoder: Decoder): TransactionObjects {
+        return TransactionObjects(serializer.deserialize(decoder))
     }
 
-    object TransactionHashesSerializer : KSerializer<SimpleBlock.TransactionHashes> {
-        private val serializer = ListSerializer(HashSerializer)
-        override val descriptor: SerialDescriptor get() = serializer.descriptor
-
-        override fun deserialize(decoder: Decoder): SimpleBlock.TransactionHashes {
-            return SimpleBlock.TransactionHashes(serializer.deserialize(decoder))
-        }
-
-        override fun serialize(encoder: Encoder, value: SimpleBlock.TransactionHashes) {
-            serializer.serialize(encoder, value)
-        }
-    }
-
-    object TransactionsSerializer : KSerializer<FullBlock.Transactions> {
-        private val serializer = ListSerializer(Transaction.serializer())
-        override val descriptor: SerialDescriptor get() = serializer.descriptor
-
-        override fun deserialize(decoder: Decoder): FullBlock.Transactions {
-            return FullBlock.Transactions(serializer.deserialize(decoder))
-        }
-
-        override fun serialize(encoder: Encoder, value: FullBlock.Transactions) {
-            serializer.serialize(encoder, value)
-        }
+    @Suppress("UNCHECKED_CAST")
+    override fun serialize(encoder: Encoder, value: TransactionObjects) {
+        serializer.serialize(encoder, value as List<RpcTransaction>)
     }
 }
 
-internal object TransactionsSerializer : JsonContentPolymorphicSerializer<Transaction>(Transaction::class) {
-    override fun selectDeserializer(element: JsonElement): DeserializationStrategy<Transaction> {
-        val type = element.jsonObject["type"]?.jsonPrimitive?.content ?: error("")
-        return when (TransactionType.from(type)) {
-            TransactionType.Legacy -> MutableLegacyTransaction.serializer()
-            TransactionType.AccessList -> MutableAccessListTransaction.serializer()
-            TransactionType.DynamicFee -> MutableDynamicFeeTransaction.serializer()
-            TransactionType.Blob -> MutableBlobTransaction.serializer()
-            is TransactionType.Custom -> TODO()
-        }
-    }
-}
+internal object TransactionTypeSerializer : HexStringSerializer<TransactionType>(TransactionType.Companion::from)
+internal object TransactionStatusSerializer : HexStringSerializer<TransactionStatus>(TransactionStatus.Companion::from)
+internal class NullBlockHash : NullSerializer<Hash>(Hash.serializer(), Transaction.pendingBlockHash)
+internal class NullBlockNumber : NullSerializer<HexULong>(HexULong.serializer(), Transaction.pendingBlockNumber)
+internal class NullTxIndex : NullSerializer<HexInt>(HexInt.serializer(), HexInt(-1))
+internal class NullGas : NullSerializer<HexBigInt>(HexBigInt.serializer(), HexBigInt("0"))
+internal class NullList<E>(element: KSerializer<E>) : NullSerializer<List<E>>(ListSerializer(element), emptyList())
