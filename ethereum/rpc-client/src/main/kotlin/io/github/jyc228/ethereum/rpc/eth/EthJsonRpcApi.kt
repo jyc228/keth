@@ -2,10 +2,22 @@ package io.github.jyc228.ethereum.rpc.eth
 
 import io.github.jyc228.ethereum.AccountWithPrivateKey
 import io.github.jyc228.ethereum.Address
+import io.github.jyc228.ethereum.Block
+import io.github.jyc228.ethereum.BlockReference
+import io.github.jyc228.ethereum.CallRequest
+import io.github.jyc228.ethereum.GetLogsRequest
 import io.github.jyc228.ethereum.Hash
 import io.github.jyc228.ethereum.HexBigInt
 import io.github.jyc228.ethereum.HexData
 import io.github.jyc228.ethereum.HexULong
+import io.github.jyc228.ethereum.Log
+import io.github.jyc228.ethereum.RpcBlock
+import io.github.jyc228.ethereum.RpcBlockHeader
+import io.github.jyc228.ethereum.RpcTransaction
+import io.github.jyc228.ethereum.TransactionHashes
+import io.github.jyc228.ethereum.TransactionObjects
+import io.github.jyc228.ethereum.TransactionReceipt
+import io.github.jyc228.ethereum.UncleBlock
 import io.github.jyc228.ethereum.rpc.AbstractJsonRpcApi
 import io.github.jyc228.ethereum.rpc.ApiResult
 import io.github.jyc228.ethereum.rpc.JsonRpcClient
@@ -20,22 +32,25 @@ class EthJsonRpcApi(client: JsonRpcClient) : EthApi, AbstractJsonRpcApi(client) 
     override suspend fun gasPrice(): ApiResult<HexBigInt> = "eth_gasPrice"()
     override suspend fun blockNumber(): ApiResult<HexULong> = "eth_blockNumber"()
 
-    override suspend fun getHeaderByHash(hash: Hash): ApiResult<SimpleBlockHeader> = "eth_getHeaderByHash"(hash.hex)
+    override suspend fun getHeaderByHash(hash: Hash): ApiResult<RpcBlockHeader> = "eth_getHeaderByHash"(hash.hex)
     override suspend fun getHeaderByNumber(number: ULong) = getHeaderByNumber(BlockReference(number))
     override suspend fun getHeaderByNumber(tag: String) = getHeaderByNumber(BlockReference.fromTag(tag))
-    override suspend fun getHeaderByNumber(ref: BlockReference): ApiResult<SimpleBlockHeader> =
+    override suspend fun getHeaderByNumber(ref: BlockReference): ApiResult<RpcBlockHeader> =
         "eth_getHeaderByNumber"(ref)
 
     override suspend fun getBlockByHash(
         hash: Hash,
         fullTx: Boolean
-    ): ApiResult<out Block?> = when (fullTx) {
+    ): ApiResult<out Block<*>?> = when (fullTx) {
         true -> getFullBlockByHash(hash)
         false -> getSimpleBlockByHash(hash)
     }
 
-    private suspend fun getFullBlockByHash(hash: Hash): ApiResult<FullBlock> = "eth_getBlockByHash"(hash.hex, true)
-    private suspend fun getSimpleBlockByHash(hash: Hash): ApiResult<SimpleBlock> = "eth_getBlockByHash"(hash.hex, false)
+    private suspend fun getFullBlockByHash(hash: Hash): ApiResult<Block<TransactionObjects>?> =
+        "eth_getBlockByHash"(hash.hex, true)
+
+    private suspend fun getSimpleBlockByHash(hash: Hash): ApiResult<Block<TransactionHashes>?> =
+        "eth_getBlockByHash"(hash.hex, false)
 
     override suspend fun getBlockByNumber(number: ULong, fullTx: Boolean) =
         getBlockByNumber(BlockReference(number), fullTx)
@@ -46,9 +61,9 @@ class EthJsonRpcApi(client: JsonRpcClient) : EthApi, AbstractJsonRpcApi(client) 
     override suspend fun getBlockByNumber(
         ref: BlockReference,
         fullTx: Boolean
-    ): ApiResult<out Block?> = when (fullTx) {
-        true -> "eth_getBlockByNumber"<FullBlock, BlockReference, Boolean>(ref, true)
-        false -> "eth_getBlockByNumber"<SimpleBlock, BlockReference, Boolean>(ref, false)
+    ): ApiResult<out Block<*>?> = when (fullTx) {
+        true -> "eth_getBlockByNumber"<RpcBlock<TransactionObjects>, BlockReference, Boolean>(ref, true)
+        false -> "eth_getBlockByNumber"<RpcBlock<TransactionHashes>, BlockReference, Boolean>(ref, false)
     }
 
     override suspend fun getBlockTransactionCountByHash(hash: Hash): ApiResult<HexULong> =
@@ -78,17 +93,17 @@ class EthJsonRpcApi(client: JsonRpcClient) : EthApi, AbstractJsonRpcApi(client) 
         index: Int
     ): ApiResult<HexData?> = "eth_getRawTransactionByBlockNumberAndIndex"(blockNumber, index)
 
-    override suspend fun getTransactionByHash(hash: Hash): ApiResult<Transaction?> = "eth_getTransactionByHash"(hash)
+    override suspend fun getTransactionByHash(hash: Hash): ApiResult<RpcTransaction?> = "eth_getTransactionByHash"(hash)
 
     override suspend fun getTransactionByBlockHashAndIndex(
         blockHash: Hash,
         index: Int
-    ): ApiResult<Transaction?> = "eth_getTransactionByBlockHashAndIndex"(blockHash, index)
+    ): ApiResult<RpcTransaction?> = "eth_getTransactionByBlockHashAndIndex"(blockHash, index)
 
     override suspend fun getTransactionByBlockNumberAndIndex(
         blockNumber: ULong,
         index: Int
-    ): ApiResult<Transaction?> = "eth_getTransactionByBlockNumberAndIndex"(blockNumber, index)
+    ): ApiResult<RpcTransaction?> = "eth_getTransactionByBlockNumberAndIndex"(blockNumber, index)
 
     override suspend fun getTransactionReceipt(hash: Hash): ApiResult<TransactionReceipt?> =
         "eth_getTransactionReceipt"(hash)
@@ -96,12 +111,12 @@ class EthJsonRpcApi(client: JsonRpcClient) : EthApi, AbstractJsonRpcApi(client) 
     override suspend fun getUncleByBlockHashAndIndex(
         blockHash: Hash,
         index: Int
-    ): ApiResult<Block?> = "eth_getUncleByBlockHashAndIndex"(blockHash, index)
+    ): ApiResult<UncleBlock?> = "eth_getUncleByBlockHashAndIndex"(blockHash, index)
 
     override suspend fun getUncleByBlockNumberAndIndex(
         blockNumber: ULong,
         index: Int
-    ): ApiResult<Block?> = "eth_getUncleByBlockNumberAndIndex"(blockNumber, index)
+    ): ApiResult<UncleBlock?> = "eth_getUncleByBlockNumberAndIndex"(blockNumber, index)
 
     override suspend fun getLogs(request: GetLogsRequest): ApiResult<List<Log>> = "eth_getLogs"(request)
 

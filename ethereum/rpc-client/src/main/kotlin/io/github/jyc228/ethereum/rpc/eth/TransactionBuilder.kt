@@ -1,5 +1,6 @@
 package io.github.jyc228.ethereum.rpc.eth
 
+import io.github.jyc228.ethereum.Access
 import io.github.jyc228.ethereum.Address
 import io.github.jyc228.ethereum.Hash
 import io.github.jyc228.ethereum.HexBigInt

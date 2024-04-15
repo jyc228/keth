@@ -2,21 +2,21 @@ package io.github.jyc228.ethereum.rpc.txpool
 
 import io.github.jyc228.ethereum.Address
 import io.github.jyc228.ethereum.HexInt
-import io.github.jyc228.ethereum.rpc.eth.Transaction
+import io.github.jyc228.ethereum.RpcTransaction
 import kotlinx.serialization.Serializable
 
 @Serializable
 data class TxpoolContent(
-    val pending: Map<Address, Map<Int, Transaction>>,
-    val queued: Map<Address, Map<Int, Transaction>>
+    val pending: Map<Address, Map<Int, RpcTransaction>>,
+    val queued: Map<Address, Map<Int, RpcTransaction>>
 ) {
     fun keys() = pending.keys + queued.keys
 }
 
 @Serializable
 data class TxpoolContentFrom(
-    val pending: Map<Int, Transaction>,
-    val queued: Map<Int, Transaction>
+    val pending: Map<Int, RpcTransaction>,
+    val queued: Map<Int, RpcTransaction>
 ) {
     fun keys() = pending.keys + queued.keys
 }

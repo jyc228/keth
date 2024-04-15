@@ -1,11 +1,11 @@
 package io.github.jyc228.ethereum.contract
 
 import io.github.jyc228.ethereum.Address
+import io.github.jyc228.ethereum.GetLogsRequest
+import io.github.jyc228.ethereum.Log
 import io.github.jyc228.ethereum.abi.Abi
 import io.github.jyc228.ethereum.rpc.ApiResult
 import io.github.jyc228.ethereum.rpc.eth.EthApi
-import io.github.jyc228.ethereum.rpc.eth.GetLogsRequest
-import io.github.jyc228.ethereum.rpc.eth.Log
 import io.github.jyc228.solidity.AbiItem
 import kotlinx.serialization.json.Json
 import org.intellij.lang.annotations.Language

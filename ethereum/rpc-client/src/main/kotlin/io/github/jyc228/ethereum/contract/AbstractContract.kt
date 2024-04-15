@@ -1,10 +1,10 @@
 package io.github.jyc228.ethereum.contract
 
 import io.github.jyc228.ethereum.Address
+import io.github.jyc228.ethereum.GetLogsRequest
+import io.github.jyc228.ethereum.Log
 import io.github.jyc228.ethereum.rpc.ApiResult
 import io.github.jyc228.ethereum.rpc.eth.EthApi
-import io.github.jyc228.ethereum.rpc.eth.GetLogsRequest
-import io.github.jyc228.ethereum.rpc.eth.Log
 import kotlin.reflect.full.companionObjectInstance
 import kotlin.reflect.full.isSubclassOf
 import kotlin.reflect.full.superclasses

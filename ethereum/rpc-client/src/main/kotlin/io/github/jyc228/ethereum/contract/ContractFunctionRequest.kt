@@ -1,14 +1,14 @@
 package io.github.jyc228.ethereum.contract
 
+import io.github.jyc228.ethereum.Access
 import io.github.jyc228.ethereum.AccountWithPrivateKey
 import io.github.jyc228.ethereum.Address
+import io.github.jyc228.ethereum.BlockReference
+import io.github.jyc228.ethereum.CallRequest
 import io.github.jyc228.ethereum.Hash
 import io.github.jyc228.ethereum.HexBigInt
 import io.github.jyc228.ethereum.HexULong
 import io.github.jyc228.ethereum.rpc.ApiResult
-import io.github.jyc228.ethereum.rpc.eth.Access
-import io.github.jyc228.ethereum.rpc.eth.BlockReference
-import io.github.jyc228.ethereum.rpc.eth.CallRequest
 import io.github.jyc228.ethereum.rpc.eth.EthApi
 
 interface ContractFunctionRequest<R> {

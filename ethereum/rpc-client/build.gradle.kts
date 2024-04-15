@@ -6,6 +6,7 @@ plugins {
 
 dependencies {
     api(project(":contract:abi"))
+    api(project(":ethereum:type"))
 
     implementation("org.bouncycastle:bcprov-jdk15on:1.70")
 

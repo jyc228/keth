@@ -1,10 +1,12 @@
 package io.github.jyc228.ethereum.rpc
 
+import io.github.jyc228.ethereum.createEthSerializersModule
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonArray
 import kotlinx.serialization.json.JsonNull
 import kotlinx.serialization.json.decodeFromJsonElement
 import kotlinx.serialization.json.encodeToJsonElement
+import kotlinx.serialization.modules.plus
 
 abstract class AbstractJsonRpcApi(val client: JsonRpcClient) {
     protected suspend inline operator fun <reified T> String.invoke(): ApiResult<T> {
@@ -25,6 +27,10 @@ abstract class AbstractJsonRpcApi(val client: JsonRpcClient) {
     }
 
     companion object {
-        val json = Json { ignoreUnknownKeys = true }
+        val json = Json {
+            ignoreUnknownKeys = true
+            classDiscriminator = ""
+            serializersModule += createEthSerializersModule()
+        }
     }
 }

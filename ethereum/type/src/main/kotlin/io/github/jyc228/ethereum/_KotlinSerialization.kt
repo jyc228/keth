@@ -8,6 +8,9 @@ import kotlinx.serialization.descriptors.PrimitiveSerialDescriptor
 import kotlinx.serialization.descriptors.SerialDescriptor
 import kotlinx.serialization.encoding.Decoder
 import kotlinx.serialization.encoding.Encoder
+import kotlinx.serialization.modules.SerializersModule
+import kotlinx.serialization.modules.polymorphic
+import kotlinx.serialization.modules.subclass
 
 internal abstract class HexStringSerializer<T : HexString>(val toObject: (String) -> T) : KSerializer<T> {
     override val descriptor = PrimitiveSerialDescriptor(this::class.qualifiedName ?: error(""), PrimitiveKind.STRING)
@@ -70,3 +73,9 @@ internal class NullBlockNumber : NullSerializer<HexULong>(HexULong.serializer(),
 internal class NullTxIndex : NullSerializer<HexInt>(HexInt.serializer(), HexInt(-1))
 internal class NullGas : NullSerializer<HexBigInt>(HexBigInt.serializer(), HexBigInt("0"))
 internal class NullList<E>(element: KSerializer<E>) : NullSerializer<List<E>>(ListSerializer(element), emptyList())
+
+fun createEthSerializersModule() = SerializersModule {
+    polymorphic(Transaction::class) {
+        subclass(RpcTransaction::class)
+    }
+}
