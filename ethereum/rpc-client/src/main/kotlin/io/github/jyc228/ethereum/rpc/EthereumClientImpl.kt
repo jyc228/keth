@@ -10,26 +10,29 @@ import io.github.jyc228.ethereum.rpc.txpool.TxpoolApi
 import io.github.jyc228.ethereum.rpc.txpool.TxpoolJsonRpcApi
 import io.github.jyc228.jsonrpc.KtorJsonRpcClient
 import kotlin.time.Duration
+import kotlinx.serialization.json.Json
 
 class DefaultEthereumClient(
-    private val client: KtorJsonRpcClient
+    private val client: KtorJsonRpcClient,
+    private val json: Json
 ) : EthereumClient {
-    private val immediateCall = ImmediateJsonRpcClient(client)
+    private val immediateCall = ImmediateJsonRpcClient(client, json)
     override val eth: EthApi = EthJsonRpcApi(immediateCall)
     override val engin: EngineApi = EngineJsonRpcApi(immediateCall)
     override val txpool: TxpoolApi = TxpoolJsonRpcApi(immediateCall)
     override val contract = EthContractApi(eth)
 
     override suspend fun <R> batch(init: suspend EthereumClient.() -> List<ApiResult<R>>): List<ApiResult<R>> {
-        return BatchEthereumClient(client, contract).batch(init)
+        return BatchEthereumClient(client, contract, json).batch(init)
     }
 }
 
 class BatchEthereumClient(
     client: KtorJsonRpcClient,
-    contract: EthContractApi
+    contract: EthContractApi,
+    json: Json
 ) : EthereumClient {
-    private val batchCall = BatchJsonRpcClient(client)
+    private val batchCall = BatchJsonRpcClient(client, json)
     override val eth: EthApi = EthJsonRpcApi(batchCall)
     override val engin: EngineApi = EngineJsonRpcApi(batchCall)
     override val txpool: TxpoolApi = TxpoolJsonRpcApi(batchCall)
@@ -40,9 +43,10 @@ class BatchEthereumClient(
 
 class ScheduledBatchEthereumClient(
     client: KtorJsonRpcClient,
-    interval: Duration
+    interval: Duration,
+    json: Json
 ) : EthereumClient {
-    private val scheduledCall = ScheduledJsonRpcClient(client, interval)
+    private val scheduledCall = ScheduledJsonRpcClient(client, json, interval)
     override val eth: EthApi = EthJsonRpcApi(scheduledCall)
     override val engin: EngineApi = EngineJsonRpcApi(scheduledCall)
     override val txpool: TxpoolApi = TxpoolJsonRpcApi(scheduledCall)

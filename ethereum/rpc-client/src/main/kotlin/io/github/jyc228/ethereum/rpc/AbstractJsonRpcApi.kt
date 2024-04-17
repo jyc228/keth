@@ -1,21 +1,19 @@
 package io.github.jyc228.ethereum.rpc
 
-import io.github.jyc228.ethereum.createEthSerializersModule
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonArray
 import kotlinx.serialization.json.JsonNull
-import kotlinx.serialization.json.decodeFromJsonElement
 import kotlinx.serialization.json.encodeToJsonElement
-import kotlinx.serialization.modules.plus
+import kotlinx.serialization.serializer
 
 abstract class AbstractJsonRpcApi(val client: JsonRpcClient) {
     protected suspend inline operator fun <reified T> String.invoke(): ApiResult<T> {
-        return client.send(this, JsonNull) { json.decodeFromJsonElement(it) }
+        return client.send(this, JsonNull, serializer())
     }
 
     protected suspend inline operator fun <reified T, reified P1> String.invoke(p1: P1): ApiResult<T> {
         val inputs = listOf(Json.encodeToJsonElement(p1))
-        return client.send(this, JsonArray(inputs)) { json.decodeFromJsonElement(it) }
+        return client.send(this, JsonArray(inputs), serializer())
     }
 
     protected suspend inline operator fun <reified T, reified P1, reified P2> String.invoke(
@@ -23,14 +21,6 @@ abstract class AbstractJsonRpcApi(val client: JsonRpcClient) {
         p2: P2
     ): ApiResult<T> {
         val inputs = listOf(Json.encodeToJsonElement(p1), Json.encodeToJsonElement(p2))
-        return client.send(this, JsonArray(inputs)) { json.decodeFromJsonElement(it) }
-    }
-
-    companion object {
-        val json = Json {
-            ignoreUnknownKeys = true
-            classDiscriminator = ""
-            serializersModule += createEthSerializersModule()
-        }
+        return client.send(this, JsonArray(inputs), serializer())
     }
 }
