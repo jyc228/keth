@@ -1,6 +1,7 @@
 package io.github.jyc228.ethereum
 
 import kotlinx.datetime.Instant
+import kotlinx.serialization.DeserializationStrategy
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.builtins.ListSerializer
 import kotlinx.serialization.descriptors.PrimitiveKind
@@ -8,9 +9,14 @@ import kotlinx.serialization.descriptors.PrimitiveSerialDescriptor
 import kotlinx.serialization.descriptors.SerialDescriptor
 import kotlinx.serialization.encoding.Decoder
 import kotlinx.serialization.encoding.Encoder
+import kotlinx.serialization.json.JsonContentPolymorphicSerializer
+import kotlinx.serialization.json.JsonElement
+import kotlinx.serialization.json.jsonObject
+import kotlinx.serialization.json.jsonPrimitive
 import kotlinx.serialization.modules.SerializersModule
 import kotlinx.serialization.modules.polymorphic
 import kotlinx.serialization.modules.subclass
+import kotlinx.serialization.serializer
 
 internal abstract class HexStringSerializer<T : HexString>(val toObject: (String) -> T) : KSerializer<T> {
     override val descriptor = PrimitiveSerialDescriptor(this::class.qualifiedName ?: error(""), PrimitiveKind.STRING)
@@ -53,16 +59,27 @@ internal object TransactionHashesSerializer : KSerializer<TransactionHashes> {
 }
 
 internal object TransactionObjectsSerializer : KSerializer<TransactionObjects> {
-    private val serializer = ListSerializer(RpcTransaction.serializer())
+    private val serializer = ListSerializer(serializer<Transaction>())
     override val descriptor: SerialDescriptor get() = serializer.descriptor
 
     override fun deserialize(decoder: Decoder): TransactionObjects {
         return TransactionObjects(serializer.deserialize(decoder))
     }
 
-    @Suppress("UNCHECKED_CAST")
     override fun serialize(encoder: Encoder, value: TransactionObjects) {
-        serializer.serialize(encoder, value as List<RpcTransaction>)
+        serializer.serialize(encoder, value)
+    }
+}
+
+class UnknownTransactionSerializer(
+    val unknownTransactionSerializer: (TransactionType) -> KSerializer<out Transaction>
+) : JsonContentPolymorphicSerializer<Transaction>(Transaction::class) {
+    override fun selectDeserializer(element: JsonElement): DeserializationStrategy<Transaction> {
+        val type = element.jsonObject["type"]?.jsonPrimitive?.content ?: error("")
+        return when (val t = TransactionType.from(type)) {
+            is TransactionType.Unknown -> unknownTransactionSerializer(t)
+            else -> RpcTransaction.serializer()
+        }
     }
 }
 
@@ -74,8 +91,9 @@ internal class NullTxIndex : NullSerializer<HexInt>(HexInt.serializer(), HexInt(
 internal class NullGas : NullSerializer<HexBigInt>(HexBigInt.serializer(), HexBigInt("0"))
 internal class NullList<E>(element: KSerializer<E>) : NullSerializer<List<E>>(ListSerializer(element), emptyList())
 
-fun createEthSerializersModule() = SerializersModule {
+fun createEthSerializersModule(unknownTransactionSerializer: UnknownTransactionSerializer?) = SerializersModule {
     polymorphic(Transaction::class) {
-        subclass(RpcTransaction::class)
+        if (unknownTransactionSerializer == null) subclass(RpcTransaction::class)
+        else defaultDeserializer { unknownTransactionSerializer }
     }
 }

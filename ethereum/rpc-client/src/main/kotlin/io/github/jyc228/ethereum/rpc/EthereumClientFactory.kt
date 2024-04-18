@@ -1,5 +1,6 @@
 package io.github.jyc228.ethereum.rpc
 
+import io.github.jyc228.ethereum.UnknownTransactionSerializer
 import io.github.jyc228.ethereum.createEthSerializersModule
 import io.github.jyc228.jsonrpc.KtorJsonRpcClient
 import kotlin.time.Duration
@@ -11,7 +12,8 @@ import kotlinx.serialization.modules.plus
 data class EthereumClientConfig(
     var interval: Duration = 0.milliseconds,
     var adminJwtSecret: String? = null,
-    var json: (JsonBuilder.() -> Unit)? = null
+    var json: (JsonBuilder.() -> Unit)? = null,
+    var unknownTransactionSerializer: UnknownTransactionSerializer? = null
 )
 
 fun EthereumClient.Companion.fromRpcUrl(
@@ -23,7 +25,7 @@ fun EthereumClient.Companion.fromRpcUrl(
     val json = Json {
         ignoreUnknownKeys = true
         classDiscriminator = ""
-        serializersModule += createEthSerializersModule()
+        serializersModule += createEthSerializersModule(config.unknownTransactionSerializer)
         config.json?.invoke(this)
     }
     if (config.interval.isPositive()) {
