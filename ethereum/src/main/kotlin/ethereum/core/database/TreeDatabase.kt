@@ -80,7 +80,7 @@ class TreeDatabase(val db: KeyValueDatabase) {
     fun commit(hash: Hash) {
         val node = dirties[hash] ?: return
         node.forEachChildren(::commit)
-        repository.writeLegacyTrieNode(hash, node.node.encode())
+        repository.writeLegacyTrieNode(hash, node.node.encode(false))
 //        node.children.forEach { (child, u) -> commit(child, callback) }
 //        if (node.node is RawNode) {
 //        }

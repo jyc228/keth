@@ -14,7 +14,7 @@ import ethereum.evm.Address
 import ethereum.type.StateAccount
 
 class StateAccountTree(
-    private var originalRoot: Hash,
+    private var originalRoot: Hash?,
     private val database: TreeDatabase,
     private val codeRepository: ContractCodeRepository = ContractCodeRepository(database.db)
 ) {

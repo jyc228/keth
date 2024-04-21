@@ -78,6 +78,6 @@ class StateDatabaseImpl(val accountTree: StateAccountTree) : StateDatabase {
         fun of(root: Hash, database: TreeDatabase) = StateDatabaseImpl(StateAccountTree(root, database))
         fun from(db: StateDatabaseImpl) = StateDatabaseImpl(StateAccountTree.from(db.accountTree))
         fun empty(database: TreeDatabase = TreeDatabase.memory()) =
-            StateDatabaseImpl(StateAccountTree(Hash.EMPTY, database))
+            StateDatabaseImpl(StateAccountTree(null, database))
     }
 }

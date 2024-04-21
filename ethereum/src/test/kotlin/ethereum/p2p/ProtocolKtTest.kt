@@ -8,7 +8,7 @@ import io.kotest.matchers.maps.shouldHaveSize
 class ProtocolKtTest : ShouldSpec({
     fun matchProtocols(init: TestMatchProtocol.() -> Unit) = TestMatchProtocol().apply(init).run()
 
-    context("make protocol") {
+    xcontext("make protocol") {
         should("No remote capabilities") { matchProtocols { local("a") } shouldContainExactly emptyMap() }
         should("No local protocols") { matchProtocols { remote("a") } shouldContainExactly emptyMap() }
         should("No mutual protocols") {

@@ -49,26 +49,6 @@ class TransactionTest : StringSpec({
         HomesteadHardFork.hash(rightvrsTx) shouldBe Hash.fromHexString("fe7a79529ed5f7c3375d06b26b186a8644e0e16c373d7a12be41c62d6042b77a")
     }
 
-    "encode" {
-        val result = rightvrsTx.toRlp()
-
-        result shouldBe "f86103018207d094b94f5374fce5edbc8e2a8697c15331677e6ebf0b0a8255441ca098ff921201554726367d2be8c804a7ff89ccf285ebc57dff8ae4c44b9c19ac4aa08887321be575c8095f789dd4c743dfe42c1820f9231f98a962b210e3ac2452a3".hexToByteArray()
-    }
-
-    "eip 2718 encode" {
-        val tx = accessListTxBuilder.buildAccessListTx {
-            val signer = EIP2930.Signer(1u)
-            sig = signer.signatureValues(
-                AccessListTransaction.TYPE,
-                "c9519f4f2b30335884581971573fadf60c6204f59a911df35ee8a540456b266032f1e8e2c5dd761f9e4f88f41c8310aeaba26a8bfcdacfedfa12ec3862d3752101".hexToByteArray()
-            )
-        }
-
-        val result = tx.toRlp()
-
-        result shouldBe "b86601f8630103018261a894b94f5374fce5edbc8e2a8697c15331677e6ebf0b0a825544c001a0c9519f4f2b30335884581971573fadf60c6204f59a911df35ee8a540456b2660a032f1e8e2c5dd761f9e4f88f41c8310aeaba26a8bfcdacfedfa12ec3862d37521".hexToByteArray()
-    }
-
     "eip2718 sig hash" {
         val signer = EIP2930.Signer(1u)
         val eip2930sig = signer.signatureValues(

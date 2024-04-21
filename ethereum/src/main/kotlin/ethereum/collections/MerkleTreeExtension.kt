@@ -9,8 +9,8 @@ fun MerkleTree.Companion.fromEmptyState(findNodeByHash: ((Hash) -> ByteArray?)? 
     return new(null, findNodeByHash ?: { null })
 }
 
-fun MerkleTree.Companion.fromRootState(hash: Hash, findNodeByHash: (Hash) -> ByteArray?): MerkleTree {
-    if (hash == Hash.EMPTY || hash == Hash.EMPTY_MPT_ROOT) {
+fun MerkleTree.Companion.fromRootState(hash: Hash?, findNodeByHash: (Hash) -> ByteArray?): MerkleTree {
+    if (hash == null || hash == Hash.EMPTY || hash == Hash.EMPTY_MPT_ROOT) {
         return fromEmptyState(findNodeByHash)
     }
     val nodeData = findNodeByHash(hash) ?: throw MissingNodeError()

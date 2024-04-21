@@ -15,7 +15,6 @@ import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
 import kotlinx.serialization.modules.SerializersModule
 import kotlinx.serialization.modules.polymorphic
-import kotlinx.serialization.modules.subclass
 import kotlinx.serialization.serializer
 
 internal abstract class HexStringSerializer<T : HexString>(val toObject: (String) -> T) : KSerializer<T> {
@@ -93,7 +92,7 @@ internal class NullList<E>(element: KSerializer<E>) : NullSerializer<List<E>>(Li
 
 fun createEthSerializersModule(unknownTransactionSerializer: UnknownTransactionSerializer?) = SerializersModule {
     polymorphic(Transaction::class) {
-        if (unknownTransactionSerializer == null) subclass(RpcTransaction::class)
+        if (unknownTransactionSerializer == null) defaultDeserializer { RpcTransaction.serializer() }
         else defaultDeserializer { unknownTransactionSerializer }
     }
 }

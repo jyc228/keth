@@ -21,7 +21,7 @@ class TransactionJsonTest : StringSpec({
     }
 
     "decode unknown transaction" {
-        shouldThrowAny { decodeJsonResource<RpcTransaction>("/transaction/tx_unknown.json") }
+        shouldThrowAny { decodeJsonResource<RpcTransaction>("/transaction/tx_unknown.json", Json.Default) }
         val tx = decodeJsonResource<RpcTransaction>("/transaction/tx_unknown.json", Json { ignoreUnknownKeys = true })
         println(tx)
     }
