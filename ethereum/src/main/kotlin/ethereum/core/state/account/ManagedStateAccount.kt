@@ -47,8 +47,8 @@ class ManagedStateAccount(
         }
 
     override fun toString(): String = when (codeHash == Hash.EMPTY_CODE) {
-        true -> "CA  nonce: $nonce, balance: $balance, root: $root"
-        false -> "EOA nonce: $nonce, balance: $balance"
+        true -> "EOA  nonce: $nonce, balance: $balance"
+        false -> "CA nonce: $nonce, balance: $balance,  root: $root"
     }
 
     companion object
