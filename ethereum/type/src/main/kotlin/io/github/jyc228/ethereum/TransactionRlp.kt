@@ -5,7 +5,7 @@ import ethereum.rlp.RLPEncoder
 
 @OptIn(ExperimentalStdlibApi::class)
 object TransactionRlp {
-    fun encode(tx: Transaction): ByteArray = when (tx.type) {
+    fun encode(tx: Transaction, withSignature: Boolean = false): ByteArray = when (tx.type) {
         is TransactionType.Legacy -> RLPEncoder.encodeArray {
             addULong(tx.nonce.number)
             addBigInt(tx.gasPrice?.number)
@@ -13,7 +13,7 @@ object TransactionRlp {
             addBytes(tx.to?.hex?.removePrefix("0x")?.hexToByteArray())
             addBigInt(tx.value.number)
             addBytes(tx.input.removePrefix("0x").hexToByteArray())
-            encodeSig(tx)
+            if (withSignature) encodeSig(tx)
         }
 
         is TransactionType.AccessList -> RLPEncoder.encode {
@@ -27,7 +27,7 @@ object TransactionRlp {
                 addBigInt(tx.value.number)
                 addBytes(tx.input.removePrefix("0x").hexToByteArray())
                 encodeAccessList(tx.accessList)
-                encodeSig(tx)
+                if (withSignature) encodeSig(tx)
             }
         }
 
@@ -43,7 +43,7 @@ object TransactionRlp {
                 addBigInt(tx.value.number)
                 addBytes(tx.input.removePrefix("0x").hexToByteArray())
                 encodeAccessList(tx.accessList)
-                encodeSig(tx)
+                if (withSignature) encodeSig(tx)
             }
         }
 
@@ -63,7 +63,7 @@ object TransactionRlp {
                 addArray {
                     tx.blobVersionedHashes.forEach { addBytes(it.hex.removePrefix("0x").hexToByteArray()) }
                 }
-                encodeSig(tx)
+                if (withSignature) encodeSig(tx)
             }
         }
 

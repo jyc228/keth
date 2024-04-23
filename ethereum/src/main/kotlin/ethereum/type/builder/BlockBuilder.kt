@@ -3,7 +3,7 @@ package ethereum.type.builder
 import ethereum.evm.Address
 import ethereum.type.Block
 import ethereum.type.BlockHeader
-import ethereum.type.Transaction
+import io.github.jyc228.ethereum.Transaction
 import java.math.BigInteger
 
 class BlockBuilder(val parent: Block) {

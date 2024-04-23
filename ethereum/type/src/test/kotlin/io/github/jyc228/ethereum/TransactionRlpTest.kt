@@ -35,12 +35,12 @@ class TransactionRlpTest : DescribeSpec({
     }
 
     it("legacy tx to rlp") {
-        val result = TransactionRlp.encode(rightvrsTx)
+        val result = TransactionRlp.encode(rightvrsTx, true)
         result shouldBe "f86103018207d094b94f5374fce5edbc8e2a8697c15331677e6ebf0b0a8255441ca098ff921201554726367d2be8c804a7ff89ccf285ebc57dff8ae4c44b9c19ac4aa08887321be575c8095f789dd4c743dfe42c1820f9231f98a962b210e3ac2452a3".hexToByteArray()
     }
 
     it("access list tx to rlp") {
-        val result = TransactionRlp.encode(accessListTx)
+        val result = TransactionRlp.encode(accessListTx, true)
         result shouldBe "01f8630103018261a894b94f5374fce5edbc8e2a8697c15331677e6ebf0b0a825544c001a0c9519f4f2b30335884581971573fadf60c6204f59a911df35ee8a540456b2660a032f1e8e2c5dd761f9e4f88f41c8310aeaba26a8bfcdacfedfa12ec3862d37521".hexToByteArray()
         RLPEncoder.encode(result) shouldBe "b86601f8630103018261a894b94f5374fce5edbc8e2a8697c15331677e6ebf0b0a825544c001a0c9519f4f2b30335884581971573fadf60c6204f59a911df35ee8a540456b2660a032f1e8e2c5dd761f9e4f88f41c8310aeaba26a8bfcdacfedfa12ec3862d37521".hexToByteArray()
     }
@@ -49,7 +49,7 @@ class TransactionRlpTest : DescribeSpec({
         val test = decodeJsonResource<RawTxTest>("/transaction/raw_tx.json")
         withData(nameFn = { "${it.transactionIndex.number} : ${it.type}" }, test.input) { tx ->
             val rlp = test.expected[tx.transactionIndex.number]
-            TransactionRlp.encode(tx) shouldBe rlp.removePrefix("0x").hexToByteArray()
+            TransactionRlp.encode(tx, true) shouldBe rlp.removePrefix("0x").hexToByteArray()
         }
     }
 })

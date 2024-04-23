@@ -1,11 +1,12 @@
 package ethereum.history
 
 import ethereum.collections.Hash
-import ethereum.crypto.ECDSASignature
 import ethereum.history.fork.FrontierHardFork
-import ethereum.rlp.RLPEncoder
-import ethereum.type.LegacyTransaction
-import ethereum.type.Transaction
+import io.github.jyc228.ethereum.ECDSASignature
+import io.github.jyc228.ethereum.HexBigInt
+import io.github.jyc228.ethereum.Transaction
+import io.github.jyc228.ethereum.TransactionRlp
+import io.github.jyc228.ethereum.TransactionType
 import java.math.BigInteger
 
 /**
@@ -15,28 +16,18 @@ object EIP155 {
 
     open class Signer(val chainId: ULong) : ethereum.type.Signer {
         val vMultiplier = chainId.toString().toBigInteger() * BigInteger.TWO
-        override fun signatureValues(txType: Byte, sig: ByteArray): ECDSASignature {
-            require(txType == LegacyTransaction.TYPE) { "ErrTxTypeNotSupported" }
+        override fun signatureValues(txType: TransactionType, sig: ByteArray): ECDSASignature {
+            require(txType == TransactionType.Legacy) { "ErrTxTypeNotSupported" }
             val ecdsa = FrontierHardFork.signatureValues(txType, sig)
             if (chainId > 0u) {
                 val v = BigInteger(1, byteArrayOf((sig[64] + 35).toByte())) * vMultiplier
-                return ECDSASignature.Mutable(ecdsa.r, ecdsa.s, v)
+                return ECDSASignature.Mutable(ecdsa.r, ecdsa.s, HexBigInt(v))
             }
             return ecdsa
         }
 
         override fun hash(tx: Transaction): Hash {
-            return RLPEncoder.encodeArray {
-                addULong(tx.inner.nonce)
-                addBigInt(tx.inner.gasPrice)
-                addULong(tx.inner.gas)
-                addBytes(tx.inner.to.bytes)
-                addBigInt(tx.inner.value)
-                addBytes(tx.inner.data ?: byteArrayOf())
-                addULong(chainId)
-                addULong(0u)
-                addULong(0u)
-            }.let { Hash.keccak256FromBytes(it) }
+            return Hash.keccak256FromBytes(TransactionRlp.encode(tx, withSignature = false))
         }
     }
 }

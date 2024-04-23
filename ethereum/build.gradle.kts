@@ -7,6 +7,7 @@ dependencies {
     implementation("org.jetbrains.kotlin:kotlin-reflect")
     implementation(project(":rlp"))
     implementation(project(":collections"))
+    implementation(project(":ethereum:type"))
     implementation("org.bouncycastle:bcprov-jdk15on:1.70")
     // https://mvnrepository.com/artifact/org.rocksdb/rocksdbjni
     implementation("org.rocksdb:rocksdbjni:8.1.1.1")

@@ -8,16 +8,14 @@ import ethereum.core.state.StateDatabaseImpl
 import ethereum.evm.Address
 import ethereum.rlp.RLPEncoder
 import ethereum.rlp.toRlp
-import ethereum.type.AccessListTransaction
-import ethereum.type.BlobTransaction
 import ethereum.type.Block
 import ethereum.type.BlockBody
 import ethereum.type.BlockHeader
-import ethereum.type.DynamicFeeTransaction
-import ethereum.type.LegacyTransaction
 import ethereum.type.Receipt
-import ethereum.type.Transaction
 import ethereum.type.builder.BlockHeaderBuilder
+import io.github.jyc228.ethereum.Transaction
+import io.github.jyc228.ethereum.TransactionRlp
+import io.github.jyc228.ethereum.TransactionType
 import java.math.BigInteger
 import kotlin.math.min
 
@@ -31,23 +29,14 @@ object BlockFactory {
         return Block(
             header = header.build {
                 txHash = deriveSha(transactions, MerklePatriciaTrie.empty { null }) { transaction ->
-                    when (transaction.inner) {
-                        is AccessListTransaction,
-                        is BlobTransaction,
-                        is DynamicFeeTransaction -> RLPEncoder.encode {
-                            addByte(transaction.inner.txType)
-                            addBytes(transaction.inner.toRlp())
-                        }
-
-                        is LegacyTransaction -> transaction.inner.toRlp()
-                    }
+                    TransactionRlp.encode(transaction)
                 }
                 receiptHash = deriveSha(receipts, MerklePatriciaTrie.empty { null }) { receipt ->
-                    when (receipt.type) {
-                        AccessListTransaction.TYPE,
-                        DynamicFeeTransaction.TYPE,
-                        LegacyTransaction.TYPE -> RLPEncoder.encode {
-                            if (receipt.type != LegacyTransaction.TYPE) addByte(receipt.type)
+                    when (receipt.type.toInt()) {
+                        TransactionType.AccessList.value,
+                        TransactionType.DynamicFee.value,
+                        TransactionType.Legacy.value -> RLPEncoder.encode {
+                            if (receipt.type != TransactionType.Legacy.value.toByte()) addByte(receipt.type)
                             when {
                                 receipt.postState.isEmpty() && receipt.status == 1u.toULong() -> addByte(1)
                                 receipt.postState.isNotEmpty() -> addBytes(receipt.postState)

@@ -1,11 +1,29 @@
 package io.github.jyc228.ethereum
 
+import java.math.BigInteger
 import kotlinx.serialization.Serializable
 
 interface ECDSASignature {
     val v: HexBigInt?
     val r: HexBigInt?
     val s: HexBigInt?
+
+    data class Mutable(
+        override var r: HexBigInt?,
+        override var s: HexBigInt?,
+        override var v: HexBigInt?
+    ) : ECDSASignature
+
+    companion object {
+        fun fromBytes(bytes: ByteArray): ECDSASignature {
+            require(bytes.size == 65) { "wrong size for signature: ${bytes.size}" }
+            return Mutable(
+                r = HexBigInt(BigInteger(1, bytes.sliceArray(0 until 32))),
+                s = HexBigInt(BigInteger(1, bytes.sliceArray(32 until 64))),
+                v = HexBigInt(BigInteger(1, byteArrayOf((bytes[64] + 27).toByte())))
+            )
+        }
+    }
 }
 
 interface Transaction : ECDSASignature {

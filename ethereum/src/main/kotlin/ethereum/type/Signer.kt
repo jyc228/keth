@@ -1,7 +1,9 @@
 package ethereum.type
 
 import ethereum.collections.Hash
-import ethereum.crypto.ECDSASignature
+import io.github.jyc228.ethereum.ECDSASignature
+import io.github.jyc228.ethereum.Transaction
+import io.github.jyc228.ethereum.TransactionType
 
 interface Signer {
     //    // Sender returns the sender address of the transaction.
@@ -9,7 +11,7 @@ interface Signer {
 //
     // SignatureValues returns the raw R, S, V values corresponding to the
     // given signature.
-    fun signatureValues(txType: Byte, sig: ByteArray): ECDSASignature
+    fun signatureValues(txType: TransactionType, sig: ByteArray): ECDSASignature
 //    ChainID() *big.Int
 
     // Hash returns 'signature hash', i.e. the transaction hash that is signed by the

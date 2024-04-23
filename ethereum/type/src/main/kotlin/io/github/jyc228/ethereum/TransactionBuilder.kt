@@ -25,6 +25,12 @@ interface TransactionBuilder {
     var v: HexBigInt?
     var r: HexBigInt?
     var s: HexBigInt?
+
+    fun withSignature(sig: ECDSASignature): TransactionBuilder = apply {
+        v = sig.v
+        r = sig.r
+        s = sig.s
+    }
 }
 
 interface LegacyTransactionBuilder : TransactionBuilder {

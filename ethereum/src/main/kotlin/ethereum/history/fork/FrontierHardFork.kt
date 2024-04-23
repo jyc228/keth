@@ -1,12 +1,12 @@
 package ethereum.history.fork
 
 import ethereum.collections.Hash
-import ethereum.crypto.ECDSASignature
-import ethereum.rlp.RLPEncoder
 import ethereum.type.BlockHeader
-import ethereum.type.LegacyTransaction
 import ethereum.type.Signer
-import ethereum.type.Transaction
+import io.github.jyc228.ethereum.ECDSASignature
+import io.github.jyc228.ethereum.Transaction
+import io.github.jyc228.ethereum.TransactionRlp
+import io.github.jyc228.ethereum.TransactionType
 import java.math.BigInteger
 
 object FrontierHardFork : Signer {
@@ -50,19 +50,12 @@ object FrontierHardFork : Signer {
         return BigInteger.ZERO
     }
 
-    override fun signatureValues(txType: Byte, sig: ByteArray): ECDSASignature {
-        require(txType == LegacyTransaction.TYPE) { "ErrTxTypeNotSupported" }
+    override fun signatureValues(txType: TransactionType, sig: ByteArray): ECDSASignature {
+        require(txType == TransactionType.Legacy) { "ErrTxTypeNotSupported" }
         return ECDSASignature.fromBytes(sig)
     }
 
     override fun hash(tx: Transaction): Hash {
-        return RLPEncoder.encodeArray {
-            addULong(tx.inner.nonce)
-            addBigInt(tx.inner.gasPrice)
-            addULong(tx.inner.gas)
-            addBytes(tx.inner.to.bytes)
-            addBigInt(tx.inner.value)
-            addBytes(tx.inner.data ?: byteArrayOf())
-        }.let { Hash.keccak256FromBytes(it) }
+        return Hash.keccak256FromBytes(TransactionRlp.encode(tx, withSignature = false))
     }
 }
