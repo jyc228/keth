@@ -5,6 +5,7 @@ import ethereum.core.database.TreeDatabase
 import ethereum.core.state.account.ManagedStateAccount
 import ethereum.core.state.account.StateAccountTree
 import ethereum.evm.Address
+import ethereum.type.StateAccount
 import java.math.BigInteger
 
 class StateDatabaseImpl(val accountTree: StateAccountTree) : StateDatabase {
@@ -16,6 +17,8 @@ class StateDatabaseImpl(val accountTree: StateAccountTree) : StateDatabase {
         }
         callback?.invoke(account)
     }
+
+    override fun findAccount(address: Address): StateAccount? = accountTree[address]
 
     override fun applyAccountOrCreate(
         address: Address,
