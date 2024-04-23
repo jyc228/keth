@@ -10,7 +10,7 @@ import ethereum.rlp.toRlp
 import ethereum.type.Block
 import ethereum.type.BlockBody
 import ethereum.type.BlockHeader
-import ethereum.type.Receipt
+import io.github.jyc228.ethereum.TransactionReceipt
 import java.math.BigInteger
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
@@ -108,7 +108,7 @@ class ChainRepository(
         .array()
 
     private fun BigInteger.toBigEndian() = toString().toULong().toBigEndian()
-    fun writeReceipts(hash: Hash, number: ULong, receipts: List<Receipt>) {
+    fun writeReceipts(hash: Hash, number: ULong, receipts: List<TransactionReceipt>) {
 
     }
 

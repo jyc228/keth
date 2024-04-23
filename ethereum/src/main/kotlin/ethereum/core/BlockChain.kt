@@ -5,7 +5,7 @@ import ethereum.core.header.HeaderChain
 import ethereum.type.Block
 import ethereum.type.BlockBody
 import ethereum.type.BlockHeader
-import ethereum.type.Receipt
+import io.github.jyc228.ethereum.TransactionReceipt
 
 interface BlockChain : HeaderChain {
     val state: State
@@ -35,7 +35,7 @@ interface BlockChain : HeaderChain {
     fun insertChain(blocks: List<Block>): Int
 
     // InsertReceiptChain inserts a batch of receipts into the local chain.
-    fun insertReceiptChain(blocks: List<Block>, receipts: List<Receipt>, ancientLimit: ULong): Int
+    fun insertReceiptChain(blocks: List<Block>, receipts: List<TransactionReceipt>, ancientLimit: ULong): Int
 
     interface State {
         // Current head of the chain

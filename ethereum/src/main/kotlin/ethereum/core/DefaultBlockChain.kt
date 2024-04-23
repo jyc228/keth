@@ -10,7 +10,7 @@ import ethereum.core.state.StateDatabase
 import ethereum.type.Block
 import ethereum.type.BlockBody
 import ethereum.type.BlockHeader
-import ethereum.type.Receipt
+import io.github.jyc228.ethereum.TransactionReceipt
 import java.math.BigInteger
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.minutes
@@ -103,12 +103,12 @@ class DefaultBlockChain(
         return false
     }
 
-    override fun insertReceiptChain(blocks: List<Block>, receipts: List<Receipt>, ancientLimit: ULong): Int {
+    override fun insertReceiptChain(blocks: List<Block>, receipts: List<TransactionReceipt>, ancientLimit: ULong): Int {
         TODO("Not yet implemented")
     }
 
 
-    fun writeBlockWithState(block: Block, receipts: List<Receipt>, state: StateDatabase) {
+    fun writeBlockWithState(block: Block, receipts: List<TransactionReceipt>, state: StateDatabase) {
         val ptd = getTotalDifficulty(block.header.parentHash, block.number - 1u) ?: error("ErrUnknownAncestor")
         val externTd = ptd + (block.header.difficulty ?: BigInteger.ZERO)
 

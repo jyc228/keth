@@ -7,15 +7,13 @@ import ethereum.core.database.TreeDatabase
 import ethereum.core.state.StateDatabaseImpl
 import ethereum.evm.Address
 import ethereum.rlp.RLPEncoder
-import ethereum.rlp.toRlp
 import ethereum.type.Block
 import ethereum.type.BlockBody
 import ethereum.type.BlockHeader
-import ethereum.type.Receipt
 import ethereum.type.builder.BlockHeaderBuilder
 import io.github.jyc228.ethereum.Transaction
+import io.github.jyc228.ethereum.TransactionReceipt
 import io.github.jyc228.ethereum.TransactionRlp
-import io.github.jyc228.ethereum.TransactionType
 import java.math.BigInteger
 import kotlin.math.min
 
@@ -24,7 +22,7 @@ object BlockFactory {
         header: BlockHeaderBuilder,
         transactions: List<Transaction>,
         uncles: List<BlockHeader>,
-        receipts: List<Receipt>
+        receipts: List<TransactionReceipt>
     ): Block {
         return Block(
             header = header.build {
@@ -32,22 +30,7 @@ object BlockFactory {
                     TransactionRlp.encode(transaction)
                 }
                 receiptHash = deriveSha(receipts, MerklePatriciaTrie.empty { null }) { receipt ->
-                    when (receipt.type.toInt()) {
-                        TransactionType.AccessList.value,
-                        TransactionType.DynamicFee.value,
-                        TransactionType.Legacy.value -> RLPEncoder.encode {
-                            if (receipt.type != TransactionType.Legacy.value.toByte()) addByte(receipt.type)
-                            when {
-                                receipt.postState.isEmpty() && receipt.status == 1u.toULong() -> addByte(1)
-                                receipt.postState.isNotEmpty() -> addBytes(receipt.postState)
-                            }
-                            addULong(receipt.cumulativeGasUsed)
-                            addBytes(receipt.bloom)
-                            addArray { receipt.logs.forEach { addBytes(it.toRlp()) } }
-                        }
-
-                        else -> byteArrayOf()
-                    }
+                    TODO()
                 }
             },
             body = BlockBody(emptyList(), emptyList(), emptyList()),

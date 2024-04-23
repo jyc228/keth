@@ -6,8 +6,8 @@ import ethereum.evm.Address
 import ethereum.type.Block
 import ethereum.type.BlockBody
 import ethereum.type.BlockHeader
-import ethereum.type.Receipt
 import ethereum.type.builder.BlockHeaderBuilder
+import io.github.jyc228.ethereum.TransactionReceipt
 import java.math.BigInteger
 
 class FakerEngin(engin: BeaconEngin) : ConsensusEngin by engin {
@@ -40,7 +40,7 @@ class FakerEngin(engin: BeaconEngin) : ConsensusEngin by engin {
         header: BlockHeaderBuilder,
         state: StateDatabase,
         body: BlockBody,
-        receipts: List<Receipt>
+        receipts: List<TransactionReceipt>
     ): Block {
         TODO("Not yet implemented")
     }

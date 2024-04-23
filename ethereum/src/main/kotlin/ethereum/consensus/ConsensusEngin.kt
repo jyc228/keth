@@ -6,8 +6,8 @@ import ethereum.evm.Address
 import ethereum.type.Block
 import ethereum.type.BlockBody
 import ethereum.type.BlockHeader
-import ethereum.type.Receipt
 import ethereum.type.builder.BlockHeaderBuilder
+import io.github.jyc228.ethereum.TransactionReceipt
 import java.math.BigInteger
 
 interface ConsensusEngin {
@@ -53,7 +53,7 @@ interface ConsensusEngin {
         header: BlockHeaderBuilder,
         state: StateDatabase,
         body: BlockBody,
-        receipts: List<Receipt>
+        receipts: List<TransactionReceipt>
     ): Block
 
     // Seal generates a new sealing request for the given input block and pushes
