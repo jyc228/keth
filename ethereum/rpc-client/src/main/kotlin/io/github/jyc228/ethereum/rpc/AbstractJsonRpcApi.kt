@@ -23,4 +23,13 @@ abstract class AbstractJsonRpcApi(val client: JsonRpcClient) {
         val inputs = listOf(Json.encodeToJsonElement(p1), Json.encodeToJsonElement(p2))
         return client.send(this, JsonArray(inputs), serializer())
     }
+
+    protected suspend inline operator fun <reified T, reified P1, reified P2, reified P3> String.invoke(
+        p1: P1,
+        p2: P2,
+        p3: P3
+    ): ApiResult<T> {
+        val inputs = listOf(Json.encodeToJsonElement(p1), Json.encodeToJsonElement(p2), Json.encodeToJsonElement(p3))
+        return client.send(this, JsonArray(inputs), serializer())
+    }
 }

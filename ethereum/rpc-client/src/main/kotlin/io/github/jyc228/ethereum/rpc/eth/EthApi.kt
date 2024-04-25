@@ -10,6 +10,7 @@ import io.github.jyc228.ethereum.GetLogsRequest
 import io.github.jyc228.ethereum.Hash
 import io.github.jyc228.ethereum.HexBigInt
 import io.github.jyc228.ethereum.HexData
+import io.github.jyc228.ethereum.HexString
 import io.github.jyc228.ethereum.HexULong
 import io.github.jyc228.ethereum.Log
 import io.github.jyc228.ethereum.Transaction
@@ -73,6 +74,18 @@ interface EthApi {
 
     suspend fun getUncleByBlockHashAndIndex(blockHash: Hash, index: Int): ApiResult<UncleBlock?>
     suspend fun getUncleByBlockNumberAndIndex(blockNumber: ULong, index: Int): ApiResult<UncleBlock?>
+
+    suspend fun getStorageAt(
+        address: Address,
+        key: HexString,
+        ref: BlockReference = BlockReference.latest
+    ): ApiResult<HexData?>
+
+    suspend fun getProof(
+        address: Address,
+        storageKeys: List<HexData>,
+        ref: BlockReference = BlockReference.latest
+    ): ApiResult<AccountProof?>
 
     suspend fun getLogs(request: GetLogsRequest): ApiResult<List<Log>>
     suspend fun getBalance(address: Address, ref: BlockReference = BlockReference.latest): ApiResult<HexBigInt?>

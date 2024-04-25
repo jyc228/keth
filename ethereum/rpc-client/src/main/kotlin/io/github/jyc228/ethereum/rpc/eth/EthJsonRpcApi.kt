@@ -9,6 +9,7 @@ import io.github.jyc228.ethereum.GetLogsRequest
 import io.github.jyc228.ethereum.Hash
 import io.github.jyc228.ethereum.HexBigInt
 import io.github.jyc228.ethereum.HexData
+import io.github.jyc228.ethereum.HexString
 import io.github.jyc228.ethereum.HexULong
 import io.github.jyc228.ethereum.Log
 import io.github.jyc228.ethereum.RpcBlock
@@ -114,6 +115,18 @@ class EthJsonRpcApi(client: JsonRpcClient) : EthApi, AbstractJsonRpcApi(client) 
         blockNumber: ULong,
         index: Int
     ): ApiResult<UncleBlock?> = "eth_getUncleByBlockNumberAndIndex"(blockNumber, index.hex)
+
+    override suspend fun getStorageAt(
+        address: Address,
+        key: HexString,
+        ref: BlockReference
+    ): ApiResult<HexData?> = "eth_getStorageAt"(address, key.hex, ref)
+
+    override suspend fun getProof(
+        address: Address,
+        storageKeys: List<HexData>,
+        ref: BlockReference
+    ): ApiResult<AccountProof?> = "eth_getProof"(address, storageKeys, ref)
 
     override suspend fun getLogs(request: GetLogsRequest): ApiResult<List<Log>> = "eth_getLogs"(request)
 
