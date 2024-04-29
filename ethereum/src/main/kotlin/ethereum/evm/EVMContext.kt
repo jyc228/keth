@@ -65,11 +65,11 @@ class FrameContext(
         return this
     }
 
-    fun nextFrame(newFrame: () -> FrameContext): Result<Unit> {
+    suspend fun nextFrame(newFrame: suspend () -> FrameContext): Result<Unit> {
         return newFrame().with(vm, transaction).execute(interpreter)
     }
 
-    fun execute(interpreter: EVMInterpreter): Result<Unit> {
+    suspend fun execute(interpreter: EVMInterpreter): Result<Unit> {
         this.interpreter = interpreter
         return this.interpreter.execute(this)
     }

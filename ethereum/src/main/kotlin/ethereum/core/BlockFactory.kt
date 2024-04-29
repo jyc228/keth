@@ -16,6 +16,7 @@ import io.github.jyc228.ethereum.TransactionReceipt
 import io.github.jyc228.ethereum.TransactionRlp
 import java.math.BigInteger
 import kotlin.math.min
+import kotlinx.coroutines.runBlocking
 
 object BlockFactory {
     fun Block.Companion.new(
@@ -78,7 +79,7 @@ object BlockFactory {
                     ?: BigInteger.ZERO,
                 mixDigest = genesis.mixHash ?: Hash.EMPTY,
                 coinbase = genesis.coinbase ?: Address.EMPTY,
-                root = genesis.commitAlloc(StateDatabaseImpl.empty(TreeDatabase.memory())),
+                root = runBlocking { genesis.commitAlloc(StateDatabaseImpl.empty(TreeDatabase.memory())) },
                 uncleHash = Hash.EMPTY_UNCLE_HASH,
                 txHash = Hash.EMPTY_TX_HASH,
                 receiptHash = Hash.EMPTY_RECEIPT_HASH,

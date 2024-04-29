@@ -32,7 +32,7 @@ class Genesis(
         return s <= head
     }
 
-    fun commitAlloc(db: StateDatabase): Hash {
+    suspend fun commitAlloc(db: StateDatabase): Hash {
         alloc.forEach { (addr, account) ->
             db.withAccountOrCreate(addr) {
                 it.balance += account.balance

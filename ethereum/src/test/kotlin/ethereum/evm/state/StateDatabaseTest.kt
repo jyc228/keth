@@ -3,6 +3,7 @@ package ethereum.evm.state
 import ethereum.collections.Hash
 import ethereum.core.state.StateDatabaseImpl
 import ethereum.evm.Address
+import io.kotest.common.runBlocking
 import io.kotest.matchers.shouldBe
 import java.math.BigInteger
 import org.junit.jupiter.api.Test
@@ -10,7 +11,7 @@ import org.junit.jupiter.api.Test
 class StateDatabaseTest {
 
     @Test
-    fun `touch delete`() {
+    fun `touch delete`() = runBlocking {
         var db = StateDatabaseImpl.empty()
         db.accountTree.create(Address.EMPTY)
         db.commit(false)
@@ -21,7 +22,7 @@ class StateDatabaseTest {
     }
 
     @Test
-    fun `test null`() {
+    fun `test null`() = runBlocking<Unit> {
         val db = StateDatabaseImpl.empty()
         val address = Address.fromHexString("0x823140710bf13990e4500136726d8b55")
         db.createAccount(address)
@@ -46,7 +47,7 @@ class StateDatabaseTest {
     }
 
     @Test
-    fun `test snapshot1`() {
+    fun `test snapshot1`() = runBlocking<Unit> {
         val db = StateDatabaseImpl.empty()
         val address = Address.fromString("aa")
 
@@ -69,7 +70,7 @@ class StateDatabaseTest {
     }
 
     @Test
-    fun `test snapshot`() {
+    fun `test snapshot`() = runBlocking<Unit> {
         var db = StateDatabaseImpl.empty()
 
         val addr0 = Address.fromString("so0")
@@ -118,7 +119,7 @@ class StateDatabaseTest {
     }
 
     @Test
-    fun `dump`() {
+    fun `dump`() = runBlocking {
         val db = StateDatabaseImpl.empty()
         val acc1 = db.applyAccountOrCreate(Address.fromBytes(1)) {
             it.balance += 22.toBigInteger()

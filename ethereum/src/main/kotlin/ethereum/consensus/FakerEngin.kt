@@ -31,11 +31,16 @@ class FakerEngin(engin: BeaconEngin) : ConsensusEngin by engin {
         TODO("Not yet implemented")
     }
 
-    override fun finalize(chain: ChainHeaderReader, header: BlockHeaderBuilder, state: StateDatabase, body: BlockBody) {
+    override suspend fun finalize(
+        chain: ChainHeaderReader,
+        header: BlockHeaderBuilder,
+        state: StateDatabase,
+        body: BlockBody
+    ) {
         TODO("Not yet implemented")
     }
 
-    override fun finalizeAndAssemble(
+    override suspend fun finalizeAndAssemble(
         chain: ChainHeaderReader,
         header: BlockHeaderBuilder,
         state: StateDatabase,

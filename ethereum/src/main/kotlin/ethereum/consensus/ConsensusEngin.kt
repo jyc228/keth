@@ -36,7 +36,7 @@ interface ConsensusEngin {
      *
      * Note: The [StateDatabase] might be updated to reflect any consensus rules that happen at finalization (e.g. block rewards).
      */
-    fun finalize(
+    suspend fun finalize(
         chain: ChainHeaderReader,
         header: BlockHeaderBuilder,
         state: StateDatabase,
@@ -48,7 +48,7 @@ interface ConsensusEngin {
      *
      * Note: The [BlockHeader] and [StateDatabase] might be updated to reflect any consensus rules that happen at finalization (e.g. block rewards).
      */
-    fun finalizeAndAssemble(
+    suspend fun finalizeAndAssemble(
         chain: ChainHeaderReader,
         header: BlockHeaderBuilder,
         state: StateDatabase,

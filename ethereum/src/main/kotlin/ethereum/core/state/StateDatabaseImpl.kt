@@ -11,43 +11,43 @@ import java.math.BigInteger
 class StateDatabaseImpl(val accountTree: StateAccountTree) : StateDatabase {
     val accessList = AccessList()
 
-    override fun createAccount(address: Address, callback: ((ManagedStateAccount) -> Unit)?) {
+    override suspend fun createAccount(address: Address, callback: (suspend (ManagedStateAccount) -> Unit)?) {
         val account = accountTree.create(address) { prev, next ->
             accountTree.journal.disable { next.balance = prev.balance }
         }
         callback?.invoke(account)
     }
 
-    override fun findAccount(address: Address): StateAccount? = accountTree[address]
+    override suspend fun findAccount(address: Address): StateAccount? = accountTree[address]
 
-    override fun applyAccountOrCreate(
+    override suspend fun applyAccountOrCreate(
         address: Address,
-        callback: (ManagedStateAccount) -> Unit
-    ): ManagedStateAccount = (accountTree[address] ?: accountTree.create(address)).also(callback)
+        callback: suspend (ManagedStateAccount) -> Unit
+    ): ManagedStateAccount = (accountTree[address] ?: accountTree.create(address)).also { callback(it) }
 
-    override fun applyAccountOrThrow(
+    override suspend fun applyAccountOrThrow(
         address: Address,
-        callback: (ManagedStateAccount) -> Unit
-    ): ManagedStateAccount = accountTree[address]?.also(callback) ?: error("")
+        callback: suspend (ManagedStateAccount) -> Unit
+    ): ManagedStateAccount = accountTree[address]?.also { callback(it) } ?: error("")
 
-    override fun applyAccountOrNull(
+    override suspend fun applyAccountOrNull(
         address: Address,
-        callback: (ManagedStateAccount?) -> Unit
-    ): ManagedStateAccount? = accountTree[address]?.also(callback)
+        callback: suspend (ManagedStateAccount?) -> Unit
+    ): ManagedStateAccount? = accountTree[address]?.also { callback(it) }
 
-    override fun <R> withAccountOrCreate(
+    override suspend fun <R> withAccountOrCreate(
         address: Address,
-        transform: (ManagedStateAccount) -> R
+        transform: suspend (ManagedStateAccount) -> R
     ) = transform((accountTree[address] ?: accountTree.create(address)))
 
-    override fun <R> withAccountOrThrow(
+    override suspend fun <R> withAccountOrThrow(
         address: Address,
-        transform: (ManagedStateAccount) -> R
+        transform: suspend (ManagedStateAccount) -> R
     ): R = transform(accountTree[address] ?: error(""))
 
-    override fun <R> withAccountOrNull(
+    override suspend fun <R> withAccountOrNull(
         address: Address,
-        transform: (ManagedStateAccount?) -> R
+        transform: suspend (ManagedStateAccount?) -> R
     ): R = transform(accountTree[address])
 
     override fun snapshot(): Int = accountTree.journal.snapshot()
@@ -58,9 +58,9 @@ class StateDatabaseImpl(val accountTree: StateAccountTree) : StateDatabase {
         TODO("Not yet implemented")
     }
 
-    override fun commit(deleteEmpty: Boolean) = accountTree.commit(deleteEmpty)
+    override suspend fun commit(deleteEmpty: Boolean) = accountTree.commit(deleteEmpty)
 
-    override fun intermediateRoot(deleteEmpty: Boolean) = accountTree.intermediateRoot(deleteEmpty)
+    override suspend fun intermediateRoot(deleteEmpty: Boolean) = accountTree.intermediateRoot(deleteEmpty)
 
     data class Dump(val root: Hash, val accounts: Map<Hash, DumpAccount>)
 

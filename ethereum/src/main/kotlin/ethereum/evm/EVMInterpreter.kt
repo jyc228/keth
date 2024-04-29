@@ -1,7 +1,7 @@
 package ethereum.evm
 
 open class EVMInterpreter(private val instructionSet: InstructionSet) {
-    open fun execute(context: FrameContext): Result<Unit> {
+    open suspend fun execute(context: FrameContext): Result<Unit> {
         while (!context.stop) {
             val operation = instructionSet[context.contract.code[context.pc]] ?: error("")
             execute(operation, context)
@@ -10,7 +10,7 @@ open class EVMInterpreter(private val instructionSet: InstructionSet) {
         return Result.success(Unit)
     }
 
-    open fun execute(operation: Operation, context: FrameContext) {
+    open suspend fun execute(operation: Operation, context: FrameContext) {
         if (operation.dynamicGas != null) {
             var memSize = 0
             if (operation.memorySize != null) {
@@ -29,12 +29,12 @@ open class EVMInterpreter(private val instructionSet: InstructionSet) {
 
 class EVMDebugInterpreter(instructionSet: InstructionSet) : EVMInterpreter(instructionSet) {
     private var index = 1
-    override fun execute(context: FrameContext): Result<Unit> {
+    override suspend fun execute(context: FrameContext): Result<Unit> {
         return super.execute(context)
     }
 
     @OptIn(ExperimentalStdlibApi::class)
-    override fun execute(operation: Operation, context: FrameContext) {
+    override suspend fun execute(operation: Operation, context: FrameContext) {
         val beforeGas = context.gas
         var prefix = "$index\t${context.pc}\t${context.gas}\t${operation.opCode}"
         if (operation.opCode.name.startsWith("SLOAD")) {

@@ -18,24 +18,24 @@ interface StateDatabase {
      *
      * Carrying over the balance ensures that Ether doesn't disappear.
      */
-    fun createAccount(address: Address, callback: ((ManagedStateAccount) -> Unit)? = null)
-    fun findAccount(address: Address): StateAccount?
+    suspend fun createAccount(address: Address, callback: (suspend (ManagedStateAccount) -> Unit)? = null)
+    suspend fun findAccount(address: Address): StateAccount?
 
-    fun applyAccountOrCreate(address: Address, callback: (ManagedStateAccount) -> Unit): StateAccount
-    fun applyAccountOrThrow(address: Address, callback: (ManagedStateAccount) -> Unit): StateAccount
-    fun applyAccountOrNull(address: Address, callback: (ManagedStateAccount?) -> Unit): StateAccount?
+    suspend fun applyAccountOrCreate(address: Address, callback: suspend (ManagedStateAccount) -> Unit): StateAccount
+    suspend fun applyAccountOrThrow(address: Address, callback: suspend (ManagedStateAccount) -> Unit): StateAccount
+    suspend fun applyAccountOrNull(address: Address, callback: suspend (ManagedStateAccount?) -> Unit): StateAccount?
 
-    fun <R> withAccountOrCreate(address: Address, transform: (ManagedStateAccount) -> R): R
-    fun <R> withAccountOrThrow(address: Address, transform: (ManagedStateAccount) -> R): R
-    fun <R> withAccountOrNull(address: Address, transform: (ManagedStateAccount?) -> R): R
+    suspend fun <R> withAccountOrCreate(address: Address, transform: suspend (ManagedStateAccount) -> R): R
+    suspend fun <R> withAccountOrThrow(address: Address, transform: suspend (ManagedStateAccount) -> R): R
+    suspend fun <R> withAccountOrNull(address: Address, transform: suspend (ManagedStateAccount?) -> R): R
 
-    fun commit(deleteEmpty: Boolean): Hash
+    suspend fun commit(deleteEmpty: Boolean): Hash
 
     /**
      * computes the current root hash of the state tree.
      * It is called in between transactions to get the root hash that goes into transaction receipts.
      */
-    fun intermediateRoot(deleteEmpty: Boolean): Hash
+    suspend fun intermediateRoot(deleteEmpty: Boolean): Hash
 
     fun snapshot(): Int
     fun revertSnapshot(id: Int)

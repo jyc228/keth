@@ -16,7 +16,7 @@ class BlockHeaderBuilder(val parent: BlockHeader) {
     var receiptHash: Hash = Hash.EMPTY_RECEIPT_HASH
     var uncleHash: Hash = Hash.EMPTY_UNCLE_HASH
 
-    fun mutate(callback: BlockHeaderBuilder.() -> Unit): BlockHeaderBuilder = apply { callback(this) }
+    suspend fun mutate(callback: suspend BlockHeaderBuilder.() -> Unit): BlockHeaderBuilder = apply { callback(this) }
 
     fun build(mutate: (BlockHeaderBuilder.() -> Unit)? = null): BlockHeader {
         mutate?.invoke(this)

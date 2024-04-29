@@ -19,7 +19,7 @@ class BlockGenerator(
     val engin: ConsensusEngin,
     val db: KeyValueDatabase
 ) : ChainHeaderReader {
-    fun generate(count: Int, mutateBlock: ((BlockBuilder, StateDatabase) -> Unit)? = null): List<Block> {
+    suspend fun generate(count: Int, mutateBlock: ((BlockBuilder, StateDatabase) -> Unit)? = null): List<Block> {
         return (0 until count).map {
             val trieDatabase = TreeDatabase(db)
             val db = StateDatabaseImpl.of(parent.header.root, trieDatabase)
@@ -37,7 +37,7 @@ class BlockGenerator(
 
     }
 
-    private fun makeHeaderBuilder(parent: Block, db: StateDatabase): BlockHeaderBuilder {
+    private suspend fun makeHeaderBuilder(parent: Block, db: StateDatabase): BlockHeaderBuilder {
         return BlockHeaderBuilder(parent.header).mutate {
             root = db.intermediateRoot(config.eip158.forked(parent.number))
             difficulty = engin.calcDifficulty(this@BlockGenerator, parent.header.time + 10u, parent.header)
@@ -52,7 +52,7 @@ class BlockGenerator(
     }
 
     companion object {
-        fun fromGenesis(
+        suspend fun fromGenesis(
             config: ForkConfig,
             genesis: Genesis,
             engin: ConsensusEngin,

@@ -4,6 +4,7 @@ import ethereum.collections.Hash
 import ethereum.core.database.TreeDatabase
 import ethereum.core.state.account.ManagedStateAccount
 import ethereum.evm.Address
+import io.kotest.common.runBlocking
 import org.junit.jupiter.api.Test
 
 class StateDatabaseImplTest {
@@ -11,7 +12,7 @@ class StateDatabaseImplTest {
     // Tests that no intermediate state of an object is stored into the database,
 // only the one right before the commit.
     @Test
-    fun TestIntermediateLeaks() {
+    fun TestIntermediateLeaks() = runBlocking {
         val addresses = (0..<255).map { Address.fromBytes(it.toByte()) }
 
         val prevDb = TreeDatabase.memory()

@@ -6,7 +6,7 @@ class Operation(
     val gas: Int,
     val dynamicGas: ((FrameContext) -> Int)?,
     val memorySize: ((FrameContext) -> Int)?,
-    val execute: (FrameContext) -> Unit
+    val execute: suspend (FrameContext) -> Unit
 ) {
     val maxStack: Int = 0
 
@@ -18,7 +18,7 @@ class OperationBuilder(val opCode: OpCode) {
     var gas: Int = 0
     var dynamicGas: ((FrameContext) -> Int)? = null
     var memorySize: ((FrameContext) -> Int)? = null
-    lateinit var execute: (FrameContext) -> Unit
+    lateinit var execute: suspend (FrameContext) -> Unit
 
     fun withGas2(): OperationBuilder = withGas(2)
     fun withGas3(): OperationBuilder = withGas(3)
@@ -26,16 +26,16 @@ class OperationBuilder(val opCode: OpCode) {
     fun withGas8(): OperationBuilder = withGas(8)
     fun withGas(gas: Int): OperationBuilder = apply { this.gas = gas }
 
-    fun pop0(execute: FrameContext.() -> Unit) = withExecute(execute)
+    fun pop0(execute: suspend FrameContext.() -> Unit) = withExecute(execute)
     inline fun pop1(
-        crossinline execute: FrameContext.(top0: EVMStackElement) -> Unit
+        crossinline execute: suspend FrameContext.(top0: EVMStackElement) -> Unit
     ) = withExecute {
         val top0 = stack.pop()
         execute(top0)
     }
 
     inline fun pop2(
-        crossinline execute: FrameContext.(top1: EVMStackElement, top0: EVMStackElement) -> Unit
+        crossinline execute: suspend FrameContext.(top1: EVMStackElement, top0: EVMStackElement) -> Unit
     ) = withExecute {
         val top0 = stack.pop()
         val top1 = stack.pop()
@@ -43,7 +43,7 @@ class OperationBuilder(val opCode: OpCode) {
     }
 
     inline fun pop3(
-        crossinline execute: FrameContext.(top2: EVMStackElement, top1: EVMStackElement, top0: EVMStackElement) -> Unit
+        crossinline execute: suspend FrameContext.(top2: EVMStackElement, top1: EVMStackElement, top0: EVMStackElement) -> Unit
     ) = withExecute {
         val top0 = stack.pop()
         val top1 = stack.pop()
@@ -51,10 +51,11 @@ class OperationBuilder(val opCode: OpCode) {
         execute(top2, top1, top0)
     }
 
-    inline fun push(crossinline execute: FrameContext.() -> EVMStackElement) = withExecute { stack.push(execute()) }
+    inline fun push(crossinline execute: suspend FrameContext.() -> EVMStackElement) =
+        withExecute { stack.push(execute()) }
 
     inline fun pop1push(
-        crossinline execute: FrameContext.(top0: EVMStackElement) -> EVMStackElement
+        crossinline execute: suspend FrameContext.(top0: EVMStackElement) -> EVMStackElement
     ) = withExecute {
         val top0 = stack.pop()
         val result = execute(top0)
@@ -62,7 +63,7 @@ class OperationBuilder(val opCode: OpCode) {
     }
 
     inline fun pop2push(
-        crossinline execute: FrameContext.(top1: EVMStackElement, top0: EVMStackElement) -> EVMStackElement
+        crossinline execute: suspend FrameContext.(top1: EVMStackElement, top0: EVMStackElement) -> EVMStackElement
     ) = withExecute {
         val top0 = stack.pop()
         val top1 = stack.pop()
@@ -71,7 +72,7 @@ class OperationBuilder(val opCode: OpCode) {
     }
 
     inline fun pop3push(
-        crossinline execute: FrameContext.(top2: EVMStackElement, top1: EVMStackElement, top0: EVMStackElement) -> EVMStackElement
+        crossinline execute: suspend FrameContext.(top2: EVMStackElement, top1: EVMStackElement, top0: EVMStackElement) -> EVMStackElement
     ) = withExecute {
         val top0 = stack.pop()
         val top1 = stack.pop()
@@ -80,7 +81,7 @@ class OperationBuilder(val opCode: OpCode) {
         stack.push(result)
     }
 
-    fun withExecute(execute: FrameContext.() -> Unit) = apply { this.execute = execute }
+    fun withExecute(execute: suspend FrameContext.() -> Unit) = apply { this.execute = execute }
     fun withMemorySize(execute: FrameContext.() -> Int) = apply { this.memorySize = execute }
     fun withDynamicGas(execute: FrameContext.() -> Int) = apply { this.dynamicGas = execute }
 

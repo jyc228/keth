@@ -43,7 +43,12 @@ class EthashEngin : ConsensusEngin {
         TODO("Not yet implemented")
     }
 
-    override fun finalize(chain: ChainHeaderReader, header: BlockHeaderBuilder, state: StateDatabase, body: BlockBody) {
+    override suspend fun finalize(
+        chain: ChainHeaderReader,
+        header: BlockHeaderBuilder,
+        state: StateDatabase,
+        body: BlockBody
+    ) {
         // Select the correct block reward based on chain progression
         val blockReward = when {
             chain.config.byzantium.forked(header.number) -> ByzantiumHardFork.blockReward
@@ -58,7 +63,7 @@ class EthashEngin : ConsensusEngin {
         state.withAccountOrCreate(header.coinbase) { it.balance += reward }
     }
 
-    override fun finalizeAndAssemble(
+    override suspend fun finalizeAndAssemble(
         chain: ChainHeaderReader,
         header: BlockHeaderBuilder,
         state: StateDatabase,

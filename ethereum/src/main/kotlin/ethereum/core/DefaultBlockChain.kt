@@ -108,7 +108,7 @@ class DefaultBlockChain(
     }
 
 
-    fun writeBlockWithState(block: Block, receipts: List<TransactionReceipt>, state: StateDatabase) {
+    suspend fun writeBlockWithState(block: Block, receipts: List<TransactionReceipt>, state: StateDatabase) {
         val ptd = getTotalDifficulty(block.header.parentHash, block.number - 1u) ?: error("ErrUnknownAncestor")
         val externTd = ptd + (block.header.difficulty ?: BigInteger.ZERO)
 
