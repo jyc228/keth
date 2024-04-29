@@ -64,6 +64,8 @@ enum class OpCode(val v: Byte) {
     CHAINID(0x46),
     SELFBALANCE(0x47),
     BASEFEE(0x48),
+    BLOBHASH(0x49),
+    BLOBBASEFEE(0x4a),
 
     // 0x50 range - 'storage' and execution.
     POP(0x50),
@@ -78,6 +80,9 @@ enum class OpCode(val v: Byte) {
     MSIZE(0x59),
     GAS(0x5a),
     JUMPDEST(0x5b),
+    TLOAD(0x5c), // 179
+    TSTORE(0x5d), // 180
+    MCOPY(0x5e), // 180
     PUSH0(0x5f),
 
     // 0x60 range - pushes.
@@ -156,10 +161,6 @@ enum class OpCode(val v: Byte) {
     LOG2(0xa2.toByte()),
     LOG3(0xa3.toByte()),
     LOG4(0xa4.toByte()),
-
-    // 0xb0 range.
-    TLOAD(0xb3.toByte()), // 179
-    TSTORE(0xb4.toByte()), // 180
 
     // 0xf0 range - closures.
     CREATE(0xf0.toByte()), // 240
