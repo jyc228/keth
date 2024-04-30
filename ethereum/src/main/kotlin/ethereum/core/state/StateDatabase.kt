@@ -2,8 +2,8 @@ package ethereum.core.state
 
 import ethereum.collections.Hash
 import ethereum.core.state.account.ManagedStateAccount
+import ethereum.core.state.account.StateAccount
 import ethereum.evm.Address
-import ethereum.type.StateAccount
 
 interface StateDatabase {
     /**

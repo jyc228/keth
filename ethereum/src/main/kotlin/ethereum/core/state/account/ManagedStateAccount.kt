@@ -5,7 +5,6 @@ import ethereum.core.repository.ContractCodeRepository
 import ethereum.core.state.Journal
 import ethereum.core.state.JournalEntry
 import ethereum.evm.Address
-import ethereum.type.StateAccount
 import java.math.BigInteger
 
 class ManagedStateAccount(

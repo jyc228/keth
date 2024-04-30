@@ -4,9 +4,9 @@ import ethereum.collections.Hash
 import ethereum.collections.MerkleTreeDirtyNodes
 import ethereum.collections.MerkleTreeNode
 import ethereum.core.repository.TreeRepository
+import ethereum.core.state.account.StateAccount
 import ethereum.db.InMemoryKeyValueDatabase
 import ethereum.db.KeyValueDatabase
-import ethereum.type.StateAccount
 
 class TreeDatabase(val db: KeyValueDatabase) {
     private val repository = TreeRepository(db)

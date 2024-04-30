@@ -11,7 +11,6 @@ import ethereum.core.repository.ContractCodeRepository
 import ethereum.core.state.Journal
 import ethereum.core.state.JournalEntry
 import ethereum.evm.Address
-import ethereum.type.StateAccount
 
 class StateAccountTree(
     private var originalRoot: Hash?,

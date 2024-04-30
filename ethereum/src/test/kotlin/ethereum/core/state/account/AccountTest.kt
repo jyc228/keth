@@ -1,4 +1,4 @@
-package ethereum.type
+package ethereum.core.state.account
 
 import ethereum.collections.Hash
 import io.kotest.matchers.shouldBe
