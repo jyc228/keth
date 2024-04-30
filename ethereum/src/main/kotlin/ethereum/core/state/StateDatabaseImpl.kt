@@ -28,12 +28,17 @@ class StateDatabaseImpl(val accountTree: StateAccountTree) : StateDatabase {
     override suspend fun applyAccountOrThrow(
         address: Address,
         callback: suspend (ManagedStateAccount) -> Unit
-    ): ManagedStateAccount = accountTree[address]?.also { callback(it) } ?: error("")
+    ): ManagedStateAccount = accountTree[address]?.also { callback(it) } ?: error("account $address not exists")
 
     override suspend fun applyAccountOrNull(
         address: Address,
         callback: suspend (ManagedStateAccount?) -> Unit
-    ): ManagedStateAccount? = accountTree[address]?.also { callback(it) }
+    ): ManagedStateAccount? = accountTree[address].also { callback(it) }
+
+    override suspend fun applyAccount(
+        address: Address,
+        callback: suspend (ManagedStateAccount) -> Unit
+    ): StateAccount? = accountTree[address]?.also { callback(it) }
 
     override suspend fun <R> withAccountOrCreate(
         address: Address,
@@ -43,12 +48,17 @@ class StateDatabaseImpl(val accountTree: StateAccountTree) : StateDatabase {
     override suspend fun <R> withAccountOrThrow(
         address: Address,
         transform: suspend (ManagedStateAccount) -> R
-    ): R = transform(accountTree[address] ?: error(""))
+    ): R = transform(accountTree[address] ?: error("account $address not exists"))
 
     override suspend fun <R> withAccountOrNull(
         address: Address,
         transform: suspend (ManagedStateAccount?) -> R
     ): R = transform(accountTree[address])
+
+    override suspend fun <R> withAccount(
+        address: Address,
+        transform: suspend (ManagedStateAccount) -> R
+    ): R? = accountTree[address]?.let { transform(it) }
 
     override fun snapshot(): Int = accountTree.journal.snapshot()
 

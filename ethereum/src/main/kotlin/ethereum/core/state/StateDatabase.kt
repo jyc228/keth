@@ -24,10 +24,12 @@ interface StateDatabase {
     suspend fun applyAccountOrCreate(address: Address, callback: suspend (ManagedStateAccount) -> Unit): StateAccount
     suspend fun applyAccountOrThrow(address: Address, callback: suspend (ManagedStateAccount) -> Unit): StateAccount
     suspend fun applyAccountOrNull(address: Address, callback: suspend (ManagedStateAccount?) -> Unit): StateAccount?
+    suspend fun applyAccount(address: Address, callback: suspend (ManagedStateAccount) -> Unit): StateAccount?
 
     suspend fun <R> withAccountOrCreate(address: Address, transform: suspend (ManagedStateAccount) -> R): R
     suspend fun <R> withAccountOrThrow(address: Address, transform: suspend (ManagedStateAccount) -> R): R
     suspend fun <R> withAccountOrNull(address: Address, transform: suspend (ManagedStateAccount?) -> R): R
+    suspend fun <R> withAccount(address: Address, transform: suspend (ManagedStateAccount) -> R): R?
 
     suspend fun commit(deleteEmpty: Boolean): Hash
 
