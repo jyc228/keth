@@ -38,7 +38,7 @@ class Genesis(
                 it.balance += account.balance
                 it.nonce = account.nonce
                 it.setCode(account.code)
-                account.storage.forEach { (k, v) -> it.storage.set(k, v) }
+                account.storage.forEach { (k, v) -> it.storage.set(k.bytes, v.bytes) }
             }
         }
         return db.commit(false)

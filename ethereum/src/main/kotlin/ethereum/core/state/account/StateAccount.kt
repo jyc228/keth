@@ -41,9 +41,9 @@ interface ManagedStateAccount : StateAccount {
     suspend fun setCode(code: ByteArray?)
 
     interface Storage {
-        suspend fun get(key: Hash): Hash
-        suspend fun getCommittedState(key: Hash): Hash
-        suspend fun set(key: Hash, value: Hash)
+        suspend fun get(key: ByteArray): ByteArray?
+        suspend fun getCommittedState(key: ByteArray): ByteArray?
+        suspend fun set(key: ByteArray, value: ByteArray?)
     }
 }
 

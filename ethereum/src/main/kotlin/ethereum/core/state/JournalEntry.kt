@@ -1,6 +1,5 @@
 package ethereum.core.state
 
-import ethereum.collections.Hash
 import ethereum.core.state.account.OnchainManagedStateAccount
 import ethereum.evm.Address
 import java.math.BigInteger
@@ -41,9 +40,13 @@ sealed interface JournalEntry {
         }
     }
 
-    data class StorageChange(override val dirtyAddress: Address, val key: Hash, val prevValue: Hash) : JournalEntry {
+    class StorageChange(
+        override val dirtyAddress: Address,
+        val key: ByteArray,
+        val prevValue: ByteArray?
+    ) : JournalEntry {
         override fun revert(db: StateDatabaseImpl) {
-            db.accountTree[dirtyAddress]?.storage?.dirty?.set(key, prevValue)
+            db.accountTree[dirtyAddress]?.storage?.setDirty(key, prevValue)
         }
     }
 

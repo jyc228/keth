@@ -1,6 +1,5 @@
 package ethereum.core.state
 
-import ethereum.collections.Hash
 import ethereum.core.database.TreeDatabase
 import ethereum.core.state.account.ManagedStateAccount
 import ethereum.evm.Address
@@ -45,8 +44,8 @@ class StateDatabaseImplTest {
         this.balance = (i.toUByte().toInt() * 11 + tweak).toBigInteger()
         this.nonce = (i.toUByte().toInt() * 42 + tweak).toULong()
         if (i % 2 == 0) {
-            this.storage.set(Hash.fromBytes(i, i, i, tweak), Hash.EMPTY)
-            this.storage.set(Hash.fromBytes(i, i, i, tweak), Hash.fromBytes(i, i, i, i, tweak))
+            this.storage.set(byteArrayOf(i, i, i, tweak), null)
+            this.storage.set(byteArrayOf(i, i, i, tweak), byteArrayOf(i, i, i, i, tweak))
         }
         if (i % 3 == 0) {
             this.setCode(byteArrayOf(i, i, i, i, i, tweak))

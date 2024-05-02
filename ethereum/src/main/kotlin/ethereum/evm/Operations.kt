@@ -1,6 +1,5 @@
 package ethereum.evm
 
-import ethereum.collections.Hash
 import java.math.BigInteger
 import java.nio.ByteBuffer
 import org.bouncycastle.jcajce.provider.digest.Keccak
@@ -197,12 +196,12 @@ fun newOperation(opCode: OpCode) = OperationBuilder.build(opCode) {
 
         OpCode.MSTORE8 -> pop2 { a, b -> TODO() }
         OpCode.SLOAD -> pop1push { key ->
-            db.withAccountOrNull(contract.address) { it?.storage?.get(Hash(key.bytes))?.bytes }?.toElement()
+            db.withAccountOrNull(contract.address) { it?.storage?.get(key.bytes) }?.toElement()
                 ?: EVMStackElement.ZERO
         }.withGas(2100) // SloadGasFrontier 50
 
         OpCode.SSTORE -> pop2 { value, location ->
-            db.withAccountOrCreate(contract.address) { it.storage.set(Hash(location.bytes), Hash(value.bytes)) }
+            db.withAccountOrCreate(contract.address) { it.storage.set(location.bytes, value.bytes) }
         }.withGas(2900)
 
         OpCode.JUMP -> pop1 { pos -> pc = pos.int - 1 }.withGas8()
