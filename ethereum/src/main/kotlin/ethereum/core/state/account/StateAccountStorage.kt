@@ -13,7 +13,7 @@ class StateAccountStorage(
     private val owner: Address,
     private val tree: MerkleTreeWithMetrics,
     private val isDestruct: (owner: Address) -> Boolean
-) {
+) : ManagedStateAccount.Storage {
     val rootHash get() = tree.rootHash()?.let(::Hash) ?: Hash.EMPTY_MPT_ROOT
 
     /** Storage cache of original entries to dedup rewrites, reset for every transaction */
@@ -25,7 +25,7 @@ class StateAccountStorage(
     /** Storage entries that have been modified in the current transaction execution */
     val dirty = mutableMapOf<Hash, Hash>()
 
-    operator fun set(key: Hash, value: Hash) {
+    override suspend fun set(key: Hash, value: Hash) {
         val prev = get(key)
         if (prev != value) {
             journal.append { JournalEntry.StorageChange(owner, key, prev) }
@@ -34,9 +34,9 @@ class StateAccountStorage(
     }
 
     /** retrieves a value from the account storage trie. */
-    operator fun get(key: Hash): Hash = dirty[key] ?: getCommittedState(key)
+    override suspend fun get(key: Hash): Hash = dirty[key] ?: getCommittedState(key)
 
-    fun getCommittedState(key: Hash): Hash {
+    override suspend fun getCommittedState(key: Hash): Hash {
         return pending[key]
             ?: origin[key]
             ?: when (isDestruct(owner)) {

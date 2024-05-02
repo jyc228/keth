@@ -31,9 +31,9 @@ class EVMContract(
             error("")
         }
 
-        fun of(account: ManagedStateAccount) = EVMContract(
+        suspend fun of(account: ManagedStateAccount) = EVMContract(
             address = account.address,
-            code = requireNotNull(account.code),
+            code = requireNotNull(account.getCode()),
             codeHash = account.codeHash
         )
     }

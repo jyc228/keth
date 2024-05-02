@@ -1,7 +1,7 @@
 package ethereum.core.state
 
 import ethereum.collections.Hash
-import ethereum.core.state.account.ManagedStateAccount
+import ethereum.core.state.account.OnchainManagedStateAccount
 import ethereum.evm.Address
 import java.math.BigInteger
 
@@ -18,7 +18,7 @@ sealed interface JournalEntry {
 
     data class ResetObjectChange(
         override val dirtyAddress: Address,
-        val prev: ManagedStateAccount,
+        val prev: OnchainManagedStateAccount,
         val prevdestruct: Boolean
     ) : JournalEntry {
         override fun revert(db: StateDatabaseImpl) {

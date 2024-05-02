@@ -1,6 +1,7 @@
 package ethereum.core.state.account
 
 import ethereum.collections.Hash
+import ethereum.evm.Address
 import ethereum.rlp.RLPEncoder
 import ethereum.rlp.rlpToObject
 import java.math.BigInteger
@@ -27,6 +28,22 @@ interface StateAccount {
 
     companion object {
         fun fromRlp(rlp: ByteArray): StateAccount = rlp.rlpToObject<ImmutableStateAccount>()
+    }
+}
+
+interface ManagedStateAccount : StateAccount {
+    override var nonce: ULong
+    override var balance: BigInteger
+    val address: Address
+    val storage: Storage
+
+    suspend fun getCode(): ByteArray?
+    suspend fun setCode(code: ByteArray?)
+
+    interface Storage {
+        suspend fun get(key: Hash): Hash
+        suspend fun getCommittedState(key: Hash): Hash
+        suspend fun set(key: Hash, value: Hash)
     }
 }
 

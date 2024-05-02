@@ -36,9 +36,9 @@ class Genesis(
         alloc.forEach { (addr, account) ->
             db.withAccountOrCreate(addr) {
                 it.balance += account.balance
-                it.code = account.code
                 it.nonce = account.nonce
-                account.storage.forEach { (k, v) -> it.storage[k] = v }
+                it.setCode(account.code)
+                account.storage.forEach { (k, v) -> it.storage.set(k, v) }
             }
         }
         return db.commit(false)

@@ -40,16 +40,16 @@ class StateDatabaseImplTest {
         }
     }
 
-    private fun ManagedStateAccount.withTestData(tweak: Byte) {
+    private suspend fun ManagedStateAccount.withTestData(tweak: Byte) {
         val i = address.bytes[0]
         this.balance = (i.toUByte().toInt() * 11 + tweak).toBigInteger()
         this.nonce = (i.toUByte().toInt() * 42 + tweak).toULong()
         if (i % 2 == 0) {
-            this.storage[Hash.fromBytes(i, i, i, tweak)] = Hash.EMPTY
-            this.storage[Hash.fromBytes(i, i, i, tweak)] = Hash.fromBytes(i, i, i, i, tweak)
+            this.storage.set(Hash.fromBytes(i, i, i, tweak), Hash.EMPTY)
+            this.storage.set(Hash.fromBytes(i, i, i, tweak), Hash.fromBytes(i, i, i, i, tweak))
         }
         if (i % 3 == 0) {
-            this.code = byteArrayOf(i, i, i, i, i, tweak)
+            this.setCode(byteArrayOf(i, i, i, i, i, tweak))
         }
     }
 }

@@ -7,13 +7,13 @@ import ethereum.core.state.JournalEntry
 import ethereum.evm.Address
 import java.math.BigInteger
 
-class ManagedStateAccount(
-    val address: Address,
-    val storage: StateAccountStorage,
+class OnchainManagedStateAccount(
+    override val address: Address,
+    override val storage: StateAccountStorage,
     private val journal: Journal,
     private val codeRepository: ContractCodeRepository,
     account: StateAccount,
-) : StateAccount {
+) : ManagedStateAccount {
     override val root: Hash get() = storage.rootHash
     override var codeHash: Hash = account.codeHash
     override var nonce: ULong by journal.observable(account.nonce) { old, _ -> JournalEntry.NonceChange(address, old) }
@@ -23,27 +23,28 @@ class ManagedStateAccount(
         else null
     }
 
+    var code: ByteArray? = null
+
+    override suspend fun getCode(): ByteArray? {
+        if (code == null) {
+            code = codeRepository.findCodeByCodeHash(codeHash)
+        }
+        return code
+    }
+
+    override suspend fun setCode(code: ByteArray?) {
+        code ?: return
+        journal.append { JournalEntry.CodeChange(address, this.code, codeHash.bytes) }
+        this.code = code
+        codeHash = Hash.keccak256FromBytes(code)
+        dirtyCode = true
+    }
+
     var suicided = false
     var deleted = false
     var dirtyCode = false
 
     val empty: Boolean get() = 0u.toULong() == nonce && balance == BigInteger.ZERO && codeHash == Hash.EMPTY_CODE
-
-    val codeSize: Int get() = code?.size ?: 0
-    var code: ByteArray? = null
-        get() {
-            if (field == null && codeHash != Hash.EMPTY_CODE) {
-                field = codeRepository.findCodeByCodeHash(codeHash)
-            }
-            return field
-        }
-        set(value) {
-            value ?: return
-            journal.append { JournalEntry.CodeChange(address, field, codeHash.bytes) }
-            field = value
-            codeHash = Hash.keccak256FromBytes(value)
-            dirtyCode = true
-        }
 
     override fun toString(): String = when (codeHash == Hash.EMPTY_CODE) {
         true -> "EOA  nonce: $nonce, balance: $balance"

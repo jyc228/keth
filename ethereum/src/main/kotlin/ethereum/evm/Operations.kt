@@ -153,7 +153,7 @@ fun newOperation(opCode: OpCode) = OperationBuilder.build(opCode) {
         OpCode.GASPRICE -> push { transaction.gasPrice.toElement() }.withGas2()
 
         OpCode.EXTCODESIZE -> pop1push { address ->
-            db.withAccountOrNull(Address(address.bytes)) { it?.codeSize ?: 0 }.toElement()
+            db.withAccountOrNull(Address(address.bytes)) { it?.getCode()?.size ?: 0 }.toElement()
         }.withGas(20)
 
         OpCode.EXTCODECOPY -> withExecute { TODO() }
@@ -202,7 +202,7 @@ fun newOperation(opCode: OpCode) = OperationBuilder.build(opCode) {
         }.withGas(2100) // SloadGasFrontier 50
 
         OpCode.SSTORE -> pop2 { value, location ->
-            db.withAccountOrCreate(contract.address) { it.storage[Hash(location.bytes)] = Hash(value.bytes) }
+            db.withAccountOrCreate(contract.address) { it.storage.set(Hash(location.bytes), Hash(value.bytes)) }
         }.withGas(2900)
 
         OpCode.JUMP -> pop1 { pos -> pc = pos.int - 1 }.withGas8()

@@ -3,7 +3,7 @@ package ethereum.core.state
 import ethereum.collections.Hash
 import ethereum.core.database.TreeDatabase
 import ethereum.core.state.account.ManagedStateAccount
-import ethereum.core.state.account.StateAccount
+import ethereum.core.state.account.OnchainManagedStateAccount
 import ethereum.core.state.account.StateAccountTree
 import ethereum.evm.Address
 import java.math.BigInteger
@@ -18,27 +18,27 @@ class StateDatabaseImpl(val accountTree: StateAccountTree) : StateDatabase {
         callback?.invoke(account)
     }
 
-    override suspend fun findAccount(address: Address): StateAccount? = accountTree[address]
+    override suspend fun findAccount(address: Address): OnchainManagedStateAccount? = accountTree[address]
 
     override suspend fun applyAccountOrCreate(
         address: Address,
         callback: suspend (ManagedStateAccount) -> Unit
-    ): ManagedStateAccount = (accountTree[address] ?: accountTree.create(address)).also { callback(it) }
+    ): OnchainManagedStateAccount = (accountTree[address] ?: accountTree.create(address)).also { callback(it) }
 
     override suspend fun applyAccountOrThrow(
         address: Address,
         callback: suspend (ManagedStateAccount) -> Unit
-    ): ManagedStateAccount = accountTree[address]?.also { callback(it) } ?: error("account $address not exists")
+    ): OnchainManagedStateAccount = accountTree[address]?.also { callback(it) } ?: error("account $address not exists")
 
     override suspend fun applyAccountOrNull(
         address: Address,
         callback: suspend (ManagedStateAccount?) -> Unit
-    ): ManagedStateAccount? = accountTree[address].also { callback(it) }
+    ): OnchainManagedStateAccount? = accountTree[address].also { callback(it) }
 
     override suspend fun applyAccount(
         address: Address,
         callback: suspend (ManagedStateAccount) -> Unit
-    ): StateAccount? = accountTree[address]?.also { callback(it) }
+    ): OnchainManagedStateAccount? = accountTree[address]?.also { callback(it) }
 
     override suspend fun <R> withAccountOrCreate(
         address: Address,

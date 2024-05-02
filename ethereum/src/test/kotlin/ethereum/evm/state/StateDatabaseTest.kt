@@ -2,6 +2,7 @@ package ethereum.evm.state
 
 import ethereum.collections.Hash
 import ethereum.core.state.StateDatabaseImpl
+import ethereum.core.state.account.OnchainManagedStateAccount
 import ethereum.evm.Address
 import io.kotest.common.runBlocking
 import io.kotest.matchers.shouldBe
@@ -26,12 +27,12 @@ class StateDatabaseTest {
         val db = StateDatabaseImpl.empty()
         val address = Address.fromHexString("0x823140710bf13990e4500136726d8b55")
         db.createAccount(address)
-        db.withAccountOrCreate(address) { it.storage[Hash.EMPTY] = Hash.EMPTY }
+        db.withAccountOrCreate(address) { it.storage.set(Hash.EMPTY, Hash.EMPTY) }
         db.accountTree.commit(false)
 
         db.withAccountOrNull(address) {
             requireNotNull(it)
-            it.storage[Hash.EMPTY] shouldBe Hash.EMPTY
+            it.storage.get(Hash.EMPTY) shouldBe Hash.EMPTY
             it.storage.getCommittedState(Hash.EMPTY) shouldBe Hash.EMPTY
         }
 
@@ -53,15 +54,15 @@ class StateDatabaseTest {
 
         val genesis = db.snapshot()
 
-        db.withAccountOrCreate(address) { it.storage[Hash.EMPTY] = Hash.new { set(31, 42) } }
+        db.withAccountOrCreate(address) { it.storage.set(Hash.EMPTY, Hash.new { set(31, 42) }) }
         val snapshot = db.snapshot()
 
-        db.withAccountOrCreate(address) { it.storage[Hash.EMPTY] = Hash.new { set(31, 43) } }
+        db.withAccountOrCreate(address) { it.storage.set(Hash.EMPTY, Hash.new { set(31, 43) }) }
         db.revertSnapshot(snapshot)
 
         db.withAccountOrNull(address) {
             requireNotNull(it)
-            it.storage[Hash.EMPTY] shouldBe Hash.new { set(31, 42) }
+            it.storage.get(Hash.EMPTY) shouldBe Hash.new { set(31, 42) }
             it.storage.getCommittedState(Hash.EMPTY) shouldBe Hash.EMPTY
         }
 
@@ -76,9 +77,10 @@ class StateDatabaseTest {
         val addr0 = Address.fromString("so0")
         val addr1 = Address.fromString("so1")
 
-        db.withAccountOrCreate(addr0) { it.storage[Hash.EMPTY] = Hash.new { set(31, 17) } }
-        db.withAccountOrCreate(addr1) { it.storage[Hash.EMPTY] = Hash.new { set(31, 18) } }
+        db.withAccountOrCreate(addr0) { it.storage.set(Hash.EMPTY, Hash.new { set(31, 17) }) }
+        db.withAccountOrCreate(addr1) { it.storage.set(Hash.EMPTY, Hash.new { set(31, 18) }) }
         val so0 = db.applyAccountOrThrow(addr0) {
+            it as OnchainManagedStateAccount
             it.balance = 42.toBigInteger()
             it.nonce = 43u
             it.suicided = false
@@ -89,6 +91,7 @@ class StateDatabaseTest {
         db.accountTree.commit(false)
         db = StateDatabaseImpl.from(db)
         val so1 = db.applyAccountOrThrow(addr1) {
+            it as OnchainManagedStateAccount
             it.balance = 52.toBigInteger()
             it.nonce = 53u
             it.suicided = true
@@ -125,6 +128,7 @@ class StateDatabaseTest {
             it.balance += 22.toBigInteger()
         }
         val acc2 = db.applyAccountOrCreate(Address.fromBytes(1, 2)) {
+            it as OnchainManagedStateAccount
             it.balance = 22.toBigInteger()
             it.code = byteArrayOf(3, 3, 3, 3, 3, 3, 3)
         }

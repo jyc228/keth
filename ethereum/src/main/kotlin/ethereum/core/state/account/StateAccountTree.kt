@@ -18,7 +18,7 @@ class StateAccountTree(
     private val codeRepository: ContractCodeRepository = ContractCodeRepository(database.db)
 ) {
     private val tree = MerkleTree.fromRootState(originalRoot, database::node)
-    val accountByAddress = mutableMapOf<Address, ManagedStateAccount>()
+    val accountByAddress = mutableMapOf<Address, OnchainManagedStateAccount>()
     val pendingAddress = mutableSetOf<Address>() // State objects finalized but not yet written to the trie
     val dirtyAddress = mutableSetOf<Address>() // State objects modified in the current execution
     val destructAddress = mutableSetOf<Address>() // State objects destructed in the block
@@ -29,9 +29,9 @@ class StateAccountTree(
     fun create(
         address: Address,
         handlePrev: ((prev: ManagedStateAccount, next: ManagedStateAccount) -> Unit)? = null
-    ): ManagedStateAccount {
+    ): OnchainManagedStateAccount {
         val prev = findDeletedOrNull(address)
-        val next = ManagedStateAccount.new(address).also { accountByAddress[address] = it }
+        val next = OnchainManagedStateAccount.new(address).also { accountByAddress[address] = it }
         when (prev == null) {
             true -> journal.append { JournalEntry.CreateObjectChange(address) }
             false -> {
@@ -43,18 +43,18 @@ class StateAccountTree(
         return next
     }
 
-    operator fun get(address: Address): ManagedStateAccount? = findDeletedOrNull(address)?.takeIf { !it.deleted }
+    operator fun get(address: Address): OnchainManagedStateAccount? = findDeletedOrNull(address)?.takeIf { !it.deleted }
 
     /**
      * similar to [findOrNull], but instead of returning nil for a deleted state object, it returns the actual object with the deleted flag set.
      *
      * This is needed by the state [journal] to revert to the correct s- destructed object instead of wiping all knowledge about the state account.
      */
-    private fun findDeletedOrNull(address: Address): ManagedStateAccount? {
+    private fun findDeletedOrNull(address: Address): OnchainManagedStateAccount? {
         var stateAccount = accountByAddress[address]
         if (stateAccount == null) {
             val account = findFromSnapshotOrNull() ?: tree[address.bytes]?.let(StateAccount::fromRlp) ?: return null
-            stateAccount = ManagedStateAccount.new(address, account)
+            stateAccount = OnchainManagedStateAccount.new(address, account)
             accountByAddress[address] = stateAccount
         }
         return stateAccount
@@ -131,21 +131,21 @@ class StateAccountTree(
 //        validRevisions = mutableListOf(validRevisions[0])
     }
 
-
-    fun ManagedStateAccount.Companion.new(address: Address, account: StateAccount? = null) = ManagedStateAccount(
-        address = address,
-        account = account ?: StateAccount(),
-        journal = journal,
-        codeRepository = codeRepository,
-        storage = StateAccountStorage(
-            owner = address,
+    fun OnchainManagedStateAccount.Companion.new(address: Address, account: StateAccount? = null) =
+        OnchainManagedStateAccount(
+            address = address,
+            account = account ?: StateAccount(),
             journal = journal,
-            tree = MerkleTreeWithMetrics(MerkleTree.lazyFromRootState(account?.root, database::node)),
-            isDestruct = { it in destructAddress }
+            codeRepository = codeRepository,
+            storage = StateAccountStorage(
+                owner = address,
+                journal = journal,
+                tree = MerkleTreeWithMetrics(MerkleTree.lazyFromRootState(account?.root, database::node)),
+                isDestruct = { it in destructAddress }
+            )
         )
-    )
 
-    private fun Set<Address>.forEachAccount(handle: (ManagedStateAccount) -> Unit) {
+    private fun Set<Address>.forEachAccount(handle: (OnchainManagedStateAccount) -> Unit) {
         for (address in this) accountByAddress[address]?.apply(handle)
     }
 
