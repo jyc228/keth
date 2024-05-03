@@ -1,6 +1,5 @@
 package ethereum.core.state
 
-import ethereum.core.database.TreeDatabase
 import ethereum.core.state.account.Address
 import ethereum.core.state.account.ManagedStateAccount
 import ethereum.core.state.account.OnchainManagedStateAccount
@@ -70,9 +69,11 @@ class StateDatabaseImpl(val accountTree: StateAccountTree) : StateDatabase {
     override suspend fun intermediateRoot(deleteEmpty: Boolean) = accountTree.intermediateRoot(deleteEmpty)
 
     companion object {
-        fun of(root: StateRoot?, database: TreeDatabase) = StateDatabaseImpl(StateAccountTree(root, database))
+        fun of(root: StateRoot?, database: TreeDatabase, codeDatabase: ContractCodeDatabase) =
+            StateDatabaseImpl(StateAccountTree(root, database, codeDatabase))
+
         fun from(db: StateDatabaseImpl) = StateDatabaseImpl(StateAccountTree.from(db.accountTree))
-        fun empty(database: TreeDatabase = TreeDatabase.memory()) =
-            StateDatabaseImpl(StateAccountTree(null, database))
+        fun empty(database: TreeDatabase, codeDatabase: ContractCodeDatabase) =
+            StateDatabaseImpl(StateAccountTree(null, database, codeDatabase))
     }
 }

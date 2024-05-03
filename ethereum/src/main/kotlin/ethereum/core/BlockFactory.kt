@@ -4,6 +4,7 @@ import ethereum.collections.Hash
 import ethereum.collections.MerkleTree
 import ethereum.collections.mpt.MerklePatriciaTrie
 import ethereum.core.database.TreeDatabase
+import ethereum.core.repository.ContractCodeRepository
 import ethereum.core.state.StateDatabaseImpl
 import ethereum.core.state.account.Address
 import ethereum.rlp.RLPEncoder
@@ -79,7 +80,10 @@ object BlockFactory {
                     ?: BigInteger.ZERO,
                 mixDigest = genesis.mixHash ?: Hash.EMPTY,
                 coinbase = genesis.coinbase ?: Address.EMPTY,
-                root = runBlocking { genesis.commitAlloc(StateDatabaseImpl.empty(TreeDatabase.memory())) },
+                root = runBlocking {
+                    val db = TreeDatabase.memory()
+                    Hash.fromStateRoot(genesis.commitAlloc(StateDatabaseImpl.empty(db, ContractCodeRepository(db.db))))
+                },
                 uncleHash = Hash.EMPTY_UNCLE_HASH,
                 txHash = Hash.EMPTY_TX_HASH,
                 receiptHash = Hash.EMPTY_RECEIPT_HASH,

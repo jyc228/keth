@@ -1,5 +1,7 @@
 package ethereum.evm.state
 
+import ethereum.core.database.TreeDatabase
+import ethereum.core.repository.ContractCodeRepository
 import ethereum.core.state.StateDatabaseImpl
 import ethereum.core.state.account.Address
 import ethereum.core.state.account.OnchainManagedStateAccount
@@ -9,10 +11,14 @@ import java.math.BigInteger
 import org.junit.jupiter.api.Test
 
 class StateDatabaseTest {
+    val emptyDB = {
+        val db = TreeDatabase.memory()
+        StateDatabaseImpl.empty(db, ContractCodeRepository(db.db))
+    }
 
     @Test
     fun `touch delete`() = runBlocking {
-        var db = StateDatabaseImpl.empty()
+        var db = emptyDB()
         db.accountTree.create(Address.EMPTY)
         db.commit(false)
         db = StateDatabaseImpl.from(db)
@@ -23,13 +29,13 @@ class StateDatabaseTest {
 
     @Test
     fun `test snapshot empty`() {
-        val db = StateDatabaseImpl.empty()
+        val db = emptyDB()
         db.revertSnapshot(db.snapshot())
     }
 
     @Test
     fun `test snapshot1`() = runBlocking<Unit> {
-        val db = StateDatabaseImpl.empty()
+        val db = emptyDB()
         val address = Address.fromString("aa")
 
         val genesis = db.snapshot()
@@ -52,7 +58,7 @@ class StateDatabaseTest {
 
     @Test
     fun `test snapshot`() = runBlocking<Unit> {
-        var db = StateDatabaseImpl.empty()
+        var db = emptyDB()
 
         val addr0 = Address.fromString("so0")
         val addr1 = Address.fromString("so1")
@@ -105,7 +111,7 @@ class StateDatabaseTest {
 
     @Test
     fun `dump`() = runBlocking {
-        val db = StateDatabaseImpl.empty()
+        val db = emptyDB()
         val acc1 = db.applyAccountOrCreate(Address.fromBytes(1)) {
             it.balance += 22.toBigInteger()
         }

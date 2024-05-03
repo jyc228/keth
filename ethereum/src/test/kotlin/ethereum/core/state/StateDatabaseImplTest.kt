@@ -1,7 +1,7 @@
 package ethereum.core.state
 
-import ethereum.collections.Hash
 import ethereum.core.database.TreeDatabase
+import ethereum.core.repository.ContractCodeRepository
 import ethereum.core.state.account.Address
 import ethereum.core.state.account.ManagedStateAccount
 import io.kotest.common.runBlocking
@@ -16,22 +16,22 @@ class StateDatabaseImplTest {
         val addresses = (0..<255).map { Address.fromBytes(it.toByte()) }
 
         val prevDb = TreeDatabase.memory()
-        val prevState = StateDatabaseImpl.empty(prevDb)
+        val prevState = StateDatabaseImpl.empty(prevDb, ContractCodeRepository(prevDb.db))
 
         addresses.forEach { addr -> prevState.withAccountOrCreate(addr) { it.withTestData(0) } }
 
         prevState.intermediateRoot(false)
 
         val nextDb = TreeDatabase.memory()
-        val nextState = StateDatabaseImpl.empty(nextDb)
+        val nextState = StateDatabaseImpl.empty(nextDb, ContractCodeRepository(nextDb.db))
         addresses.forEach { addr ->
             prevState.withAccountOrCreate(addr) { it.withTestData(99) }
             nextState.withAccountOrCreate(addr) { it.withTestData(99) }
         }
-        val prevRoot = Hash.fromStateRoot(prevState.commit(false))
+        val prevRoot = requireNotNull(prevState.commit(false))
         prevDb.commit(prevRoot)
 
-        val nextRoot = Hash.fromStateRoot(nextState.commit(false))
+        val nextRoot = requireNotNull(nextState.commit(false))
         nextDb.commit(nextRoot)
         val r = nextDb.db.iterator().asSequence().toList()
         r.forEach { (k, v) ->

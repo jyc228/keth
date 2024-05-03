@@ -1,6 +1,5 @@
 package ethereum.core
 
-import ethereum.collections.Hash
 import ethereum.config.ChainConfig
 import ethereum.consensus.BeaconEngin
 import ethereum.consensus.EthashEngin
@@ -9,6 +8,7 @@ import ethereum.core.BlockFactory.fromGenesis
 import ethereum.core.database.TreeDatabase
 import ethereum.core.header.DefaultHeaderChain
 import ethereum.core.repository.ChainRepository
+import ethereum.core.repository.ContractCodeRepository
 import ethereum.core.state.StateDatabaseImpl
 import ethereum.db.KeyValueDatabase
 import ethereum.type.Block
@@ -20,8 +20,8 @@ class BlockChainBuilder(val db: KeyValueDatabase, val genesis: Genesis) {
 
     suspend fun commitGenesis() {
         val config = genesis.config ?: ChainConfig.allEthashProtocolChanges()
-        val root = genesis.commitAlloc(StateDatabaseImpl.empty(TreeDatabase(db)))
-        if (root != Hash.EMPTY) {
+        val root = genesis.commitAlloc(StateDatabaseImpl.empty(TreeDatabase(db), ContractCodeRepository(db)))
+        if (root != null) {
             TreeDatabase(db).commit(root)
         }
         chainDB.writeTotalDifficulty(genesisBlock.hash, genesisBlock.number, genesisBlock.header.difficulty!!)

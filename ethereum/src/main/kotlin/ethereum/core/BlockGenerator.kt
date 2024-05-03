@@ -5,6 +5,7 @@ import ethereum.config.ForkConfig
 import ethereum.consensus.ChainHeaderReader
 import ethereum.consensus.ConsensusEngin
 import ethereum.core.database.TreeDatabase
+import ethereum.core.repository.ContractCodeRepository
 import ethereum.core.state.StateDatabase
 import ethereum.core.state.StateDatabaseImpl
 import ethereum.core.state.account.StateRoot
@@ -24,12 +25,13 @@ class BlockGenerator(
     suspend fun generate(count: Int, mutateBlock: ((BlockBuilder, StateDatabase) -> Unit)? = null): List<Block> {
         return (0 until count).map {
             val trieDatabase = TreeDatabase(db)
-            val db = StateDatabaseImpl.of(StateRoot.fromByteArray(parent.header.root.bytes), trieDatabase)
+            val codeDatabase = ContractCodeRepository(db)
+            val db = StateDatabaseImpl.of(StateRoot.fromByteArray(parent.header.root.bytes), trieDatabase, codeDatabase)
             val header = makeHeaderBuilder(parent, db)
             val body = BlockBody(emptyList(), emptyList(), emptyList())
             val block = engin.finalizeAndAssemble(this, header, db, body, listOf())
-            val root = Hash.fromStateRoot(db.commit(false))
-            trieDatabase.commit(root)
+            val root = db.commit(false)
+            if (root != null) trieDatabase.commit(root)
             parent = block
             block
         }

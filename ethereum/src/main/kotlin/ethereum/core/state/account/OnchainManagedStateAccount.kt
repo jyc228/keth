@@ -1,6 +1,6 @@
 package ethereum.core.state.account
 
-import ethereum.core.repository.ContractCodeRepository
+import ethereum.core.state.ContractCodeDatabase
 import ethereum.core.state.Journal
 import ethereum.core.state.JournalEntry
 import java.math.BigInteger
@@ -9,7 +9,7 @@ class OnchainManagedStateAccount(
     override val address: Address,
     override val storage: StateAccountStorage,
     private val journal: Journal,
-    private val codeRepository: ContractCodeRepository,
+    private val codeRepository: ContractCodeDatabase,
     account: StateAccount,
 ) : ManagedStateAccount {
     override val root: StorageRoot? get() = storage.rootHash

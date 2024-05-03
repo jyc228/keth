@@ -4,6 +4,7 @@ import ethereum.collections.Hash
 import ethereum.config.ChainConfig
 import ethereum.core.state.StateDatabase
 import ethereum.core.state.account.Address
+import ethereum.core.state.account.StateRoot
 import java.math.BigInteger
 
 class Genesis(
@@ -32,7 +33,7 @@ class Genesis(
         return s <= head
     }
 
-    suspend fun commitAlloc(db: StateDatabase): Hash {
+    suspend fun commitAlloc(db: StateDatabase): StateRoot? {
         alloc.forEach { (addr, account) ->
             db.withAccountOrCreate(addr) {
                 it.balance += account.balance
@@ -41,7 +42,7 @@ class Genesis(
                 account.storage.forEach { (k, v) -> it.storage.set(k.bytes, v.bytes) }
             }
         }
-        return Hash.fromStateRoot(db.commit(false))
+        return db.commit(false)
     }
 
     class Account(

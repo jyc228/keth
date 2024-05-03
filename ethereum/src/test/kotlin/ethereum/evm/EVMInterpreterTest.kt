@@ -1,5 +1,7 @@
 package ethereum.evm
 
+import ethereum.core.database.TreeDatabase
+import ethereum.core.repository.ContractCodeRepository
 import ethereum.core.state.StateDatabaseImpl
 import ethereum.core.state.account.Address
 import ethereum.hexToByteArray
@@ -9,9 +11,13 @@ import java.math.BigInteger
 
 @OptIn(ExperimentalStdlibApi::class)
 class EVMInterpreterTest : DescribeSpec({
+    val emptyDB = {
+        val db = TreeDatabase.memory()
+        StateDatabaseImpl.empty(db, ContractCodeRepository(db.db))
+    }
     it("test") {
         // https://etherscan.io/tx/0x791167e07b6654c298f6763f299fedf778ae5fce810710472d0a3d9383640e09
-        val db = StateDatabaseImpl.empty()
+        val db = emptyDB()
 
         val contract = db.withAccountOrCreate(Address.fromHexString("0xdAC17F958D2ee523a2206206994597C13D831ec7")) {
             it.setCode(

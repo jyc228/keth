@@ -6,10 +6,11 @@ import ethereum.collections.MerkleTreeNode
 import ethereum.core.repository.TreeRepository
 import ethereum.core.state.account.AccountRlp
 import ethereum.core.state.account.AddressHash
+import ethereum.core.state.account.StateRoot
 import ethereum.db.InMemoryKeyValueDatabase
 import ethereum.db.KeyValueDatabase
 
-class TreeDatabase(val db: KeyValueDatabase) {
+class TreeDatabase(val db: KeyValueDatabase) : ethereum.core.state.TreeDatabase {
     private val repository = TreeRepository(db)
     private var dirties: MutableMap<Hash, CachedNode> = mutableMapOf()
     var oldest = Hash.EMPTY
@@ -17,7 +18,7 @@ class TreeDatabase(val db: KeyValueDatabase) {
     var dirtiesSize = 0
     var childrenSize: Int = 0
 
-    fun node(hash: ByteArray): ByteArray? {
+    override fun node(hash: ByteArray): ByteArray? {
         val dirty = dirties[Hash(hash)]
         if (dirty != null) {
             return dirty.node.encode(false)
@@ -27,7 +28,7 @@ class TreeDatabase(val db: KeyValueDatabase) {
 
     // Update inserts the dirty nodes in provided nodeset into database and
     // link the account trie with multiple storage tries if necessary.
-    fun update(accountDirties: MerkleTreeDirtyNodes, storageDirties: Map<AddressHash, MerkleTreeDirtyNodes>) {
+    override fun update(accountDirties: MerkleTreeDirtyNodes, storageDirties: Map<AddressHash, MerkleTreeDirtyNodes>) {
         // Insert dirty nodes into the database. In the same tree, it must be
         // ensured that children are inserted first, then parent so that children
         // can be linked with their parent correctly.
@@ -63,7 +64,7 @@ class TreeDatabase(val db: KeyValueDatabase) {
     // insert inserts a simplified trie node into the memory database.
     // All nodes inserted by this function will be reference tracked
     // and in theory should only used for **trie nodes** insertion.
-    fun insert(node: MerkleTreeNode) {
+    private fun insert(node: MerkleTreeNode) {
         if (Hash(node.hash) in dirties) return
         val entry = CachedNode(node, flushPrev = newest)
         entry.forEachChildren { child -> dirties[child]?.parents?.inc() }
@@ -78,7 +79,9 @@ class TreeDatabase(val db: KeyValueDatabase) {
         dirtiesSize += 32
     }
 
-    fun commit(hash: Hash) {
+    override fun commit(hash: StateRoot) = commit(Hash(hash.bytes))
+
+    private fun commit(hash: Hash) {
         val node = dirties[hash] ?: return
         node.forEachChildren(::commit)
         repository.writeLegacyTrieNode(hash, node.node.encode(false))

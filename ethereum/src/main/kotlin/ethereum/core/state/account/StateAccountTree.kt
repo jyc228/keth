@@ -2,15 +2,15 @@ package ethereum.core.state.account
 
 import ethereum.collections.MerkleTree
 import ethereum.collections.MerkleTreeDirtyNodes
-import ethereum.core.database.TreeDatabase
-import ethereum.core.repository.ContractCodeRepository
+import ethereum.core.state.ContractCodeDatabase
 import ethereum.core.state.Journal
 import ethereum.core.state.JournalEntry
+import ethereum.core.state.TreeDatabase
 
 class StateAccountTree(
     private var originalRoot: StateRoot?,
     private val database: TreeDatabase,
-    private val codeRepository: ContractCodeRepository = ContractCodeRepository(database.db)
+    private val codeRepository: ContractCodeDatabase
 ) {
     private val tree = MerkleTree.fromRootState(originalRoot?.bytes, database::node)
     val accountByAddress = mutableMapOf<Address, OnchainManagedStateAccount>()
