@@ -1,4 +1,4 @@
-package ethereum.evm
+package io.github.jyc228.ethereum.vm
 
 enum class OpCode(val v: Byte) {
     // 0x0 range - arithmetic ops.

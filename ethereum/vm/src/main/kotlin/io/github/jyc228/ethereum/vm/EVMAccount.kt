@@ -1,4 +1,4 @@
-package ethereum.evm
+package io.github.jyc228.ethereum.vm
 
 import io.github.jyc228.ethereum.state.account.Address
 import io.github.jyc228.ethereum.state.account.CodeHash

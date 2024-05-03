@@ -1,6 +1,5 @@
-package ethereum.evm
+package io.github.jyc228.ethereum.vm
 
-import ethereum.hexToByteArray
 import io.github.jyc228.ethereum.state.account.Address
 import io.github.jyc228.ethereum.state.account.CodeHash
 import io.kotest.core.spec.style.DescribeSpec
@@ -13,13 +12,14 @@ import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 import org.junit.jupiter.api.fail
 
+@OptIn(ExperimentalStdlibApi::class)
 class OperationTest : DescribeSpec({
     suspend fun ContainerScope.runTestUsingTestCaseFile(
         signed: Boolean = false,
         addTc: (MutableList<TestCase>.() -> Unit)? = null
     ) {
         val opcode = OpCode.valueOf(testCase.name.testName)
-        val testCases = resourceAsString("/vm/testdata/testcases_${opcode.name.lowercase()}.json")
+        val testCases = resourceAsString("/testdata/testcases_${opcode.name.lowercase()}.json")
             .let { Json.decodeFromString<List<TestCase>>(it) }
             .toMutableList()
             .also { addTc?.invoke(it) }

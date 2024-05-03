@@ -1,4 +1,4 @@
-package ethereum.evm
+package io.github.jyc228.ethereum.vm
 
 open class EVMInterpreter(private val instructionSet: InstructionSet) {
     open suspend fun execute(context: FrameContext): Result<Unit> {

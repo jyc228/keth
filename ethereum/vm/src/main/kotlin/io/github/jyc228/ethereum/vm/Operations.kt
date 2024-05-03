@@ -1,4 +1,4 @@
-package ethereum.evm
+package io.github.jyc228.ethereum.vm
 
 import io.github.jyc228.ethereum.state.account.Address
 import java.math.BigInteger
@@ -338,7 +338,7 @@ fun newOperation(opCode: OpCode) = OperationBuilder.build(opCode) {
 
             nextFrame {
                 val calldata = memory.read(argsOffset, argsLength)
-                val contract = db.withAccountOrThrow(Address(addr.bytes), EVMContract::of)
+                val contract = db.withAccountOrThrow(Address(addr.bytes), EVMContract.Companion::of)
                 FrameContext(contract.address, BigInteger.ZERO, calldata, contract, TODO())
             }
         }

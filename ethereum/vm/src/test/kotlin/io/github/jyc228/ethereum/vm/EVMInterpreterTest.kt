@@ -1,8 +1,7 @@
-package ethereum.evm
+package io.github.jyc228.ethereum.vm
 
 import ethereum.core.database.TreeDatabase
 import ethereum.core.repository.ContractCodeRepository
-import ethereum.hexToByteArray
 import io.github.jyc228.ethereum.state.StateDatabaseImpl
 import io.github.jyc228.ethereum.state.account.Address
 import io.kotest.core.spec.style.DescribeSpec
