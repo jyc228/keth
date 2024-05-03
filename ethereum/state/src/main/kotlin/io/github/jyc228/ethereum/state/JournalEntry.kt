@@ -7,10 +7,10 @@ import java.math.BigInteger
 
 sealed interface JournalEntry {
     val dirtyAddress: Address?
-    fun revert(db: StateDatabaseImpl) {}
+    fun revert(db: OnchainStateDatabase) {}
 
     data class CreateObjectChange(override val dirtyAddress: Address) : JournalEntry {
-        override fun revert(db: StateDatabaseImpl) {
+        override fun revert(db: OnchainStateDatabase) {
             db.accountTree.accountByAddress -= dirtyAddress
             db.accountTree.dirtyAddress -= dirtyAddress
         }
@@ -21,7 +21,7 @@ sealed interface JournalEntry {
         val prev: OnchainManagedStateAccount,
         val prevdestruct: Boolean
     ) : JournalEntry {
-        override fun revert(db: StateDatabaseImpl) {
+        override fun revert(db: OnchainStateDatabase) {
             db.accountTree.accountByAddress[prev.address] = prev
 //            if (!prevdestruct && db.snap != null) {
 //                delete(s.snapDestructs, prev.addressHash)
@@ -30,13 +30,13 @@ sealed interface JournalEntry {
     }
 
     data class BalanceChange(override val dirtyAddress: Address, val prevAmount: BigInteger) : JournalEntry {
-        override fun revert(db: StateDatabaseImpl) {
+        override fun revert(db: OnchainStateDatabase) {
             db.accountTree[dirtyAddress]?.balance = prevAmount
         }
     }
 
     data class NonceChange(override val dirtyAddress: Address, val prevNonce: ULong) : JournalEntry {
-        override fun revert(db: StateDatabaseImpl) {
+        override fun revert(db: OnchainStateDatabase) {
             db.accountTree[dirtyAddress]?.nonce = prevNonce
         }
     }
@@ -46,7 +46,7 @@ sealed interface JournalEntry {
         val key: ByteArray,
         val prevValue: ByteArray?
     ) : JournalEntry {
-        override fun revert(db: StateDatabaseImpl) {
+        override fun revert(db: OnchainStateDatabase) {
             db.accountTree[dirtyAddress]?.storage?.setDirty(key, prevValue)
         }
     }

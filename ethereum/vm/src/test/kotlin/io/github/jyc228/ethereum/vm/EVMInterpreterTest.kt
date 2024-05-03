@@ -2,7 +2,7 @@ package io.github.jyc228.ethereum.vm
 
 import ethereum.core.database.TreeDatabase
 import ethereum.core.repository.ContractCodeRepository
-import io.github.jyc228.ethereum.state.StateDatabaseImpl
+import io.github.jyc228.ethereum.state.OnchainStateDatabase
 import io.github.jyc228.ethereum.state.account.Address
 import io.kotest.core.spec.style.DescribeSpec
 import io.kotest.matchers.shouldBe
@@ -12,7 +12,7 @@ import java.math.BigInteger
 class EVMInterpreterTest : DescribeSpec({
     val emptyDB = {
         val db = TreeDatabase.memory()
-        StateDatabaseImpl.empty(db, ContractCodeRepository(db.db))
+        OnchainStateDatabase.empty(db, ContractCodeRepository(db.db))
     }
     it("test") {
         // https://etherscan.io/tx/0x791167e07b6654c298f6763f299fedf778ae5fce810710472d0a3d9383640e09

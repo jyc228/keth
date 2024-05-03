@@ -2,13 +2,13 @@ package ethereum.core.state
 
 import ethereum.core.database.TreeDatabase
 import ethereum.core.repository.ContractCodeRepository
-import io.github.jyc228.ethereum.state.StateDatabaseImpl
+import io.github.jyc228.ethereum.state.OnchainStateDatabase
 import io.github.jyc228.ethereum.state.account.Address
 import io.github.jyc228.ethereum.state.account.ManagedStateAccount
 import io.kotest.common.runBlocking
 import org.junit.jupiter.api.Test
 
-class StateDatabaseImplTest {
+class OnchainStateDatabaseTest {
 
     // Tests that no intermediate state of an object is stored into the database,
 // only the one right before the commit.
@@ -17,14 +17,14 @@ class StateDatabaseImplTest {
         val addresses = (0..<255).map { Address.fromBytes(it.toByte()) }
 
         val prevDb = TreeDatabase.memory()
-        val prevState = StateDatabaseImpl.empty(prevDb, ContractCodeRepository(prevDb.db))
+        val prevState = OnchainStateDatabase.empty(prevDb, ContractCodeRepository(prevDb.db))
 
         addresses.forEach { addr -> prevState.withAccountOrCreate(addr) { it.withTestData(0) } }
 
         prevState.intermediateRoot(false)
 
         val nextDb = TreeDatabase.memory()
-        val nextState = StateDatabaseImpl.empty(nextDb, ContractCodeRepository(nextDb.db))
+        val nextState = OnchainStateDatabase.empty(nextDb, ContractCodeRepository(nextDb.db))
         addresses.forEach { addr ->
             prevState.withAccountOrCreate(addr) { it.withTestData(99) }
             nextState.withAccountOrCreate(addr) { it.withTestData(99) }

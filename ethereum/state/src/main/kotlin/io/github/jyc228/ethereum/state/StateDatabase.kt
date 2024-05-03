@@ -18,7 +18,7 @@ interface StateDatabase {
      *
      * Carrying over the balance ensures that Ether doesn't disappear.
      */
-    suspend fun createAccount(address: Address, callback: (suspend (ManagedStateAccount) -> Unit)? = null)
+    suspend fun createAccount(address: Address, callback: (suspend (ManagedStateAccount) -> Unit)? = null): StateAccount
     suspend fun findAccount(address: Address): StateAccount?
 
     suspend fun applyAccountOrCreate(address: Address, callback: suspend (ManagedStateAccount) -> Unit): StateAccount

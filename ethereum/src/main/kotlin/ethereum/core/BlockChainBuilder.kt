@@ -11,7 +11,7 @@ import ethereum.core.repository.ChainRepository
 import ethereum.core.repository.ContractCodeRepository
 import ethereum.db.KeyValueDatabase
 import ethereum.type.Block
-import io.github.jyc228.ethereum.state.StateDatabaseImpl
+import io.github.jyc228.ethereum.state.OnchainStateDatabase
 
 class BlockChainBuilder(val db: KeyValueDatabase, val genesis: Genesis) {
 
@@ -20,7 +20,7 @@ class BlockChainBuilder(val db: KeyValueDatabase, val genesis: Genesis) {
 
     suspend fun commitGenesis() {
         val config = genesis.config ?: ChainConfig.allEthashProtocolChanges()
-        val root = genesis.commitAlloc(StateDatabaseImpl.empty(TreeDatabase(db), ContractCodeRepository(db)))
+        val root = genesis.commitAlloc(OnchainStateDatabase.empty(TreeDatabase(db), ContractCodeRepository(db)))
         if (root != null) {
             TreeDatabase(db).commit(root)
         }

@@ -12,8 +12,8 @@ import ethereum.type.Block
 import ethereum.type.BlockBody
 import ethereum.type.builder.BlockBuilder
 import ethereum.type.builder.BlockHeaderBuilder
+import io.github.jyc228.ethereum.state.OnchainStateDatabase
 import io.github.jyc228.ethereum.state.StateDatabase
-import io.github.jyc228.ethereum.state.StateDatabaseImpl
 import io.github.jyc228.ethereum.state.account.StateRoot
 
 class BlockGenerator(
@@ -26,7 +26,8 @@ class BlockGenerator(
         return (0 until count).map {
             val trieDatabase = TreeDatabase(db)
             val codeDatabase = ContractCodeRepository(db)
-            val db = StateDatabaseImpl.of(StateRoot.fromByteArray(parent.header.root.bytes), trieDatabase, codeDatabase)
+            val db =
+                OnchainStateDatabase.of(StateRoot.fromByteArray(parent.header.root.bytes), trieDatabase, codeDatabase)
             val header = makeHeaderBuilder(parent, db)
             val body = BlockBody(emptyList(), emptyList(), emptyList())
             val block = engin.finalizeAndAssemble(this, header, db, body, listOf())

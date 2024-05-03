@@ -42,7 +42,7 @@ class Journal {
         return lastRevisionId
     }
 
-    fun revertSnapshot(id: Int, db: StateDatabaseImpl) {
+    fun revertSnapshot(id: Int, db: OnchainStateDatabase) {
         val revision = revisions.firstOrNull { it.id >= id } ?: return
         revisions = revisions.subList(0, revisions.indexOf(revision))
         for (idx in entries.lastIndex downTo revision.journalIndex) {

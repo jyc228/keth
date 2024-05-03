@@ -2,7 +2,7 @@ package ethereum.evm.state
 
 import ethereum.core.database.TreeDatabase
 import ethereum.core.repository.ContractCodeRepository
-import io.github.jyc228.ethereum.state.StateDatabaseImpl
+import io.github.jyc228.ethereum.state.OnchainStateDatabase
 import io.github.jyc228.ethereum.state.account.Address
 import io.github.jyc228.ethereum.state.account.OnchainManagedStateAccount
 import io.kotest.common.runBlocking
@@ -13,7 +13,7 @@ import org.junit.jupiter.api.Test
 class StateDatabaseTest {
     val emptyDB = {
         val db = TreeDatabase.memory()
-        StateDatabaseImpl.empty(db, ContractCodeRepository(db.db))
+        OnchainStateDatabase.empty(db, ContractCodeRepository(db.db))
     }
 
     @Test
@@ -21,7 +21,7 @@ class StateDatabaseTest {
         var db = emptyDB()
         db.accountTree.create(Address.EMPTY)
         db.commit(false)
-        db = StateDatabaseImpl.from(db)
+        db = OnchainStateDatabase.from(db)
         val snapshot = db.snapshot()
         db.withAccountOrCreate(Address.EMPTY) { it.balance += BigInteger.ZERO }
         db.revertSnapshot(snapshot)
@@ -75,7 +75,7 @@ class StateDatabaseTest {
         }
 
         db.accountTree.commit(false)
-        db = StateDatabaseImpl.from(db)
+        db = OnchainStateDatabase.from(db)
         val so1 = db.applyAccountOrThrow(addr1) {
             it as OnchainManagedStateAccount
             it.balance = 52.toBigInteger()

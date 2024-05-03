@@ -13,7 +13,7 @@ import ethereum.type.builder.BlockHeaderBuilder
 import io.github.jyc228.ethereum.Transaction
 import io.github.jyc228.ethereum.TransactionReceipt
 import io.github.jyc228.ethereum.TransactionRlp
-import io.github.jyc228.ethereum.state.StateDatabaseImpl
+import io.github.jyc228.ethereum.state.OnchainStateDatabase
 import io.github.jyc228.ethereum.state.account.Address
 import java.math.BigInteger
 import kotlin.math.min
@@ -82,7 +82,14 @@ object BlockFactory {
                 coinbase = genesis.coinbase ?: Address.EMPTY,
                 root = runBlocking {
                     val db = TreeDatabase.memory()
-                    Hash.fromStateRoot(genesis.commitAlloc(StateDatabaseImpl.empty(db, ContractCodeRepository(db.db))))
+                    Hash.fromStateRoot(
+                        genesis.commitAlloc(
+                            OnchainStateDatabase.empty(
+                                db,
+                                ContractCodeRepository(db.db)
+                            )
+                        )
+                    )
                 },
                 uncleHash = Hash.EMPTY_UNCLE_HASH,
                 txHash = Hash.EMPTY_TX_HASH,
