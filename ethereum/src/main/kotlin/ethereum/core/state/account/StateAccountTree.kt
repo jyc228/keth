@@ -1,6 +1,5 @@
 package ethereum.core.state.account
 
-import ethereum.collections.Hash
 import ethereum.collections.MerkleTree
 import ethereum.collections.MerkleTreeDirtyNodes
 import ethereum.collections.fromRootState
@@ -11,11 +10,11 @@ import ethereum.core.state.Journal
 import ethereum.core.state.JournalEntry
 
 class StateAccountTree(
-    private var originalRoot: Hash?,
+    private var originalRoot: StateRoot?,
     private val database: TreeDatabase,
     private val codeRepository: ContractCodeRepository = ContractCodeRepository(database.db)
 ) {
-    private val tree = MerkleTree.fromRootState(originalRoot, database::node)
+    private val tree = MerkleTree.fromRootState(originalRoot?.bytes, database::node)
     val accountByAddress = mutableMapOf<Address, OnchainManagedStateAccount>()
     val pendingAddress = mutableSetOf<Address>() // State objects finalized but not yet written to the trie
     val dirtyAddress = mutableSetOf<Address>() // State objects modified in the current execution
@@ -51,7 +50,7 @@ class StateAccountTree(
     private fun findDeletedOrNull(address: Address): OnchainManagedStateAccount? {
         var stateAccount = accountByAddress[address]
         if (stateAccount == null) {
-            val account = findFromSnapshotOrNull() ?: tree[address.bytes]?.let(StateAccount::fromRlp) ?: return null
+            val account = findFromSnapshotOrNull() ?: tree[address.bytes]?.let(AccountRlp::decode) ?: return null
             stateAccount = OnchainManagedStateAccount.new(address, account)
             accountByAddress[address] = stateAccount
         }
@@ -60,31 +59,31 @@ class StateAccountTree(
 
     fun findFromSnapshotOrNull(): ManagedStateAccount? = null
 
-    fun commit(deleteEmptyObjects: Boolean): Hash {
+    fun commit(deleteEmptyObjects: Boolean): StateRoot? {
         intermediateRoot(deleteEmptyObjects)
 
-        val storageDirtyNodes = mutableMapOf<Hash, MerkleTreeDirtyNodes>()
+        val storageDirtyNodes = mutableMapOf<AddressHash, MerkleTreeDirtyNodes>()
         dirtyAddress.forEachAccount { account ->
             if (account.deleted) return@forEachAccount
             if (account.code != null && account.dirtyCode) {
-                codeRepository.saveCode(account.codeHash, account.code!!)
+                codeRepository.saveCode(account.codeHash!!, account.code!!)
                 account.dirtyCode = false
             }
             account.storage.collectDirties()?.let {
-                val addrHash = Hash.keccak256FromBytes(account.address.bytes)
+                val addrHash = AddressHash.keccak256FromBytes(account.address.bytes)
                 storageDirtyNodes.merge(addrHash, it) { prev, next -> prev.merge(next) }
             }
         }
 
         val accountDirtyNodes = tree.collectDirties(true)
-        if (originalRoot != tree.rootHash()?.let(::Hash)) {
+        if (!originalRoot?.bytes.contentEquals(tree.rootHash())) {
             database.update(accountDirtyNodes!!, storageDirtyNodes)
-            originalRoot = tree.rootHash()?.let(::Hash) ?: Hash.EMPTY_MPT_ROOT
+            originalRoot = tree.rootHash()?.let(::StateRoot)
         }
-        return tree.rootHash()?.let(::Hash) ?: Hash.EMPTY_MPT_ROOT
+        return tree.rootHash()?.let(::StateRoot)
     }
 
-    fun intermediateRoot(deleteEmptyObject: Boolean): Hash {
+    fun intermediateRoot(deleteEmptyObject: Boolean): StateRoot? {
         // Finalise all the dirty storage states and write them into the tries
         finalise(deleteEmptyObject)
 
@@ -92,11 +91,11 @@ class StateAccountTree(
         pendingAddress.forEachAccount { account ->
             when (account.deleted) {
                 true -> tree -= account.address.bytes
-                false -> tree[account.address.bytes] = account.encodeToRlp()
+                false -> tree[account.address.bytes] = AccountRlp.encode(account)
             }
         }
 
-        return tree.rootHash()?.let(::Hash) ?: Hash.EMPTY_MPT_ROOT
+        return tree.rootHash()?.let(::StateRoot)
     }
 
 
@@ -132,13 +131,13 @@ class StateAccountTree(
     fun OnchainManagedStateAccount.Companion.new(address: Address, account: StateAccount? = null) =
         OnchainManagedStateAccount(
             address = address,
-            account = account ?: StateAccount(),
+            account = account ?: StateAccount.of(0uL, 0.toBigInteger(), null, null),
             journal = journal,
             codeRepository = codeRepository,
             storage = StateAccountStorage(
                 owner = address,
                 journal = journal,
-                tree = MerkleTree.lazyFromRootState(account?.root, database::node),
+                tree = MerkleTree.lazyFromRootState(account?.root?.bytes, database::node),
                 isDestruct = { it in destructAddress }
             )
         )

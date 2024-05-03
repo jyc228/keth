@@ -1,5 +1,6 @@
 package ethereum.collections
 
+import ethereum.core.state.account.StateRoot
 import java.nio.ByteBuffer
 import java.util.HexFormat
 import org.bouncycastle.jcajce.provider.digest.Keccak
@@ -29,6 +30,8 @@ class Hash(val bytes: ByteArray) {
         val EMPTY_CODE = keccak256FromBytes(byteArrayOf())
 
         fun fromString(input: String): Hash = Hash(input.map { it.code.toByte() }.toByteArray())
+
+        fun fromStateRoot(hash: StateRoot?) = hash?.let { Hash(it.bytes) } ?: EMPTY_MPT_ROOT
 
         fun fromHexString(input: String): Hash = Hash(HexFormat.of().parseHex(input))
         fun fromBytes(vararg input: Byte): Hash = fromByteArray(input)

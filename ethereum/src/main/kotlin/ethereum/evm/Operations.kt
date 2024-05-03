@@ -160,7 +160,7 @@ fun newOperation(opCode: OpCode) = OperationBuilder.build(opCode) {
         OpCode.RETURNDATASIZE -> pop0 { TODO() }.withGas2()
         OpCode.RETURNDATACOPY -> pop3 { top2, top1, top0 -> }
         OpCode.EXTCODEHASH -> pop1push { address ->
-            db.findAccount(Address(address.bytes))?.codeHash?.toElement() ?: EVMStackElement.ZERO
+            db.findAccount(Address(address.bytes))?.codeHash?.bytes?.toElement() ?: EVMStackElement.ZERO
         }
 
         OpCode.BLOCKHASH -> pop1 { }.withGas(20)

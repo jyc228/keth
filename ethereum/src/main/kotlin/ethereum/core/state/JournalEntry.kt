@@ -1,6 +1,7 @@
 package ethereum.core.state
 
 import ethereum.core.state.account.Address
+import ethereum.core.state.account.CodeHash
 import ethereum.core.state.account.OnchainManagedStateAccount
 import java.math.BigInteger
 
@@ -55,6 +56,6 @@ sealed interface JournalEntry {
     data class CodeChange(
         override val dirtyAddress: Address,
         private val prevCode: ByteArray?,
-        private val prevHash: ByteArray
+        private val prevHash: CodeHash?
     ) : JournalEntry
 }

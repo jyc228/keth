@@ -1,9 +1,9 @@
 package ethereum.core.state
 
-import ethereum.collections.Hash
 import ethereum.core.state.account.Address
 import ethereum.core.state.account.ManagedStateAccount
 import ethereum.core.state.account.StateAccount
+import ethereum.core.state.account.StateRoot
 
 interface StateDatabase {
     /**
@@ -31,13 +31,13 @@ interface StateDatabase {
     suspend fun <R> withAccountOrNull(address: Address, transform: suspend (ManagedStateAccount?) -> R): R
     suspend fun <R> withAccount(address: Address, transform: suspend (ManagedStateAccount) -> R): R?
 
-    suspend fun commit(deleteEmpty: Boolean): Hash
+    suspend fun commit(deleteEmpty: Boolean): StateRoot?
 
     /**
      * computes the current root hash of the state tree.
      * It is called in between transactions to get the root hash that goes into transaction receipts.
      */
-    suspend fun intermediateRoot(deleteEmpty: Boolean): Hash
+    suspend fun intermediateRoot(deleteEmpty: Boolean): StateRoot?
 
     fun snapshot(): Int
     fun revertSnapshot(id: Int)

@@ -5,25 +5,21 @@ import ethereum.collections.mpt.MerklePatriciaTrie
 import ethereum.collections.mpt.MerklePatriciaTrieNode
 import ethereum.collections.mpt.decodeFromRlp
 
-fun MerkleTree.Companion.fromEmptyState(findNodeByHash: ((Hash) -> ByteArray?)? = null): MerkleTree {
-    return new(null, findNodeByHash ?: { null })
-}
-
-fun MerkleTree.Companion.fromRootState(hash: Hash?, findNodeByHash: (Hash) -> ByteArray?): MerkleTree {
-    if (hash == null || hash == Hash.EMPTY || hash == Hash.EMPTY_MPT_ROOT) {
-        return fromEmptyState(findNodeByHash)
+fun MerkleTree.Companion.fromRootState(hash: ByteArray?, findNodeByHash: (ByteArray) -> ByteArray?): MerkleTree {
+    if (hash == null) {
+        return new(null, findNodeByHash)
     }
     val nodeData = findNodeByHash(hash) ?: throw MissingNodeError()
-    return new(MerklePatriciaTrieNode.decodeFromRlp(hash.bytes, nodeData), findNodeByHash)
+    return new(MerklePatriciaTrieNode.decodeFromRlp(hash, nodeData), findNodeByHash)
 }
 
-fun MerkleTree.Companion.lazyFromRootState(hash: Hash?, findNodeByHash: (Hash) -> ByteArray?): MerkleTree {
-    if (hash == null || hash == Hash.EMPTY || hash == Hash.EMPTY_MPT_ROOT) {
-        return fromEmptyState(findNodeByHash)
+fun MerkleTree.Companion.lazyFromRootState(hash: ByteArray?, findNodeByHash: (ByteArray) -> ByteArray?): MerkleTree {
+    if (hash == null) {
+        return new(null, findNodeByHash)
     }
-    return new(HashNode(hash.bytes), findNodeByHash)
+    return new(HashNode(hash), findNodeByHash)
 }
 
-fun MerkleTree.Companion.new(root: MerklePatriciaTrieNode?, findNodeByHash: (Hash) -> ByteArray?): MerkleTree {
-    return HashKeyMerkleTree.keccak256(MerklePatriciaTrie(root, { findNodeByHash(Hash(it)) }))
+fun MerkleTree.Companion.new(root: MerklePatriciaTrieNode?, findNodeByHash: (ByteArray) -> ByteArray?): MerkleTree {
+    return HashKeyMerkleTree.keccak256(MerklePatriciaTrie(root, findNodeByHash))
 }

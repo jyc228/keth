@@ -1,7 +1,7 @@
 package ethereum.evm
 
-import ethereum.collections.Hash
 import ethereum.core.state.account.Address
+import ethereum.core.state.account.CodeHash
 import ethereum.hexToByteArray
 import io.kotest.core.spec.style.DescribeSpec
 import io.kotest.core.spec.style.scopes.ContainerScope
@@ -29,7 +29,7 @@ class OperationTest : DescribeSpec({
         val operation = instructionSet[opcode.v] ?: fail("operation not exist. $opcode")
         withData(nameFn = { "${it.index} $it" }, testCases) { tc ->
             val context = FrameContext(
-                contract = EVMContract(Address.fromBytes(), byteArrayOf(), Hash.fromBytes()),
+                contract = EVMContract(Address.fromBytes(), byteArrayOf(), CodeHash(byteArrayOf())),
                 callData = byteArrayOf(),
                 caller = Address.fromBytes(),
                 callValue = BigInteger.ZERO,

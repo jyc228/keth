@@ -1,6 +1,5 @@
 package ethereum.core.state.account
 
-import ethereum.collections.Hash
 import ethereum.crypto.ECDSAPublicKey
 import ethereum.rlp.RLPEncoder
 import ethereum.toKeccak256
@@ -8,8 +7,6 @@ import java.nio.ByteBuffer
 import java.util.HexFormat
 
 class Address(val bytes: ByteArray) {
-    val hash by lazy(LazyThreadSafetyMode.NONE) { Hash.keccak256FromBytes(bytes) }
-
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
         if (javaClass != other?.javaClass) return false
@@ -45,7 +42,7 @@ class Address(val bytes: ByteArray) {
 
         fun new(from: Address, nonce: ULong): Address {
             val data = RLPEncoder.encodeArray { addBytes(from.bytes).addULong(nonce) }
-            return Address(Hash.keccak256FromBytes(data).bytes.copyOfRange(12, Hash.SIZE))
+            return Address(data.keccak256().copyOfRange(12, 32))
         }
     }
 }

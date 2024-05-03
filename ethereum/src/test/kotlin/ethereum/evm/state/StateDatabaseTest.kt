@@ -65,7 +65,7 @@ class StateDatabaseTest {
             it.nonce = 43u
             it.suicided = false
             it.deleted = false
-            it.code = byteArrayOf('c'.code.toByte(), 'a'.code.toByte(), 'f'.code.toByte(), 'e'.code.toByte())
+            it.setCode(byteArrayOf('c'.code.toByte(), 'a'.code.toByte(), 'f'.code.toByte(), 'e'.code.toByte()))
         }
 
         db.accountTree.commit(false)
@@ -76,12 +76,14 @@ class StateDatabaseTest {
             it.nonce = 53u
             it.suicided = true
             it.deleted = true
-            it.code = byteArrayOf(
-                'c'.code.toByte(),
-                'a'.code.toByte(),
-                'f'.code.toByte(),
-                'e'.code.toByte(),
-                '2'.code.toByte()
+            it.setCode(
+                byteArrayOf(
+                    'c'.code.toByte(),
+                    'a'.code.toByte(),
+                    'f'.code.toByte(),
+                    'e'.code.toByte(),
+                    '2'.code.toByte()
+                )
             )
         }
 
@@ -94,8 +96,8 @@ class StateDatabaseTest {
             so0.address shouldBe it.address
             so0.balance shouldBe it.balance
             so0.nonce shouldBe it.nonce
-            so0.root shouldBe it.root
-            so0.codeHash shouldBe it.codeHash
+            so0.root?.bytes shouldBe it.root?.bytes
+            so0.codeHash?.bytes.contentToString() shouldBe it.codeHash?.bytes.contentToString()
 //        so0.account.code shouldBe so0Restored.account.code
         }
         db.withAccountOrNull(addr1) { it shouldBe null }
@@ -110,7 +112,7 @@ class StateDatabaseTest {
         val acc2 = db.applyAccountOrCreate(Address.fromBytes(1, 2)) {
             it as OnchainManagedStateAccount
             it.balance = 22.toBigInteger()
-            it.code = byteArrayOf(3, 3, 3, 3, 3, 3, 3)
+            it.setCode(byteArrayOf(3, 3, 3, 3, 3, 3, 3))
         }
         db.withAccountOrCreate(Address.fromBytes(2)) {
             it.balance = 44.toBigInteger()

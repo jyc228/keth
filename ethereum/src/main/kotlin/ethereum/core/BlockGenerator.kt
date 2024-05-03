@@ -1,11 +1,13 @@
 package ethereum.core
 
+import ethereum.collections.Hash
 import ethereum.config.ForkConfig
 import ethereum.consensus.ChainHeaderReader
 import ethereum.consensus.ConsensusEngin
 import ethereum.core.database.TreeDatabase
 import ethereum.core.state.StateDatabase
 import ethereum.core.state.StateDatabaseImpl
+import ethereum.core.state.account.StateRoot
 import ethereum.db.KeyValueDatabase
 import ethereum.history.EIP1559
 import ethereum.type.Block
@@ -22,11 +24,11 @@ class BlockGenerator(
     suspend fun generate(count: Int, mutateBlock: ((BlockBuilder, StateDatabase) -> Unit)? = null): List<Block> {
         return (0 until count).map {
             val trieDatabase = TreeDatabase(db)
-            val db = StateDatabaseImpl.of(parent.header.root, trieDatabase)
+            val db = StateDatabaseImpl.of(StateRoot.fromByteArray(parent.header.root.bytes), trieDatabase)
             val header = makeHeaderBuilder(parent, db)
             val body = BlockBody(emptyList(), emptyList(), emptyList())
             val block = engin.finalizeAndAssemble(this, header, db, body, listOf())
-            val root = db.commit(false)
+            val root = Hash.fromStateRoot(db.commit(false))
             trieDatabase.commit(root)
             parent = block
             block
@@ -39,7 +41,7 @@ class BlockGenerator(
 
     private suspend fun makeHeaderBuilder(parent: Block, db: StateDatabase): BlockHeaderBuilder {
         return BlockHeaderBuilder(parent.header).mutate {
-            root = db.intermediateRoot(config.eip158.forked(parent.number))
+            root = Hash.fromStateRoot(db.intermediateRoot(config.eip158.forked(parent.number)))
             difficulty = engin.calcDifficulty(this@BlockGenerator, parent.header.time + 10u, parent.header)
             if (config.london.forked(number)) {
                 baseFee = EIP1559.computeBaseFee(config, parent.header)

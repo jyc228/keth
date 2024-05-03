@@ -4,7 +4,8 @@ import ethereum.collections.Hash
 import ethereum.collections.MerkleTreeDirtyNodes
 import ethereum.collections.MerkleTreeNode
 import ethereum.core.repository.TreeRepository
-import ethereum.core.state.account.StateAccount
+import ethereum.core.state.account.AccountRlp
+import ethereum.core.state.account.AddressHash
 import ethereum.db.InMemoryKeyValueDatabase
 import ethereum.db.KeyValueDatabase
 
@@ -16,17 +17,17 @@ class TreeDatabase(val db: KeyValueDatabase) {
     var dirtiesSize = 0
     var childrenSize: Int = 0
 
-    fun node(hash: Hash): ByteArray? {
-        val dirty = dirties[hash]
+    fun node(hash: ByteArray): ByteArray? {
+        val dirty = dirties[Hash(hash)]
         if (dirty != null) {
             return dirty.node.encode(false)
         }
-        return repository.readLegacyTrieNode(hash)
+        return repository.readLegacyTrieNode(Hash(hash))
     }
 
     // Update inserts the dirty nodes in provided nodeset into database and
     // link the account trie with multiple storage tries if necessary.
-    fun update(accountDirties: MerkleTreeDirtyNodes, storageDirties: Map<Hash, MerkleTreeDirtyNodes>) {
+    fun update(accountDirties: MerkleTreeDirtyNodes, storageDirties: Map<AddressHash, MerkleTreeDirtyNodes>) {
         // Insert dirty nodes into the database. In the same tree, it must be
         // ensured that children are inserted first, then parent so that children
         // can be linked with their parent correctly.
@@ -39,9 +40,9 @@ class TreeDatabase(val db: KeyValueDatabase) {
 
         accountDirties.forEachByPath { n -> n?.let { insert(n) } }
         accountDirties.leaves.forEach {
-            val account = StateAccount.fromRlp(it.data)
-            if (account.root != Hash.EMPTY_MPT_ROOT) {
-                reference(account.root, Hash(it.hash))
+            val account = AccountRlp.decode(it.data)
+            if (account.root != null) {
+                reference(Hash(account.root.bytes), Hash(it.hash))
             }
         }
     }

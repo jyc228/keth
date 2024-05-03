@@ -1,6 +1,5 @@
 package ethereum.core.state.account
 
-import ethereum.collections.Hash
 import ethereum.collections.MerkleTree
 import ethereum.collections.MerkleTreeDirtyNodes
 import ethereum.core.state.Journal
@@ -13,7 +12,7 @@ class StateAccountStorage(
     private val tree: MerkleTree,
     private val isDestruct: (owner: Address) -> Boolean
 ) : ManagedStateAccount.Storage {
-    val rootHash get() = tree.rootHash()?.let(::Hash) ?: Hash.EMPTY_MPT_ROOT
+    val rootHash get() = tree.rootHash()?.let(::StorageRoot)
 
     /** Storage cache of original entries to dedup rewrites, reset for every transaction */
     private val origin = mutableMapOf<Key, ByteArray>()

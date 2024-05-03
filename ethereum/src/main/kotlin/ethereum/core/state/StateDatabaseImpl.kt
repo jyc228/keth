@@ -1,16 +1,13 @@
 package ethereum.core.state
 
-import ethereum.collections.Hash
 import ethereum.core.database.TreeDatabase
 import ethereum.core.state.account.Address
 import ethereum.core.state.account.ManagedStateAccount
 import ethereum.core.state.account.OnchainManagedStateAccount
 import ethereum.core.state.account.StateAccountTree
-import java.math.BigInteger
+import ethereum.core.state.account.StateRoot
 
 class StateDatabaseImpl(val accountTree: StateAccountTree) : StateDatabase {
-    val accessList = AccessList()
-
     override suspend fun createAccount(address: Address, callback: (suspend (ManagedStateAccount) -> Unit)?) {
         val account = accountTree.create(address) { prev, next ->
             accountTree.journal.disable { next.balance = prev.balance }
@@ -72,23 +69,8 @@ class StateDatabaseImpl(val accountTree: StateAccountTree) : StateDatabase {
 
     override suspend fun intermediateRoot(deleteEmpty: Boolean) = accountTree.intermediateRoot(deleteEmpty)
 
-    data class Dump(val root: Hash, val accounts: Map<Hash, DumpAccount>)
-
-    class DumpAccount(
-        val balance: BigInteger,
-        val nonce: ULong,
-        val root: Hash,
-        val codeHash: Hash,
-        val code: ByteArray?,
-        val storage: Map<Hash, String>?,
-        // Address only present in iterative (line-by-line) mode
-        val address: Address,
-        // If we don't have address, we can output the key
-        val key: ByteArray?
-    )
-
     companion object {
-        fun of(root: Hash, database: TreeDatabase) = StateDatabaseImpl(StateAccountTree(root, database))
+        fun of(root: StateRoot?, database: TreeDatabase) = StateDatabaseImpl(StateAccountTree(root, database))
         fun from(db: StateDatabaseImpl) = StateDatabaseImpl(StateAccountTree.from(db.accountTree))
         fun empty(database: TreeDatabase = TreeDatabase.memory()) =
             StateDatabaseImpl(StateAccountTree(null, database))

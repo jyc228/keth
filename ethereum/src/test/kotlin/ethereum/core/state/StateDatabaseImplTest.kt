@@ -1,5 +1,6 @@
 package ethereum.core.state
 
+import ethereum.collections.Hash
 import ethereum.core.database.TreeDatabase
 import ethereum.core.state.account.Address
 import ethereum.core.state.account.ManagedStateAccount
@@ -27,10 +28,10 @@ class StateDatabaseImplTest {
             prevState.withAccountOrCreate(addr) { it.withTestData(99) }
             nextState.withAccountOrCreate(addr) { it.withTestData(99) }
         }
-        val prevRoot = prevState.commit(false)
+        val prevRoot = Hash.fromStateRoot(prevState.commit(false))
         prevDb.commit(prevRoot)
 
-        val nextRoot = nextState.commit(false)
+        val nextRoot = Hash.fromStateRoot(nextState.commit(false))
         nextDb.commit(nextRoot)
         val r = nextDb.db.iterator().asSequence().toList()
         r.forEach { (k, v) ->

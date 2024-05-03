@@ -73,7 +73,9 @@ class EthashEngin : ConsensusEngin {
         require(body.withdrawals.isEmpty()) { "ethash does not support withdrawals" }
         finalize(chain, header, state, body)
         return Block.new(
-            header = header.mutate { root = state.intermediateRoot(chain.config.eip158.forked(header.number)) },
+            header = header.mutate {
+                root = Hash.fromStateRoot(state.intermediateRoot(chain.config.eip158.forked(header.number)))
+            },
             transactions = body.transactions,
             uncles = body.uncles,
             receipts = receipts

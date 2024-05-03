@@ -41,7 +41,7 @@ class Genesis(
                 account.storage.forEach { (k, v) -> it.storage.set(k.bytes, v.bytes) }
             }
         }
-        return db.commit(false)
+        return Hash.fromStateRoot(db.commit(false))
     }
 
     class Account(

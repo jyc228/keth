@@ -1,12 +1,12 @@
 package ethereum.core.repository
 
-import ethereum.collections.Hash
+import ethereum.core.state.account.CodeHash
 import ethereum.db.KeyValueDatabase
 
 class ContractCodeRepository(private val db: KeyValueDatabase) {
-    fun saveCode(codeHash: Hash, code: ByteArray) {
+    fun saveCode(codeHash: CodeHash, code: ByteArray) {
         db[codeHash.bytes] = code
     }
 
-    fun findCodeByCodeHash(codeHash: Hash): ByteArray? = db[codeHash.bytes]
+    fun findCodeByCodeHash(codeHash: CodeHash): ByteArray? = db[codeHash.bytes]
 }

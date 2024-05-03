@@ -1,7 +1,7 @@
 package ethereum.evm
 
-import ethereum.collections.Hash
 import ethereum.core.state.account.Address
+import ethereum.core.state.account.CodeHash
 import ethereum.core.state.account.ManagedStateAccount
 import java.math.BigInteger
 
@@ -14,7 +14,7 @@ class EVMAddress(override val address: Address) : EVMAccount
 class EVMContract(
     override val address: Address,
     val code: ByteArray,
-    val codeHash: Hash
+    val codeHash: CodeHash
 ) : EVMAccount {
 
 //    val caller: AccountReference,
@@ -35,7 +35,7 @@ class EVMContract(
         suspend fun of(account: ManagedStateAccount) = EVMContract(
             address = account.address,
             code = requireNotNull(account.getCode()),
-            codeHash = account.codeHash
+            codeHash = requireNotNull(account.codeHash)
         )
     }
 }
