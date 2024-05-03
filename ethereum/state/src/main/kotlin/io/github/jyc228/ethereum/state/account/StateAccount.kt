@@ -33,10 +33,3 @@ interface ManagedStateAccount : StateAccount {
         suspend fun set(key: ByteArray, value: ByteArray?)
     }
 }
-
-data class ImmutableStateAccount(
-    override val nonce: ULong,
-    override val balance: BigInteger,
-    override val root: StorageRoot?,
-    override val codeHash: CodeHash?
-) : StateAccount

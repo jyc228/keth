@@ -5,6 +5,13 @@ import io.github.jyc228.ethereum.state.Journal
 import io.github.jyc228.ethereum.state.JournalEntry
 import java.math.BigInteger
 
+data class ImmutableStateAccount(
+    override val nonce: ULong,
+    override val balance: BigInteger,
+    override val root: StorageRoot?,
+    override val codeHash: CodeHash?
+) : StateAccount
+
 class OnchainManagedStateAccount(
     override val address: Address,
     override val storage: StateAccountStorage,
