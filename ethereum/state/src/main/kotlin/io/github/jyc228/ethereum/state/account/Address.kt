@@ -5,6 +5,10 @@ import java.nio.ByteBuffer
 import java.util.HexFormat
 
 class Address(val bytes: ByteArray) {
+
+    @OptIn(ExperimentalStdlibApi::class)
+    val hex get() = bytes.toHexString()
+
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
         if (javaClass != other?.javaClass) return false

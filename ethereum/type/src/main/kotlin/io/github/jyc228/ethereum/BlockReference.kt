@@ -19,5 +19,7 @@ value class BlockReference private constructor(val value: String) {
             finalized.value -> finalized
             else -> error("unknown tag $tag")
         }
+
+        fun fromHex(hex: String) = BlockReference(hex)
     }
 }
