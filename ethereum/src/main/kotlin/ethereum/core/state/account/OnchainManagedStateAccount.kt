@@ -4,7 +4,6 @@ import ethereum.collections.Hash
 import ethereum.core.repository.ContractCodeRepository
 import ethereum.core.state.Journal
 import ethereum.core.state.JournalEntry
-import ethereum.evm.Address
 import java.math.BigInteger
 
 class OnchainManagedStateAccount(

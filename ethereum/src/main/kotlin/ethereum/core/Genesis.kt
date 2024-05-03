@@ -3,7 +3,7 @@ package ethereum.core
 import ethereum.collections.Hash
 import ethereum.config.ChainConfig
 import ethereum.core.state.StateDatabase
-import ethereum.evm.Address
+import ethereum.core.state.account.Address
 import java.math.BigInteger
 
 class Genesis(

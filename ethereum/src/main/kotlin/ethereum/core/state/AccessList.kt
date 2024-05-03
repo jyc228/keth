@@ -1,7 +1,7 @@
 package ethereum.core.state
 
 import ethereum.collections.Hash
-import ethereum.evm.Address
+import ethereum.core.state.account.Address
 
 class AccessList(
     private val slotIndexByAddress: MutableMap<Address, Int> = mutableMapOf(),

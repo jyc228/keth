@@ -2,7 +2,7 @@ package ethereum.history
 
 import ethereum.collections.Hash
 import ethereum.config.ForkConfig
-import ethereum.evm.Address
+import ethereum.core.state.account.Address
 import ethereum.type.BlockHeader
 import io.kotest.matchers.shouldBe
 import java.math.BigInteger

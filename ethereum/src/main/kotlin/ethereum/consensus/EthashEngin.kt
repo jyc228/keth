@@ -3,7 +3,7 @@ package ethereum.consensus
 import ethereum.collections.Hash
 import ethereum.core.BlockFactory.new
 import ethereum.core.state.StateDatabase
-import ethereum.evm.Address
+import ethereum.core.state.account.Address
 import ethereum.history.fork.ArrowGlacierHardFork
 import ethereum.history.fork.ByzantiumHardFork
 import ethereum.history.fork.ConstantinopleHardFork

@@ -2,7 +2,7 @@ package ethereum.consensus
 
 import ethereum.collections.Hash
 import ethereum.core.state.StateDatabase
-import ethereum.evm.Address
+import ethereum.core.state.account.Address
 import ethereum.type.Block
 import ethereum.type.BlockBody
 import ethereum.type.BlockHeader

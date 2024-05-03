@@ -1,7 +1,7 @@
 package ethereum.type.builder
 
 import ethereum.collections.Hash
-import ethereum.evm.Address
+import ethereum.core.state.account.Address
 import ethereum.type.BlockHeader
 import java.math.BigInteger
 

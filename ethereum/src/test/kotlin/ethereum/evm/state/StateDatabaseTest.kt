@@ -1,8 +1,8 @@
 package ethereum.evm.state
 
 import ethereum.core.state.StateDatabaseImpl
+import ethereum.core.state.account.Address
 import ethereum.core.state.account.OnchainManagedStateAccount
-import ethereum.evm.Address
 import io.kotest.common.runBlocking
 import io.kotest.matchers.shouldBe
 import java.math.BigInteger

@@ -1,6 +1,7 @@
 package ethereum.evm
 
 import ethereum.collections.Hash
+import ethereum.core.state.account.Address
 import ethereum.core.state.account.ManagedStateAccount
 import java.math.BigInteger
 

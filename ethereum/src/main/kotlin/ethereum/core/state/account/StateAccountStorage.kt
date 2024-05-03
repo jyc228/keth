@@ -5,7 +5,6 @@ import ethereum.collections.MerkleTreeDirtyNodes
 import ethereum.collections.MerkleTreeWithMetrics
 import ethereum.core.state.Journal
 import ethereum.core.state.JournalEntry
-import ethereum.evm.Address
 import ethereum.rlp.RLPEncoder
 
 class StateAccountStorage(

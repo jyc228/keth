@@ -1,6 +1,7 @@
 package ethereum.evm
 
 import ethereum.collections.Hash
+import ethereum.core.state.account.Address
 import ethereum.hexToByteArray
 import io.kotest.core.spec.style.DescribeSpec
 import io.kotest.core.spec.style.scopes.ContainerScope

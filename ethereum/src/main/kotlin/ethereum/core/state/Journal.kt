@@ -1,6 +1,6 @@
 package ethereum.core.state
 
-import ethereum.evm.Address
+import ethereum.core.state.account.Address
 import kotlin.properties.ObservableProperty
 import kotlin.properties.ReadWriteProperty
 import kotlin.reflect.KProperty

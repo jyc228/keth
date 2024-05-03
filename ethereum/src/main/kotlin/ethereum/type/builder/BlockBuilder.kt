@@ -1,6 +1,6 @@
 package ethereum.type.builder
 
-import ethereum.evm.Address
+import ethereum.core.state.account.Address
 import ethereum.type.Block
 import ethereum.type.BlockHeader
 import io.github.jyc228.ethereum.Transaction

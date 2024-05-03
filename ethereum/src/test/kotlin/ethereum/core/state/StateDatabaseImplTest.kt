@@ -1,8 +1,8 @@
 package ethereum.core.state
 
 import ethereum.core.database.TreeDatabase
+import ethereum.core.state.account.Address
 import ethereum.core.state.account.ManagedStateAccount
-import ethereum.evm.Address
 import io.kotest.common.runBlocking
 import org.junit.jupiter.api.Test
 

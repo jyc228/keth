@@ -5,7 +5,7 @@ import ethereum.collections.MerkleTree
 import ethereum.collections.mpt.MerklePatriciaTrie
 import ethereum.core.database.TreeDatabase
 import ethereum.core.state.StateDatabaseImpl
-import ethereum.evm.Address
+import ethereum.core.state.account.Address
 import ethereum.rlp.RLPEncoder
 import ethereum.type.Block
 import ethereum.type.BlockBody

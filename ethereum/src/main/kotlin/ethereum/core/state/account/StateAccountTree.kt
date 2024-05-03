@@ -10,7 +10,6 @@ import ethereum.core.database.TreeDatabase
 import ethereum.core.repository.ContractCodeRepository
 import ethereum.core.state.Journal
 import ethereum.core.state.JournalEntry
-import ethereum.evm.Address
 
 class StateAccountTree(
     private var originalRoot: Hash?,

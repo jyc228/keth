@@ -1,4 +1,4 @@
-package ethereum.evm
+package ethereum.core.state.account
 
 import ethereum.collections.Hash
 import ethereum.crypto.ECDSAPublicKey

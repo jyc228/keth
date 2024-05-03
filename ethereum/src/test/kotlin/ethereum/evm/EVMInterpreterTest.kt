@@ -1,6 +1,7 @@
 package ethereum.evm
 
 import ethereum.core.state.StateDatabaseImpl
+import ethereum.core.state.account.Address
 import ethereum.hexToByteArray
 import io.kotest.core.spec.style.DescribeSpec
 import io.kotest.matchers.shouldBe

@@ -1,6 +1,6 @@
 package ethereum.crypto
 
-import ethereum.evm.Address
+import ethereum.core.state.account.Address
 import io.kotest.core.spec.style.StringSpec
 import io.kotest.matchers.shouldBe
 

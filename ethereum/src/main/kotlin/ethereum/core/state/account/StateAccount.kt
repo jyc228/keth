@@ -1,7 +1,6 @@
 package ethereum.core.state.account
 
 import ethereum.collections.Hash
-import ethereum.evm.Address
 import ethereum.rlp.RLPEncoder
 import ethereum.rlp.rlpToObject
 import java.math.BigInteger
