@@ -2,8 +2,6 @@ package ethereum.core.state.account
 
 import ethereum.collections.MerkleTree
 import ethereum.collections.MerkleTreeDirtyNodes
-import ethereum.collections.fromRootState
-import ethereum.collections.lazyFromRootState
 import ethereum.core.database.TreeDatabase
 import ethereum.core.repository.ContractCodeRepository
 import ethereum.core.state.Journal

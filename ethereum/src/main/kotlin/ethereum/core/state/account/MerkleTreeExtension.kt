@@ -1,5 +1,8 @@
-package ethereum.collections
+package ethereum.core.state.account
 
+import ethereum.collections.HashKeyMerkleTree
+import ethereum.collections.MerkleTree
+import ethereum.collections.MissingNodeError
 import ethereum.collections.mpt.HashNode
 import ethereum.collections.mpt.MerklePatriciaTrie
 import ethereum.collections.mpt.MerklePatriciaTrieNode
