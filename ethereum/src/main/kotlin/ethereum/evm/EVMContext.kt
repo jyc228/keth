@@ -1,6 +1,5 @@
 package ethereum.evm
 
-import ethereum.collections.Hash
 import io.github.jyc228.ethereum.state.StateDatabase
 import io.github.jyc228.ethereum.state.account.Address
 import java.math.BigInteger
@@ -15,7 +14,7 @@ class BlockContext(
     val difficulty: ULong = 0uL,
     val time: ULong = 0uL,
     val gasLimit: BigInteger = BigInteger.ZERO,
-    val random: Hash = Hash.EMPTY_TX_HASH,
+    val random: ByteArray = byteArrayOf(),
     val coinbase: Address = Address(byteArrayOf()),
     val baseFee: BigInteger = BigInteger.ZERO
 )
@@ -109,7 +108,6 @@ class FrameContext(
     fun Int.toElement() = EVMStackElement(_int = this)
     fun ULong.toElement() = EVMStackElement(_big = toLong().toBigInteger())
     fun Address.toElement() = EVMStackElement(bytes)
-    fun Hash.toElement() = EVMStackElement(bytes)
 
     companion object {
         val MAX_UINT64 = 18446744073709551615uL
