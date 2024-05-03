@@ -1,8 +1,8 @@
 package ethereum.type.builder
 
 import ethereum.collections.Hash
-import ethereum.core.state.account.Address
 import ethereum.type.BlockHeader
+import io.github.jyc228.ethereum.state.account.Address
 import java.math.BigInteger
 
 class BlockHeaderBuilder(val parent: BlockHeader) {

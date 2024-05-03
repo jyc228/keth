@@ -4,13 +4,13 @@ import ethereum.collections.Hash
 import ethereum.collections.MerkleTreeDirtyNodes
 import ethereum.collections.MerkleTreeNode
 import ethereum.core.repository.TreeRepository
-import ethereum.core.state.account.AccountRlp
-import ethereum.core.state.account.AddressHash
-import ethereum.core.state.account.StateRoot
 import ethereum.db.InMemoryKeyValueDatabase
 import ethereum.db.KeyValueDatabase
+import io.github.jyc228.ethereum.state.account.AccountRlp
+import io.github.jyc228.ethereum.state.account.AddressHash
+import io.github.jyc228.ethereum.state.account.StateRoot
 
-class TreeDatabase(val db: KeyValueDatabase) : ethereum.core.state.TreeDatabase {
+class TreeDatabase(val db: KeyValueDatabase) : io.github.jyc228.ethereum.state.TreeDatabase {
     private val repository = TreeRepository(db)
     private var dirties: MutableMap<Hash, CachedNode> = mutableMapOf()
     var oldest = Hash.EMPTY
@@ -43,7 +43,7 @@ class TreeDatabase(val db: KeyValueDatabase) : ethereum.core.state.TreeDatabase 
         accountDirties.leaves.forEach {
             val account = AccountRlp.decode(it.data)
             if (account.root != null) {
-                reference(Hash(account.root.bytes), Hash(it.hash))
+                reference(Hash(account.root!!.bytes), Hash(it.hash))
             }
         }
     }

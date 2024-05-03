@@ -6,11 +6,11 @@ import ethereum.consensus.ChainHeaderReader
 import ethereum.consensus.ConsensusEngin
 import ethereum.core.header.HeaderChain
 import ethereum.core.repository.ChainRepository
-import ethereum.core.state.StateDatabase
 import ethereum.type.Block
 import ethereum.type.BlockBody
 import ethereum.type.BlockHeader
 import io.github.jyc228.ethereum.TransactionReceipt
+import io.github.jyc228.ethereum.state.StateDatabase
 import java.math.BigInteger
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.minutes

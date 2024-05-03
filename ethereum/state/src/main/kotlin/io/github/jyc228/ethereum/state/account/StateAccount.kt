@@ -1,4 +1,4 @@
-package ethereum.core.state.account
+package io.github.jyc228.ethereum.state.account
 
 import java.math.BigInteger
 

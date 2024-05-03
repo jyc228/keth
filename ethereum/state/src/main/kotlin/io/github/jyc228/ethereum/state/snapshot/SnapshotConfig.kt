@@ -1,4 +1,4 @@
-package ethereum.core.state.snapshot
+package io.github.jyc228.ethereum.state.snapshot
 
 class SnapshotConfig(
     val cacheSize: Int,

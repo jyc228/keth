@@ -8,6 +8,7 @@ dependencies {
     implementation(project(":rlp"))
     implementation(project(":collections"))
     implementation(project(":ethereum:type"))
+    implementation(project(":ethereum:state"))
     implementation("org.bouncycastle:bcprov-jdk15on:1.70")
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.2")
     // https://mvnrepository.com/artifact/org.rocksdb/rocksdbjni

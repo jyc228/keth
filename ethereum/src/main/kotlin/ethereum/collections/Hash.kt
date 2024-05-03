@@ -1,6 +1,6 @@
 package ethereum.collections
 
-import ethereum.core.state.account.StateRoot
+import io.github.jyc228.ethereum.state.account.StateRoot
 import java.nio.ByteBuffer
 import java.util.HexFormat
 import org.bouncycastle.jcajce.provider.digest.Keccak

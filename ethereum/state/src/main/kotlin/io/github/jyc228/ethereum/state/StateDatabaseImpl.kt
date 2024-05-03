@@ -1,10 +1,10 @@
-package ethereum.core.state
+package io.github.jyc228.ethereum.state
 
-import ethereum.core.state.account.Address
-import ethereum.core.state.account.ManagedStateAccount
-import ethereum.core.state.account.OnchainManagedStateAccount
-import ethereum.core.state.account.StateAccountTree
-import ethereum.core.state.account.StateRoot
+import io.github.jyc228.ethereum.state.account.Address
+import io.github.jyc228.ethereum.state.account.ManagedStateAccount
+import io.github.jyc228.ethereum.state.account.OnchainManagedStateAccount
+import io.github.jyc228.ethereum.state.account.StateAccountTree
+import io.github.jyc228.ethereum.state.account.StateRoot
 
 class StateDatabaseImpl(val accountTree: StateAccountTree) : StateDatabase {
     override suspend fun createAccount(address: Address, callback: (suspend (ManagedStateAccount) -> Unit)?) {

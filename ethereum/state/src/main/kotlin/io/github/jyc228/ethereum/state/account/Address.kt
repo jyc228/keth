@@ -1,8 +1,6 @@
-package ethereum.core.state.account
+package io.github.jyc228.ethereum.state.account
 
-import ethereum.crypto.ECDSAPublicKey
 import ethereum.rlp.RLPEncoder
-import ethereum.toKeccak256
 import java.nio.ByteBuffer
 import java.util.HexFormat
 
@@ -32,9 +30,9 @@ class Address(val bytes: ByteArray) {
             return address
         }
 
-        fun fromPublicKey(key: ECDSAPublicKey): Address {
-            return fromByteArray(key.bytes().drop(1).toByteArray().toKeccak256().drop(12).toByteArray())
-        }
+//        fun fromPublicKey(key: ECDSAPublicKey): Address {
+//            return fromByteArray(key.bytes().drop(1).toByteArray().toKeccak256().drop(12).toByteArray())
+//        }
 
         fun fromPrivateKey() {
 

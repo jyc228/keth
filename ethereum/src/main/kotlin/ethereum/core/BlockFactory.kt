@@ -5,8 +5,6 @@ import ethereum.collections.MerkleTree
 import ethereum.collections.mpt.MerklePatriciaTrie
 import ethereum.core.database.TreeDatabase
 import ethereum.core.repository.ContractCodeRepository
-import ethereum.core.state.StateDatabaseImpl
-import ethereum.core.state.account.Address
 import ethereum.rlp.RLPEncoder
 import ethereum.type.Block
 import ethereum.type.BlockBody
@@ -15,6 +13,8 @@ import ethereum.type.builder.BlockHeaderBuilder
 import io.github.jyc228.ethereum.Transaction
 import io.github.jyc228.ethereum.TransactionReceipt
 import io.github.jyc228.ethereum.TransactionRlp
+import io.github.jyc228.ethereum.state.StateDatabaseImpl
+import io.github.jyc228.ethereum.state.account.Address
 import java.math.BigInteger
 import kotlin.math.min
 import kotlinx.coroutines.runBlocking

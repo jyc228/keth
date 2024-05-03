@@ -1,8 +1,8 @@
 package ethereum.type
 
 import ethereum.collections.Hash
-import ethereum.core.state.account.Address
 import ethereum.rlp.toRlp
+import io.github.jyc228.ethereum.state.account.Address
 import java.math.BigInteger
 
 class BlockHeaders(list: List<BlockHeader>) : ArrayList<BlockHeader>(list)

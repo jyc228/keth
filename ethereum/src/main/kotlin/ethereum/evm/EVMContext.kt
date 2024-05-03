@@ -1,8 +1,8 @@
 package ethereum.evm
 
 import ethereum.collections.Hash
-import ethereum.core.state.StateDatabase
-import ethereum.core.state.account.Address
+import io.github.jyc228.ethereum.state.StateDatabase
+import io.github.jyc228.ethereum.state.account.Address
 import java.math.BigInteger
 
 class EVMContext(

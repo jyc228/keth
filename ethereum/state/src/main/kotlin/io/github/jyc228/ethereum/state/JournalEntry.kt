@@ -1,8 +1,8 @@
-package ethereum.core.state
+package io.github.jyc228.ethereum.state
 
-import ethereum.core.state.account.Address
-import ethereum.core.state.account.CodeHash
-import ethereum.core.state.account.OnchainManagedStateAccount
+import io.github.jyc228.ethereum.state.account.Address
+import io.github.jyc228.ethereum.state.account.CodeHash
+import io.github.jyc228.ethereum.state.account.OnchainManagedStateAccount
 import java.math.BigInteger
 
 sealed interface JournalEntry {

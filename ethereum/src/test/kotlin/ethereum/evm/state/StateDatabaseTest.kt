@@ -2,9 +2,9 @@ package ethereum.evm.state
 
 import ethereum.core.database.TreeDatabase
 import ethereum.core.repository.ContractCodeRepository
-import ethereum.core.state.StateDatabaseImpl
-import ethereum.core.state.account.Address
-import ethereum.core.state.account.OnchainManagedStateAccount
+import io.github.jyc228.ethereum.state.StateDatabaseImpl
+import io.github.jyc228.ethereum.state.account.Address
+import io.github.jyc228.ethereum.state.account.OnchainManagedStateAccount
 import io.kotest.common.runBlocking
 import io.kotest.matchers.shouldBe
 import java.math.BigInteger

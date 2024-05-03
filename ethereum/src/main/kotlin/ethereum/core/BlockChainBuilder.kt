@@ -9,9 +9,9 @@ import ethereum.core.database.TreeDatabase
 import ethereum.core.header.DefaultHeaderChain
 import ethereum.core.repository.ChainRepository
 import ethereum.core.repository.ContractCodeRepository
-import ethereum.core.state.StateDatabaseImpl
 import ethereum.db.KeyValueDatabase
 import ethereum.type.Block
+import io.github.jyc228.ethereum.state.StateDatabaseImpl
 
 class BlockChainBuilder(val db: KeyValueDatabase, val genesis: Genesis) {
 

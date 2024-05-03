@@ -1,8 +1,8 @@
 package ethereum.evm
 
-import ethereum.core.state.account.Address
-import ethereum.core.state.account.CodeHash
 import ethereum.hexToByteArray
+import io.github.jyc228.ethereum.state.account.Address
+import io.github.jyc228.ethereum.state.account.CodeHash
 import io.kotest.core.spec.style.DescribeSpec
 import io.kotest.core.spec.style.scopes.ContainerScope
 import io.kotest.datatest.withData

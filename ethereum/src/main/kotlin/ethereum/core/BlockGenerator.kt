@@ -6,15 +6,15 @@ import ethereum.consensus.ChainHeaderReader
 import ethereum.consensus.ConsensusEngin
 import ethereum.core.database.TreeDatabase
 import ethereum.core.repository.ContractCodeRepository
-import ethereum.core.state.StateDatabase
-import ethereum.core.state.StateDatabaseImpl
-import ethereum.core.state.account.StateRoot
 import ethereum.db.KeyValueDatabase
 import ethereum.history.EIP1559
 import ethereum.type.Block
 import ethereum.type.BlockBody
 import ethereum.type.builder.BlockBuilder
 import ethereum.type.builder.BlockHeaderBuilder
+import io.github.jyc228.ethereum.state.StateDatabase
+import io.github.jyc228.ethereum.state.StateDatabaseImpl
+import io.github.jyc228.ethereum.state.account.StateRoot
 
 class BlockGenerator(
     override val config: ForkConfig,

@@ -1,9 +1,9 @@
-package ethereum.core.state
+package io.github.jyc228.ethereum.state
 
 import ethereum.collections.MerkleTreeDirtyNodes
-import ethereum.core.state.account.AddressHash
-import ethereum.core.state.account.CodeHash
-import ethereum.core.state.account.StateRoot
+import io.github.jyc228.ethereum.state.account.AddressHash
+import io.github.jyc228.ethereum.state.account.CodeHash
+import io.github.jyc228.ethereum.state.account.StateRoot
 
 interface TreeDatabase {
     fun node(hash: ByteArray): ByteArray?

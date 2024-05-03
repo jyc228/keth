@@ -1,6 +1,6 @@
 package ethereum.evm
 
-import ethereum.core.state.account.Address
+import io.github.jyc228.ethereum.state.account.Address
 import io.kotest.matchers.shouldBe
 import org.junit.jupiter.api.Test
 

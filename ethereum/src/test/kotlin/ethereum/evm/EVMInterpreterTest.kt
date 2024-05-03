@@ -2,9 +2,9 @@ package ethereum.evm
 
 import ethereum.core.database.TreeDatabase
 import ethereum.core.repository.ContractCodeRepository
-import ethereum.core.state.StateDatabaseImpl
-import ethereum.core.state.account.Address
 import ethereum.hexToByteArray
+import io.github.jyc228.ethereum.state.StateDatabaseImpl
+import io.github.jyc228.ethereum.state.account.Address
 import io.kotest.core.spec.style.DescribeSpec
 import io.kotest.matchers.shouldBe
 import java.math.BigInteger

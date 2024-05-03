@@ -1,6 +1,6 @@
-package ethereum.core.state
+package io.github.jyc228.ethereum.state
 
-import ethereum.core.state.account.Address
+import io.github.jyc228.ethereum.state.account.Address
 import kotlin.properties.ObservableProperty
 import kotlin.properties.ReadWriteProperty
 import kotlin.reflect.KProperty

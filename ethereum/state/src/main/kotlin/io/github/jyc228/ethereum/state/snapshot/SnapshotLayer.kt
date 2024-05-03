@@ -1,4 +1,4 @@
-package ethereum.core.state.snapshot
+package io.github.jyc228.ethereum.state.snapshot
 
 interface SnapshotLayer {
     // Root returns the root hash for which this snapshot was made.

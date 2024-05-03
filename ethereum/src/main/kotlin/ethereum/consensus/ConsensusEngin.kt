@@ -1,13 +1,13 @@
 package ethereum.consensus
 
 import ethereum.collections.Hash
-import ethereum.core.state.StateDatabase
-import ethereum.core.state.account.Address
 import ethereum.type.Block
 import ethereum.type.BlockBody
 import ethereum.type.BlockHeader
 import ethereum.type.builder.BlockHeaderBuilder
 import io.github.jyc228.ethereum.TransactionReceipt
+import io.github.jyc228.ethereum.state.StateDatabase
+import io.github.jyc228.ethereum.state.account.Address
 import java.math.BigInteger
 
 interface ConsensusEngin {

@@ -1,8 +1,8 @@
 package ethereum.evm
 
-import ethereum.core.state.account.Address
-import ethereum.core.state.account.CodeHash
-import ethereum.core.state.account.ManagedStateAccount
+import io.github.jyc228.ethereum.state.account.Address
+import io.github.jyc228.ethereum.state.account.CodeHash
+import io.github.jyc228.ethereum.state.account.ManagedStateAccount
 import java.math.BigInteger
 
 interface EVMAccount {

@@ -2,9 +2,9 @@ package ethereum.core
 
 import ethereum.collections.Hash
 import ethereum.config.ChainConfig
-import ethereum.core.state.StateDatabase
-import ethereum.core.state.account.Address
-import ethereum.core.state.account.StateRoot
+import io.github.jyc228.ethereum.state.StateDatabase
+import io.github.jyc228.ethereum.state.account.Address
+import io.github.jyc228.ethereum.state.account.StateRoot
 import java.math.BigInteger
 
 class Genesis(

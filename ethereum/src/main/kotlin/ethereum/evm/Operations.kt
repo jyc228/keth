@@ -1,6 +1,6 @@
 package ethereum.evm
 
-import ethereum.core.state.account.Address
+import io.github.jyc228.ethereum.state.account.Address
 import java.math.BigInteger
 import java.nio.ByteBuffer
 import org.bouncycastle.jcajce.provider.digest.Keccak

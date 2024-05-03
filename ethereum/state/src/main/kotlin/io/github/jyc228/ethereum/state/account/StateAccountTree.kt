@@ -1,11 +1,11 @@
-package ethereum.core.state.account
+package io.github.jyc228.ethereum.state.account
 
 import ethereum.collections.MerkleTree
 import ethereum.collections.MerkleTreeDirtyNodes
-import ethereum.core.state.ContractCodeDatabase
-import ethereum.core.state.Journal
-import ethereum.core.state.JournalEntry
-import ethereum.core.state.TreeDatabase
+import io.github.jyc228.ethereum.state.ContractCodeDatabase
+import io.github.jyc228.ethereum.state.Journal
+import io.github.jyc228.ethereum.state.JournalEntry
+import io.github.jyc228.ethereum.state.TreeDatabase
 
 class StateAccountTree(
     private var originalRoot: StateRoot?,

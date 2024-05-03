@@ -1,4 +1,4 @@
-package ethereum.core.state.account
+package io.github.jyc228.ethereum.state.account
 
 import ethereum.collections.HashKeyMerkleTree
 import ethereum.collections.MerkleTree

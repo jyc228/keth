@@ -2,8 +2,8 @@ package ethereum.history
 
 import ethereum.collections.Hash
 import ethereum.config.ForkConfig
-import ethereum.core.state.account.Address
 import ethereum.type.BlockHeader
+import io.github.jyc228.ethereum.state.account.Address
 import io.kotest.matchers.shouldBe
 import java.math.BigInteger
 import org.junit.jupiter.api.Test

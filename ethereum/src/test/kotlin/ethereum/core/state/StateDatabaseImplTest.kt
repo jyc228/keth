@@ -2,8 +2,9 @@ package ethereum.core.state
 
 import ethereum.core.database.TreeDatabase
 import ethereum.core.repository.ContractCodeRepository
-import ethereum.core.state.account.Address
-import ethereum.core.state.account.ManagedStateAccount
+import io.github.jyc228.ethereum.state.StateDatabaseImpl
+import io.github.jyc228.ethereum.state.account.Address
+import io.github.jyc228.ethereum.state.account.ManagedStateAccount
 import io.kotest.common.runBlocking
 import org.junit.jupiter.api.Test
 
