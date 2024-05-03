@@ -1,8 +1,8 @@
 package ethereum.core.state.account
 
 import ethereum.collections.Hash
+import ethereum.collections.MerkleTree
 import ethereum.collections.MerkleTreeDirtyNodes
-import ethereum.collections.MerkleTreeWithMetrics
 import ethereum.core.state.Journal
 import ethereum.core.state.JournalEntry
 import ethereum.rlp.RLPEncoder
@@ -10,7 +10,7 @@ import ethereum.rlp.RLPEncoder
 class StateAccountStorage(
     private val journal: Journal,
     private val owner: Address,
-    private val tree: MerkleTreeWithMetrics,
+    private val tree: MerkleTree,
     private val isDestruct: (owner: Address) -> Boolean
 ) : ManagedStateAccount.Storage {
     val rootHash get() = tree.rootHash()?.let(::Hash) ?: Hash.EMPTY_MPT_ROOT

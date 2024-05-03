@@ -3,7 +3,6 @@ package ethereum.core.state.account
 import ethereum.collections.Hash
 import ethereum.collections.MerkleTree
 import ethereum.collections.MerkleTreeDirtyNodes
-import ethereum.collections.MerkleTreeWithMetrics
 import ethereum.collections.fromRootState
 import ethereum.collections.lazyFromRootState
 import ethereum.core.database.TreeDatabase
@@ -139,7 +138,7 @@ class StateAccountTree(
             storage = StateAccountStorage(
                 owner = address,
                 journal = journal,
-                tree = MerkleTreeWithMetrics(MerkleTree.lazyFromRootState(account?.root, database::node)),
+                tree = MerkleTree.lazyFromRootState(account?.root, database::node),
                 isDestruct = { it in destructAddress }
             )
         )
