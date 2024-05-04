@@ -119,8 +119,8 @@ fun newOperation(opCode: OpCode) = OperationBuilder.build(opCode) {
             val offset = stack.back(0)
             val size = stack.back(1)
             offset.int + size.int
-        }.withDynamicGas {
-            val gas = memoryGasCost(memorySize!!(this))
+        }.withDynamicGas { memorySize ->
+            val gas = memoryGasCost(memorySize)
             val size = stack.back(1).int
             val wordSize = (size + 31) / 32
             gas + (wordSize * 6)
@@ -314,10 +314,10 @@ fun newOperation(opCode: OpCode) = OperationBuilder.build(opCode) {
             val offset = stack.back(0).int
             val size = stack.back(1).int
             offset + size
-        }.withDynamicGas {
+        }.withDynamicGas { memorySize ->
             val topicCount = opCode.name.drop(3).toInt()
             val size = stack.back(1).int
-            var gas = memoryGasCost(memorySize!!(this))
+            var gas = memoryGasCost(memorySize)
             gas += 375
             gas += topicCount * 375
             gas += size * 8

@@ -4,21 +4,21 @@ class Operation(
     val opCode: OpCode,
     val minStack: Int,
     val gas: Int,
-    val dynamicGas: ((FrameContext) -> Int)?,
-    val memorySize: ((FrameContext) -> Int)?,
-    val execute: suspend (FrameContext) -> Unit
+    val dynamicGas: (FrameContext.(memorySize: Int) -> Int)?,
+    val memorySize: (FrameContext.() -> Int)?,
+    val execute: suspend FrameContext.() -> Unit
 ) {
     val maxStack: Int = 0
 
     override fun toString(): String = opCode.toString()
 }
 
-class OperationBuilder(val opCode: OpCode) {
-    var minStack: Int = 0
-    var gas: Int = 0
-    var dynamicGas: ((FrameContext) -> Int)? = null
-    var memorySize: ((FrameContext) -> Int)? = null
-    lateinit var execute: suspend (FrameContext) -> Unit
+class OperationBuilder(private val opCode: OpCode) {
+    private var minStack: Int = 0
+    private var gas: Int = 0
+    private var dynamicGas: (FrameContext.(memorySize: Int) -> Int)? = null
+    private var memorySize: (FrameContext.() -> Int)? = null
+    private lateinit var execute: suspend FrameContext.() -> Unit
 
     fun withGas2(): OperationBuilder = withGas(2)
     fun withGas3(): OperationBuilder = withGas(3)
@@ -83,7 +83,7 @@ class OperationBuilder(val opCode: OpCode) {
 
     fun withExecute(execute: suspend FrameContext.() -> Unit) = apply { this.execute = execute }
     fun withMemorySize(execute: FrameContext.() -> Int) = apply { this.memorySize = execute }
-    fun withDynamicGas(execute: FrameContext.() -> Int) = apply { this.dynamicGas = execute }
+    fun withDynamicGas(execute: FrameContext.(memorySize: Int) -> Int) = apply { this.dynamicGas = execute }
 
     companion object {
         fun build(opCode: OpCode, init: OperationBuilder.() -> Unit): Operation {

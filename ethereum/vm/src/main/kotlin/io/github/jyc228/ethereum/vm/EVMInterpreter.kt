@@ -11,17 +11,12 @@ open class EVMInterpreter(private val instructionSet: InstructionSet) {
     }
 
     open suspend fun execute(operation: Operation, context: FrameContext) {
-        if (operation.dynamicGas != null) {
-            var memSize = 0
-            if (operation.memorySize != null) {
-                memSize = operation.memorySize.invoke(context)
-            }
-            context.gas -= operation.dynamicGas.invoke(context)
-            if (context.memory.size < memSize) {
-                context.memory = context.memory.copyOf(memSize)
-            }
-        }
+        val memSize = operation.memorySize?.invoke(context) ?: 0
+        context.gas -= operation.dynamicGas?.invoke(context, memSize) ?: 0
         context.gas -= operation.gas
+        if (context.memory.size < memSize) {
+            context.memory = context.memory.copyOf(memSize)
+        }
         if (context.gas < 0) TODO()
         operation.execute(context)
     }
