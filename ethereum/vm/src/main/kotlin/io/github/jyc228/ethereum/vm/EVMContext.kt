@@ -96,7 +96,7 @@ class FrameContext(
         get() {
             val self = this.toLong().toULong()
             if (self > MAX_UINT64 - 31uL) return MAX_UINT64 / 32uL + 1uL
-            return self + 31uL / 32uL
+            return (self + 31uL) / 32uL
         }
 
     fun ByteArray.read(offset: Int, size: Int): ByteArray = copyOfRange(offset, offset + size)
