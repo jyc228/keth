@@ -58,6 +58,9 @@ class FrameContext(
     var memory: ByteArray = ByteArray(0)
     var memoryLastGasCost: Long = 0
     val stack: EVMStack = EVMStack()
+    var callGasTemp = 0
+    var returnValue: ByteArray? = null
+    var nextFrame: FrameContext? = null
 
     fun with(vm: EVMContext? = null, transaction: TransactionContext? = null): FrameContext {
         if (vm != null) this.vm = vm
@@ -65,11 +68,12 @@ class FrameContext(
         return this
     }
 
-    suspend fun nextFrame(newFrame: suspend () -> FrameContext): Result<Unit> {
-        return newFrame().with(vm, transaction).execute(interpreter)
+    suspend fun nextFrame(newFrame: suspend () -> FrameContext): Result<ByteArray?> {
+        val nextFrame = newFrame().with(vm, transaction).also { this.nextFrame = it }
+        return nextFrame.execute(interpreter).apply { gas += nextFrame.gas }
     }
 
-    suspend fun execute(interpreter: EVMInterpreter): Result<Unit> {
+    suspend fun execute(interpreter: EVMInterpreter): Result<ByteArray?> {
         this.interpreter = interpreter
         return this.interpreter.execute(this)
     }
@@ -92,6 +96,12 @@ class FrameContext(
         return 0
     }
 
+    fun memoryCopyGas(stackPos: Int, newMemorySize: Int): Int {
+        val gas = memoryGasCost(newMemorySize)
+        val length = stack.back(stackPos).int
+        return gas + (length.wordSize.toInt() * 3)
+    }
+
     val Number.wordSize: ULong
         get() {
             val self = this.toLong().toULong()
@@ -102,6 +112,9 @@ class FrameContext(
     fun ByteArray.read(offset: Int, size: Int): ByteArray = copyOfRange(offset, offset + size)
     fun ByteArray.write(offset: Int, bytes: ByteArray): ByteArray =
         bytes.copyInto(destination = this, destinationOffset = offset)
+
+    fun ByteArray.write(offset: Int, length: Int, bytes: ByteArray?): ByteArray =
+        (bytes ?: ByteArray(length)).copyInto(destination = this, destinationOffset = offset)
 
     fun ByteArray.toElement() = EVMStackElement(_bytes = this)
     fun BigInteger.toElement() = EVMStackElement(_big = this)

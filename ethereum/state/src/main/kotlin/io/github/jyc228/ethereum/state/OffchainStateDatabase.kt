@@ -31,7 +31,7 @@ class OffchainStateDatabase(
         return accountByAddress.getOrPut(address) {
             val addr = io.github.jyc228.ethereum.Address("0x${address.hex}")
             val proof = client.eth.getProof(addr, emptyList(), ref).awaitOrNull() ?: return null
-            OffchainManagedStateAccount.fromProof(address, proof, client)
+            OffchainManagedStateAccount.fromProof(address, proof, client, ref)
         }
     }
 
@@ -62,6 +62,7 @@ class OffchainStateDatabase(
         override val codeHash: CodeHash?,
         override val address: Address,
         private val client: EthereumClient,
+        private val ref: BlockReference,
     ) : ManagedStateAccount, ManagedStateAccount.Storage {
         override val storage: ManagedStateAccount.Storage get() = this
 
@@ -71,7 +72,7 @@ class OffchainStateDatabase(
         @OptIn(ExperimentalStdlibApi::class)
         override suspend fun getCode(): ByteArray? {
             if (code == null && codeHash != null) {
-                code = client.eth.getCode(addr).awaitOrNull()?.hex?.removePrefix("0x")?.hexToByteArray()
+                code = client.eth.getCode(addr, ref).awaitOrNull()?.hex?.removePrefix("0x")?.hexToByteArray()
             }
             return code
         }
@@ -82,7 +83,7 @@ class OffchainStateDatabase(
 
         @OptIn(ExperimentalStdlibApi::class)
         override suspend fun get(key: ByteArray): ByteArray? {
-            return client.eth.getStorageAt(addr, HexData.create(key.toHexString())).awaitOrNull()
+            return client.eth.getStorageAt(addr, HexData.create(key.toHexString()), ref).awaitOrNull()
                 ?.hex
                 ?.removePrefix("0x")
                 ?.hexToByteArray()
@@ -95,13 +96,19 @@ class OffchainStateDatabase(
         }
 
         companion object {
-            fun fromProof(address: Address, proof: AccountProof, client: EthereumClient) = OffchainManagedStateAccount(
+            fun fromProof(
+                address: Address,
+                proof: AccountProof,
+                client: EthereumClient,
+                ref: BlockReference
+            ) = OffchainManagedStateAccount(
                 nonce = proof.nonce.number,
                 balance = proof.balance.number,
                 root = StorageRoot.fromHexString(proof.storageHash.hex),
                 codeHash = CodeHash.fromHexString(proof.codeHash.hex),
                 address = address,
                 client = client,
+                ref = ref,
             )
         }
     }
