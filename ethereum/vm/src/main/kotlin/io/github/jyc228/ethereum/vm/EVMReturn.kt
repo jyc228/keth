@@ -1,0 +1,28 @@
+package io.github.jyc228.ethereum.vm
+
+class EVMReturn private constructor(val data: ByteArray?, val err: EVMException?) {
+    override fun toString(): String {
+        if (data != null) return "success ${data.contentToString()}"
+        if (err != null) return "fail $err"
+        error("invalid state")
+    }
+
+    companion object {
+        fun success(bytes: ByteArray) = EVMReturn(bytes, null)
+        fun failure(err: EVMException) = EVMReturn(null, err)
+
+        fun unknownOpCode(opCodeByte: Byte): EVMReturn {
+            val opCode = OpCode.entries.find { it.v == opCodeByte }
+            if (opCode == null) return failure(InvalidOpCodeException(opCodeByte))
+            return failure(DisableOpCodeException(opCode))
+        }
+
+        fun outOfGas() = failure(DefaultEVMException("out of gas"))
+    }
+}
+
+abstract class EVMException(message: String? = null) : RuntimeException(message)
+
+class InvalidOpCodeException(val opCodeByte: Byte) : EVMException()
+class DisableOpCodeException(val opCode: OpCode) : EVMException()
+class DefaultEVMException(message: String) : EVMException(message)

@@ -1,13 +1,17 @@
 package io.github.jyc228.ethereum.vm
 
 open class EVMInterpreter(private val instructionSet: InstructionSet) {
-    open suspend fun execute(context: FrameContext): Result<ByteArray?> {
-        while (!context.stop) {
-            val operation = instructionSet[context.contract.code[context.pc]] ?: error("")
-            execute(operation, context)
-            context.pc++
+    open suspend fun execute(context: FrameContext): EVMReturn {
+        while (context.result == null) {
+            val operation = instructionSet[context.contract.code[context.pc]]
+            if (operation == null) {
+                context.result = EVMReturn.unknownOpCode(context.contract.code[context.pc])
+            } else {
+                execute(operation, context)
+                context.pc++
+            }
         }
-        return Result.success(context.returnValue)
+        return context.result!!
     }
 
     open suspend fun execute(operation: Operation, context: FrameContext) {
@@ -17,14 +21,14 @@ open class EVMInterpreter(private val instructionSet: InstructionSet) {
         if (context.memory.size < memSize) {
             context.memory = context.memory.copyOf(memSize)
         }
-        if (context.gas < 0) TODO()
-        operation.execute(context)
+        if (context.gas < 0) context.result = EVMReturn.outOfGas()
+        else operation.execute(context)
     }
 }
 
 class EVMDebugInterpreter(instructionSet: InstructionSet) : EVMInterpreter(instructionSet) {
     private var index = 0
-    override suspend fun execute(context: FrameContext): Result<ByteArray?> {
+    override suspend fun execute(context: FrameContext): EVMReturn {
         return super.execute(context)
     }
 

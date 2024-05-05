@@ -54,12 +54,11 @@ class FrameContext(
     val block get() = vm.block
 
     var pc: Int = 0
-    var stop: Boolean = false
     var memory: ByteArray = ByteArray(0)
     var memoryLastGasCost: Long = 0
     val stack: EVMStack = EVMStack()
     var callGasTemp = 0
-    var returnValue: ByteArray? = null
+    var result: EVMReturn? = null
     var nextFrame: FrameContext? = null
 
     fun with(vm: EVMContext? = null, transaction: TransactionContext? = null): FrameContext {
@@ -68,12 +67,12 @@ class FrameContext(
         return this
     }
 
-    suspend fun nextFrame(newFrame: suspend () -> FrameContext): Result<ByteArray?> {
+    suspend fun nextFrame(newFrame: suspend () -> FrameContext): EVMReturn {
         val nextFrame = newFrame().with(vm, transaction).also { this.nextFrame = it }
         return nextFrame.execute(interpreter).apply { gas += nextFrame.gas }
     }
 
-    suspend fun execute(interpreter: EVMInterpreter): Result<ByteArray?> {
+    suspend fun execute(interpreter: EVMInterpreter): EVMReturn {
         this.interpreter = interpreter
         return this.interpreter.execute(this)
     }

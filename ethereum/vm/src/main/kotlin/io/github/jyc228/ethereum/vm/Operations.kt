@@ -8,7 +8,7 @@ import org.bouncycastle.jcajce.provider.digest.Keccak
 fun newOperation(opCode: OpCode) = OperationBuilder.build(opCode) {
     // https://ethervm.io/
     when (opCode) {
-        OpCode.STOP -> pop0 { stop = true }
+        OpCode.STOP -> pop0 { result = EVMReturn.success(byteArrayOf()) }
         OpCode.ADD -> pop2push { t1, t0 -> t0 + t1 }.withGas3()
         OpCode.MUL -> pop2push { t1, t0 -> t0 * t1 }.withGas5()
         OpCode.SUB -> pop2push { t1, t0 -> t0 - t1 }.withGas3()
@@ -159,9 +159,9 @@ fun newOperation(opCode: OpCode) = OperationBuilder.build(opCode) {
         }.withGas(20)
 
         OpCode.EXTCODECOPY -> withExecute { TODO() }
-        OpCode.RETURNDATASIZE -> push { nextFrame?.returnValue?.size?.toElement() ?: EVMStackElement.ZERO }.withGas2()
+        OpCode.RETURNDATASIZE -> push { nextFrame?.result?.data?.size?.toElement() ?: EVMStackElement.ZERO }.withGas2()
         OpCode.RETURNDATACOPY -> pop3 { length, dataOffset, memOffset ->
-            val returnValue = nextFrame?.returnValue?.read(dataOffset.int, length.int)
+            val returnValue = nextFrame?.result?.data?.read(dataOffset.int, length.int)
             memory.write(memOffset.int, returnValue ?: ByteArray(length.int))
         }.withDynamicGas { memorySize -> memoryCopyGas(2, memorySize) }.withGas3()
 
@@ -335,10 +335,7 @@ fun newOperation(opCode: OpCode) = OperationBuilder.build(opCode) {
         OpCode.CREATE -> pop3 { top2, top1, top0 -> TODO() }
         OpCode.CALL -> withExecute { TODO() }
         OpCode.CALLCODE -> withExecute { TODO() }
-        OpCode.RETURN -> pop2 { size, offset ->
-            returnValue = memory.read(offset.int, size.int)
-            stop = true
-        }
+        OpCode.RETURN -> pop2 { size, offset -> result = EVMReturn.success(memory.read(offset.int, size.int)) }
 
         OpCode.DELEGATECALL -> withExecute {
             val gas = stack.pop()
@@ -354,9 +351,9 @@ fun newOperation(opCode: OpCode) = OperationBuilder.build(opCode) {
                     EVMContract(contract.address, requireNotNull(it.getCode()), requireNotNull(it.codeHash))
                 }
                 FrameContext(caller, callValue, calldata, contract, callGasTemp)
-            }.onSuccess { stack.push(EVMStackElement.ONE) }.onFailure { stack.push(EVMStackElement.ZERO) }
-            val returnValue = result.getOrNull()
-            memory.write(retOffset.int, retLength.int, returnValue)
+            }
+            if (result.err == null) stack.push(EVMStackElement.ONE) else stack.push(EVMStackElement.ZERO)
+            memory.write(retOffset.int, retLength.int, result.data)
         }.withMemorySize {
             val retSize = stack.back(5).int + stack.back(4).int
             val argSize = stack.back(3).int + stack.back(2).int
