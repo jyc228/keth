@@ -47,7 +47,7 @@ class EVMInterpreterTest : DescribeSpec({
             EVMContext(BlockContext(), db),
             TransactionContext(Address.fromBytes(), Address.fromBytes())
         )
-        EVMDebugInterpreter(InstructionSet.all()).execute(context)
+        EVMInterpreter.of(InstructionSet.all(), EVMConsoleLogger()).execute(context)
 
         db.withAccountOrThrow(Address.fromHexString("0xdAC17F958D2ee523a2206206994597C13D831ec7")) {
             it.storage.get("89cdf1400af6f92f542466cd5dc347aa2eefc2e5d558654ff7207159972c436f".hexToByteArray())

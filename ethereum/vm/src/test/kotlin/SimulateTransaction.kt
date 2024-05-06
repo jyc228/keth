@@ -4,9 +4,10 @@ import io.github.jyc228.ethereum.rpc.fromRpcUrl
 import io.github.jyc228.ethereum.state.OffchainStateDatabase
 import io.github.jyc228.ethereum.state.account.Address
 import io.github.jyc228.ethereum.vm.BlockContext
+import io.github.jyc228.ethereum.vm.EVMConsoleLogger
 import io.github.jyc228.ethereum.vm.EVMContext
 import io.github.jyc228.ethereum.vm.EVMContract
-import io.github.jyc228.ethereum.vm.EVMDebugInterpreter
+import io.github.jyc228.ethereum.vm.EVMInterpreter
 import io.github.jyc228.ethereum.vm.FrameContext
 import io.github.jyc228.ethereum.vm.InstructionSet
 import io.github.jyc228.ethereum.vm.TransactionContext
@@ -47,6 +48,5 @@ private suspend fun simulateTransaction(txHash: Hash, client: EthereumClient) {
             tx.value.number
         )
     )
-    val interpreter = EVMDebugInterpreter(InstructionSet.all())
-    interpreter.execute(context)
+    EVMInterpreter.of(InstructionSet.all(), EVMConsoleLogger()).execute(context)
 }
