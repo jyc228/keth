@@ -47,8 +47,8 @@ class FrameContext(
     var gas: Int,
 ) {
     lateinit var transaction: TransactionContext
+    lateinit var interpreter: EVMInterpreter
     private lateinit var vm: EVMContext
-    private lateinit var interpreter: EVMInterpreter
 
     val db get() = vm.db
     val block get() = vm.block
@@ -69,12 +69,7 @@ class FrameContext(
 
     suspend fun nextFrame(newFrame: suspend () -> FrameContext): EVMReturn {
         val nextFrame = newFrame().with(vm, transaction).also { this.nextFrame = it }
-        return nextFrame.execute(interpreter).apply { gas += nextFrame.gas }
-    }
-
-    suspend fun execute(interpreter: EVMInterpreter): EVMReturn {
-        this.interpreter = interpreter
-        return this.interpreter.execute(this)
+        return interpreter.execute(nextFrame).apply { gas += nextFrame.gas }
     }
 
     fun addLog(topics: List<ByteArray>, data: ByteArray) {

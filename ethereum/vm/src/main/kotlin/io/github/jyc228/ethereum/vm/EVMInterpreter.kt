@@ -2,6 +2,7 @@ package io.github.jyc228.ethereum.vm
 
 open class EVMInterpreter(private val instructionSet: InstructionSet) {
     open suspend fun execute(context: FrameContext): EVMReturn {
+        context.interpreter = this
         while (context.result == null) {
             val operation = instructionSet[context.contract.code[context.pc]]
             if (operation == null) {

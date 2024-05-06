@@ -37,7 +37,7 @@ class EVMInterpreterTest : DescribeSpec({
             EVMContract.of(it)
         }
 
-        FrameContext(
+        val context = FrameContext(
             contract = contract,
             callData = "a9059cbb000000000000000000000000dc79d2384e22824f72a935794a1a47b508e8d20100000000000000000000000000000000000000000000000000000006fc23ac00".hexToByteArray(),
             caller = Address.fromHexString("0x9872F9cFD51dD9f5CF45a54F96a16eeE238A056a"),
@@ -46,7 +46,8 @@ class EVMInterpreterTest : DescribeSpec({
         ).with(
             EVMContext(BlockContext(), db),
             TransactionContext(Address.fromBytes(), Address.fromBytes())
-        ).execute(EVMDebugInterpreter(InstructionSet.all()))
+        )
+        EVMDebugInterpreter(InstructionSet.all()).execute(context)
 
         db.withAccountOrThrow(Address.fromHexString("0xdAC17F958D2ee523a2206206994597C13D831ec7")) {
             it.storage.get("89cdf1400af6f92f542466cd5dc347aa2eefc2e5d558654ff7207159972c436f".hexToByteArray())
