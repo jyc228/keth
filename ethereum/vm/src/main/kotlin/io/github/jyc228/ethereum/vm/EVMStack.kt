@@ -91,6 +91,14 @@ class EVMStackElement(
         return "invalid"
     }
 
+    @OptIn(ExperimentalStdlibApi::class)
+    fun toHexString(): String {
+        if (_bytes != null) return "0x${_bytes!!.toHexString().trimStart('0').ifBlank { '0' }}"
+        if (_big != null) return "0x${_big!!.toString(16)}"
+        if (_int != null) return "0x${_int!!.toString(16)}"
+        return "invalid"
+    }
+
     companion object {
         private val bigMax = BigInteger.TWO.pow(256)
 

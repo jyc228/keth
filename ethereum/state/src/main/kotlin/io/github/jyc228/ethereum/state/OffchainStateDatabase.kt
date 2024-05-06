@@ -65,6 +65,8 @@ class OffchainStateDatabase(
         private val ref: BlockReference,
     ) : ManagedStateAccount, ManagedStateAccount.Storage {
         override val storage: ManagedStateAccount.Storage get() = this
+        private val origin = mutableMapOf<String, ByteArray?>()
+        private val dirty = mutableMapOf<String, ByteArray?>()
 
         val addr = io.github.jyc228.ethereum.Address("0x${address.hex}")
         var code: ByteArray? = null
@@ -83,16 +85,27 @@ class OffchainStateDatabase(
 
         @OptIn(ExperimentalStdlibApi::class)
         override suspend fun get(key: ByteArray): ByteArray? {
+            if (key.toHexString() in dirty) {
+                return dirty[key.toHexString()]
+            }
+            return getCommittedState(key)
+        }
+
+        @OptIn(ExperimentalStdlibApi::class)
+        override suspend fun getCommittedState(key: ByteArray): ByteArray? {
+            if (key.toHexString() in origin) {
+                return origin[key.toHexString()]
+            }
             return client.eth.getStorageAt(addr, HexData.create(key.toHexString()), ref).awaitOrNull()
                 ?.hex
                 ?.removePrefix("0x")
                 ?.hexToByteArray()
+                ?.also { origin[key.toHexString()] = it }
         }
 
-        override suspend fun getCommittedState(key: ByteArray): ByteArray? = get(key)
-
+        @OptIn(ExperimentalStdlibApi::class)
         override suspend fun set(key: ByteArray, value: ByteArray?) {
-            println("set ${key.contentToString()} : ${value.contentToString()}")
+            dirty[key.toHexString()] = value
         }
 
         companion object {

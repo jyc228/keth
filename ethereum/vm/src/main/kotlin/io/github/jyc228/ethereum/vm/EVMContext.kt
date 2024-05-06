@@ -54,6 +54,7 @@ class FrameContext(
     val db get() = vm.db
     val block get() = vm.block
 
+    var depth = 0
     var pc: Int = 0
     var memory: ByteArray = ByteArray(0)
     var memoryLastGasCost: Long = 0
@@ -70,6 +71,7 @@ class FrameContext(
 
     suspend fun nextFrame(newFrame: suspend () -> FrameContext): EVMReturn {
         val nextFrame = newFrame().with(vm, transaction).also { this.nextFrame = it }
+        nextFrame.depth = this.depth + 1
         return interpreter.execute(nextFrame).apply { gas += nextFrame.gas }
     }
 
