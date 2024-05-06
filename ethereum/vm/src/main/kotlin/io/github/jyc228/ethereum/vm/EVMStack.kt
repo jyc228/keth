@@ -59,7 +59,7 @@ class EVMStackElement(
     infix fun or(other: EVMStackElement) = EVMStackElement(_big = big or other.big)
     infix fun xor(other: EVMStackElement) = EVMStackElement(_big = big xor other.big)
     infix fun pow(other: EVMStackElement) = EVMStackElement(_big = big.modPow(other.big, bigMax))
-    fun not() = EVMStackElement(_big = big.not())
+    fun not() = EVMStackElement(_bytes = big.not().toUint256ByteArray())
 
     private fun ByteArray.toBigInteger(): BigInteger {
         if (signed) return BigInteger(this)
