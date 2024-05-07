@@ -383,7 +383,51 @@ fun newOperation(opCode: OpCode) = OperationBuilder.build(opCode) {
         }
 
         OpCode.CREATE2 -> withExecute { TODO() }
-        OpCode.STATICCALL -> withExecute { TODO() }
+        OpCode.STATICCALL -> pop6push { retLength, retOffset, argsLength, argsOffset, addr, gas ->
+            // We do an AddBalance of zero here, just in order to trigger a touch.
+            // This doesn't matter on Mainnet, where all empties are gone at the time of Byzantium,
+            // but is the correct thing to do and matters on other networks, in tests, and potential
+            // future scenarios
+            db.withAccountOrThrow(addr.toAddress()) { it.balance += BigInteger.ZERO }
+
+            val result = nextFrame {
+                val calldata = memory.read(argsOffset.int, argsLength.int)
+                val contract = db.withAccountOrThrow(addr.toAddress(), EVMContract::of)
+                FrameContext(this.contract.address, BigInteger.ZERO, calldata, contract, callGasTemp)
+            }
+            memory.write(retOffset.int, retLength.int, result.data)
+            if (result.err == null) EVMStackElement.ONE else EVMStackElement.ZERO
+        }.withMemorySize {
+            val retSize = stack.back(5).int + stack.back(4).int
+            val argSize = stack.back(3).int + stack.back(2).int
+            if (retSize > argSize) retSize else argSize
+        }.withGas(100).withDynamicGas { memorySize ->
+            val address = stack.back(1)
+            val coldAccess = false // todo
+//            coldCost := params.ColdAccountAccessCostEIP2929 - params.WarmStorageReadCostEIP2929
+            val coldCost = 2600 - 100
+            if (coldAccess) {
+                gas -= coldCost
+            }
+            //
+            val base = memoryGasCost(memorySize)
+            val eip150 = true
+            callGasTemp = if (eip150) {
+                val availableGas = gas - base
+                availableGas - availableGas / 64
+            } else {
+                stack.back(0).int
+            }
+            val nextGas = base + callGasTemp
+            //
+            if (coldAccess) {
+                gas += coldCost
+                nextGas + coldCost
+            } else {
+                nextGas
+            }
+        }
+
         OpCode.REVERT -> pop2 { a, b -> TODO() }
         OpCode.INVALID -> pop0 { }
         OpCode.SELFDESTRUCT -> pop1 { TODO() }

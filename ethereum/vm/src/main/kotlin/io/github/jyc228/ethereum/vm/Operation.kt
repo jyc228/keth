@@ -81,6 +81,19 @@ class OperationBuilder(private val opCode: OpCode) {
         stack.push(result)
     }
 
+    inline fun pop6push(
+        crossinline execute: suspend FrameContext.(top5: EVMStackElement, top4: EVMStackElement, top3: EVMStackElement, top2: EVMStackElement, top1: EVMStackElement, top0: EVMStackElement) -> EVMStackElement
+    ) = withExecute {
+        val top0 = stack.pop()
+        val top1 = stack.pop()
+        val top2 = stack.pop()
+        val top3 = stack.pop()
+        val top4 = stack.pop()
+        val top5 = stack.pop()
+        val result = execute(top5, top4, top3, top2, top1, top0)
+        stack.push(result)
+    }
+
     fun withExecute(execute: suspend FrameContext.() -> Unit) = apply { this.execute = execute }
     fun withMemorySize(execute: FrameContext.() -> Int) = apply { this.memorySize = execute }
     fun withDynamicGas(execute: FrameContext.(memorySize: Int) -> Int) = apply { this.dynamicGas = execute }
