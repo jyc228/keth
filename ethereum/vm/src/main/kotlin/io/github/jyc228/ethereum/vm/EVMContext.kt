@@ -99,6 +99,32 @@ class FrameContext(
         return gas + (length.wordSize.toInt() * 3)
     }
 
+    fun callGas(memorySize: Int): Int {
+        val address = stack.back(1)
+        val coldAccess = false // todo
+//            coldCost := params.ColdAccountAccessCostEIP2929 - params.WarmStorageReadCostEIP2929
+        val coldCost = 2600 - 100
+        if (coldAccess) {
+            gas -= coldCost
+        }
+        //
+        val base = memoryGasCost(memorySize)
+        val eip150 = true
+        callGasTemp = if (eip150) {
+            val availableGas = gas - base
+            availableGas - availableGas / 64
+        } else {
+            stack.back(0).int
+        }
+        val nextGas = base + callGasTemp
+        //
+        if (coldAccess) {
+            gas += coldCost
+            return nextGas + coldCost
+        }
+        return nextGas
+    }
+
     val Number.wordSize: ULong
         get() {
             val self = this.toLong().toULong()

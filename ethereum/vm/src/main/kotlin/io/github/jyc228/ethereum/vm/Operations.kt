@@ -334,53 +334,21 @@ fun newOperation(opCode: OpCode) = OperationBuilder.build(opCode) {
         OpCode.CALLCODE -> withExecute { TODO() }
         OpCode.RETURN -> pop2 { size, offset -> result = EVMReturn.success(memory.read(offset.int, size.int)) }
 
-        OpCode.DELEGATECALL -> withExecute {
-            val gas = stack.pop()
-            val addr = stack.pop()
-            val argsOffset = stack.pop().int
-            val argsLength = stack.pop().int
-            val retOffset = stack.pop()
-            val retLength = stack.pop()
-
+        OpCode.DELEGATECALL -> pop6push { retLength, retOffset, argsLength, argsOffset, addr, gas ->
             val result = nextFrame {
-                val calldata = memory.read(argsOffset, argsLength)
+                val calldata = memory.read(argsOffset.int, argsLength.int)
                 val contract = db.withAccountOrThrow(addr.toAddress()) {
                     EVMContract(contract.address, requireNotNull(it.getCode()), requireNotNull(it.codeHash))
                 }
                 FrameContext(caller, callValue, calldata, contract, callGasTemp)
             }
-            if (result.err == null) stack.push(EVMStackElement.ONE) else stack.push(EVMStackElement.ZERO)
             memory.write(retOffset.int, retLength.int, result.data)
+            if (result.err == null) EVMStackElement.ONE else EVMStackElement.ZERO
         }.withMemorySize {
             val retSize = stack.back(5).int + stack.back(4).int
             val argSize = stack.back(3).int + stack.back(2).int
             if (retSize > argSize) retSize else argSize
-        }.withGas(100).withDynamicGas { memorySize ->
-            val address = stack.back(1)
-            val coldAccess = true // todo
-//            coldCost := params.ColdAccountAccessCostEIP2929 - params.WarmStorageReadCostEIP2929
-            val coldCost = 2600 - 100
-            if (coldAccess) {
-                gas -= coldCost
-            }
-            //
-            val base = memoryGasCost(memorySize)
-            val eip150 = true
-            callGasTemp = if (eip150) {
-                val availableGas = gas - base
-                availableGas - availableGas / 64
-            } else {
-                stack.back(0).int
-            }
-            val nextGas = base + callGasTemp
-            //
-            if (coldAccess) {
-                gas += coldCost
-                nextGas + coldCost
-            } else {
-                nextGas
-            }
-        }
+        }.withGas(100).withDynamicGas { memorySize -> callGas(memorySize) }
 
         OpCode.CREATE2 -> withExecute { TODO() }
         OpCode.STATICCALL -> pop6push { retLength, retOffset, argsLength, argsOffset, addr, gas ->
@@ -401,32 +369,7 @@ fun newOperation(opCode: OpCode) = OperationBuilder.build(opCode) {
             val retSize = stack.back(5).int + stack.back(4).int
             val argSize = stack.back(3).int + stack.back(2).int
             if (retSize > argSize) retSize else argSize
-        }.withGas(100).withDynamicGas { memorySize ->
-            val address = stack.back(1)
-            val coldAccess = false // todo
-//            coldCost := params.ColdAccountAccessCostEIP2929 - params.WarmStorageReadCostEIP2929
-            val coldCost = 2600 - 100
-            if (coldAccess) {
-                gas -= coldCost
-            }
-            //
-            val base = memoryGasCost(memorySize)
-            val eip150 = true
-            callGasTemp = if (eip150) {
-                val availableGas = gas - base
-                availableGas - availableGas / 64
-            } else {
-                stack.back(0).int
-            }
-            val nextGas = base + callGasTemp
-            //
-            if (coldAccess) {
-                gas += coldCost
-                nextGas + coldCost
-            } else {
-                nextGas
-            }
-        }
+        }.withGas(100).withDynamicGas { memorySize -> callGas(memorySize) }
 
         OpCode.REVERT -> pop2 { a, b -> TODO() }
         OpCode.INVALID -> pop0 { }
