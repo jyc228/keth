@@ -1,6 +1,5 @@
 package io.github.jyc228.ethereum.vm
 
-import io.github.jyc228.ethereum.state.account.Address
 import java.math.BigInteger
 import java.nio.ByteBuffer
 import org.bouncycastle.jcajce.provider.digest.Keccak
@@ -128,8 +127,8 @@ fun newOperation(opCode: OpCode) = OperationBuilder.build(opCode) {
 
         OpCode.ADDRESS -> push { contract.address.toElement() }.withGas2()
 
-        OpCode.BALANCE -> pop1push { t0 ->
-            db.findAccount(Address(t0.bytes))?.balance?.toElement() ?: EVMStackElement.ZERO
+        OpCode.BALANCE -> pop1push { address ->
+            db.findAccount(address.toAddress())?.balance?.toElement() ?: EVMStackElement.ZERO
         }.withGas(20)
 
         OpCode.ORIGIN -> push { transaction.from.toElement() }.withGas2()
@@ -155,7 +154,7 @@ fun newOperation(opCode: OpCode) = OperationBuilder.build(opCode) {
         OpCode.GASPRICE -> push { transaction.gasPrice.toElement() }.withGas2()
 
         OpCode.EXTCODESIZE -> pop1push { address ->
-            db.withAccountOrNull(Address(address.bytes)) { it?.getCode()?.size ?: 0 }.toElement()
+            db.withAccountOrNull(address.toAddress()) { it?.getCode()?.size ?: 0 }.toElement()
         }.withGas(20)
 
         OpCode.EXTCODECOPY -> withExecute { TODO() }
@@ -166,7 +165,7 @@ fun newOperation(opCode: OpCode) = OperationBuilder.build(opCode) {
         }.withDynamicGas { memorySize -> memoryCopyGas(2, memorySize) }.withGas3()
 
         OpCode.EXTCODEHASH -> pop1push { address ->
-            db.findAccount(Address(address.bytes))?.codeHash?.bytes?.toElement() ?: EVMStackElement.ZERO
+            db.findAccount(address.toAddress())?.codeHash?.bytes?.toElement() ?: EVMStackElement.ZERO
         }
 
         OpCode.BLOCKHASH -> pop1 { }.withGas(20)
@@ -347,7 +346,7 @@ fun newOperation(opCode: OpCode) = OperationBuilder.build(opCode) {
 
             val result = nextFrame {
                 val calldata = memory.read(argsOffset, argsLength)
-                val contract = db.withAccountOrThrow(Address(addr.bytes)) {
+                val contract = db.withAccountOrThrow(addr.toAddress()) {
                     EVMContract(contract.address, requireNotNull(it.getCode()), requireNotNull(it.codeHash))
                 }
                 FrameContext(caller, callValue, calldata, contract, callGasTemp)
