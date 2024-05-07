@@ -1,7 +1,6 @@
 package io.github.jyc228.ethereum.vm
 
 import java.math.BigInteger
-import java.nio.ByteBuffer
 import org.bouncycastle.jcajce.provider.digest.Keccak
 
 fun newOperation(opCode: OpCode) = OperationBuilder.build(opCode) {
@@ -194,8 +193,7 @@ fun newOperation(opCode: OpCode) = OperationBuilder.build(opCode) {
             .withDynamicGas { memoryGasCost(stack.back(0).int + 32) }
 
         OpCode.MSTORE -> withGas3().pop2 { value, offset ->
-            val r = ByteBuffer.allocate(32).position(32 - value.bytes.size).put(value.bytes).array()
-            memory.write(offset.int, r)
+            memory.write(offset.int, value.bytes.sliceArrayLast(32))
         }.withMemorySize {
             stack.back(0).int + 32
         }.withDynamicGas {
