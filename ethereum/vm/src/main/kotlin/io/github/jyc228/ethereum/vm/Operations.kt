@@ -60,16 +60,16 @@ fun newOperation(opCode: OpCode) = OperationBuilder.build(opCode) {
             result.toElement()
         }.withGas5()
 
-        OpCode.LT -> pop2push { t1, t0 -> if (t0 < t1) EVMStackElement.ONE else EVMStackElement.ZERO }.withGas3()
-        OpCode.GT -> pop2push { t1, t0 -> if (t0 > t1) EVMStackElement.ONE else EVMStackElement.ZERO }.withGas3()
-        OpCode.SLT -> pop2push { t1, t0 -> if (t0.signed() < t1.signed()) EVMStackElement.ONE else EVMStackElement.ZERO }.withGas3()
-        OpCode.SGT -> pop2push { t1, t0 -> if (t0.signed() > t1.signed()) EVMStackElement.ONE else EVMStackElement.ZERO }.withGas3()
-        OpCode.EQ -> pop2push { t1, t0 -> if (t0 == t1) EVMStackElement.ONE else EVMStackElement.ZERO }.withGas3()
-        OpCode.ISZERO -> pop1push { t0 -> if (t0 == EVMStackElement.ZERO) EVMStackElement.ONE else EVMStackElement.ZERO }.withGas3()
-        OpCode.AND -> pop2push { t1, t0 -> t0 and t1 }.withGas3()
-        OpCode.OR -> pop2push { t1, t0 -> t0 or t1 }.withGas3()
-        OpCode.XOR -> pop2push { t1, t0 -> t0 xor t1 }.withGas3()
-        OpCode.NOT -> pop1push { t0 -> t0.not() }.withGas3()
+        OpCode.LT -> pop2push { b, a -> if (b > a) EVMStackElement.ONE else EVMStackElement.ZERO }.withGas3()
+        OpCode.GT -> pop2push { b, a -> if (b < a) EVMStackElement.ONE else EVMStackElement.ZERO }.withGas3()
+        OpCode.SLT -> pop2push { b, a -> if (b.signed() > a.signed()) EVMStackElement.ONE else EVMStackElement.ZERO }.withGas3()
+        OpCode.SGT -> pop2push { b, a -> if (b.signed() < a.signed()) EVMStackElement.ONE else EVMStackElement.ZERO }.withGas3()
+        OpCode.EQ -> pop2push { b, a -> if (b == a) EVMStackElement.ONE else EVMStackElement.ZERO }.withGas3()
+        OpCode.ISZERO -> pop1push { a -> if (a == EVMStackElement.ZERO) EVMStackElement.ONE else EVMStackElement.ZERO }.withGas3()
+        OpCode.AND -> pop2push { b, a -> b and a }.withGas3()
+        OpCode.OR -> pop2push { b, a -> b or a }.withGas3()
+        OpCode.XOR -> pop2push { b, a -> b xor a }.withGas3()
+        OpCode.NOT -> pop1push { a -> a.not() }.withGas3()
         OpCode.BYTE -> pop2push { t1, t0 ->
             val index = t0.big
             if (32.toBigInteger() <= index) return@pop2push EVMStackElement.ZERO
