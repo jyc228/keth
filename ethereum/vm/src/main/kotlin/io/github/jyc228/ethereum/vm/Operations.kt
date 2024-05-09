@@ -276,7 +276,7 @@ fun newOperation(opCode: OpCode) = OperationBuilder.build(opCode) {
         OpCode.DUP15,
         OpCode.DUP16 -> withExecute {
             val size = opCode.name.drop(3).toInt()
-            stack.push(stack.back(size - 1))
+            stack.push(stack.back(size - 1).copy())
         }.withGas3()
 
         OpCode.SWAP1,

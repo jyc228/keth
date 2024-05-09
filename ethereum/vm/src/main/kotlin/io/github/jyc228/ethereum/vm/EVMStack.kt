@@ -9,7 +9,7 @@ class EVMStack(private val elements: MutableList<EVMStackElement> = mutableListO
     fun back(index: Int) = elements[elements.lastIndex - index]
 }
 
-class EVMStackElement(
+data class EVMStackElement(
     private var _bytes: ByteArray? = null,
     private var _big: BigInteger? = null,
     private var _int: Int? = null,
