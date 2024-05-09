@@ -6,7 +6,7 @@ import io.kotest.core.spec.style.DescribeSpec
 import io.kotest.core.spec.style.scopes.ContainerScope
 import io.kotest.datatest.withData
 import io.kotest.matchers.resource.resourceAsString
-import io.kotest.matchers.shouldBe
+import io.kotest.matchers.string.shouldBeEqualIgnoringCase
 import java.math.BigInteger
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
@@ -14,10 +14,7 @@ import org.junit.jupiter.api.fail
 
 @OptIn(ExperimentalStdlibApi::class)
 class OperationTest : DescribeSpec({
-    suspend fun ContainerScope.runTestUsingTestCaseFile(
-        signed: Boolean = false,
-        addTc: (MutableList<TestCase>.() -> Unit)? = null
-    ) {
+    suspend fun ContainerScope.runTestUsingTestCaseFile(addTc: (MutableList<TestCase>.() -> Unit)? = null) {
         val opcode = OpCode.valueOf(testCase.name.testName)
         val testCases = resourceAsString("/testdata/testcases_${opcode.name.lowercase()}.json")
             .let { Json.decodeFromString<List<TestCase>>(it) }
@@ -38,29 +35,32 @@ class OperationTest : DescribeSpec({
             context.stack.push(EVMStackElement(_bytes = tc.X.hexToByteArray()))
             context.stack.push(EVMStackElement(_bytes = tc.Y.hexToByteArray()))
             operation.execute(context)
-            if (signed) {
-                val r =
-                    if (context.stack.last().bytes.isEmpty()) BigInteger.ZERO else BigInteger(context.stack.last().bytes)
-                r shouldBe BigInteger(tc.Expected.hexToByteArray())
-            } else {
-                BigInteger(1, context.stack.last().bytes) shouldBe BigInteger(1, tc.Expected.hexToByteArray())
-            }
+            val result = context.stack.last().bytes.toHexString().trimStart('0')
+            result shouldBeEqualIgnoringCase tc.Expected.trimStart('0')
         }
     }
 
-    describe("ADD") { runTestUsingTestCaseFile() }
-    describe("SUB") { runTestUsingTestCaseFile() }
+    describe("ADD") {
+        runTestUsingTestCaseFile {
+            this += TestCase("ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffe1", "0240", "0221")
+        }
+    }
+    describe("SUB") {
+        runTestUsingTestCaseFile {
+            this += TestCase("ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff", "7fffff", "800000")
+        }
+    }
     describe("MUL") { runTestUsingTestCaseFile() }
     describe("DIV") { runTestUsingTestCaseFile() }
-    describe("SDIV") { runTestUsingTestCaseFile(true) }
+    describe("SDIV") { runTestUsingTestCaseFile() }
     describe("MOD") { runTestUsingTestCaseFile() }
-    describe("SMOD") { runTestUsingTestCaseFile(true) }
+    describe("SMOD") { runTestUsingTestCaseFile() }
     describe("EXP") { runTestUsingTestCaseFile() }
     describe("SIGNEXTEND") { runTestUsingTestCaseFile() }
     describe("LT") { runTestUsingTestCaseFile() }
     describe("GT") { runTestUsingTestCaseFile() }
-    describe("SLT") { runTestUsingTestCaseFile(true) }
-    describe("SGT") { runTestUsingTestCaseFile(true) }
+    describe("SLT") { runTestUsingTestCaseFile() }
+    describe("SGT") { runTestUsingTestCaseFile() }
     describe("EQ") { runTestUsingTestCaseFile() }
     describe("AND") { runTestUsingTestCaseFile() }
     describe("OR") { runTestUsingTestCaseFile() }

@@ -15,10 +15,15 @@ class EVMStackElement(
     private var _int: Int? = null,
     private var signed: Boolean = false,
 ) {
+    init {
+        if (_big != null && _big!! >= bigMax) _big = _big!! % bigMax
+        while (_big != null && _big!! < BigInteger.ZERO) _big = _big!! + bigMax
+    }
+
     val bytes: ByteArray
         get() {
-            _big = _big?.let { _bytes = it.toUint256ByteArray(); null }
-            _int = _int?.let { _bytes = it.toBigInteger().toUint256ByteArray(); null }
+            _big = _big?.let { _bytes = it.toByteArray(); null }
+            _int = _int?.let { _bytes = it.toBigInteger().toByteArray(); null }
             return _bytes!!
         }
 
@@ -59,21 +64,11 @@ class EVMStackElement(
     infix fun or(other: EVMStackElement) = EVMStackElement(_big = big or other.big)
     infix fun xor(other: EVMStackElement) = EVMStackElement(_big = big xor other.big)
     infix fun pow(other: EVMStackElement) = EVMStackElement(_big = big.modPow(other.big, bigMax))
-    fun not() = EVMStackElement(_bytes = big.not().toUint256ByteArray())
+    fun not() = EVMStackElement(_big = big.not())
 
     private fun ByteArray.toBigInteger(): BigInteger {
         if (signed) return BigInteger(this)
         return BigInteger(1, this)
-    }
-
-    private fun BigInteger.toUint256ByteArray(): ByteArray {
-        if (this >= bigMax) {
-            return (this % bigMax).toByteArray()
-        }
-        if (this < BigInteger.ZERO) {
-            return (bigMax + this).toByteArray()
-        }
-        return toByteArray()
     }
 
     override fun hashCode(): Int {
