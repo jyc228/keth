@@ -67,7 +67,7 @@ class EVMStackElement(
     fun not() = EVMStackElement(_big = big.not())
 
     private fun ByteArray.toBigInteger(): BigInteger {
-        if (signed) return BigInteger(this)
+        if (signed && size >= 32) return BigInteger(this.takeIf { size == 32 } ?: this.copyOfRange(size - 32, size))
         return BigInteger(1, this)
     }
 
