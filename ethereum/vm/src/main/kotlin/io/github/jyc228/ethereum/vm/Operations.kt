@@ -50,18 +50,14 @@ fun newOperation(opCode: OpCode) = OperationBuilder.build(opCode) {
             ((stack.back(1).big.bitLength() + 7) / 8 * 50) + 10
         }
 
-        OpCode.SIGNEXTEND -> pop2push { t1, t0 ->
-            val top0Int = t0.big
-            if (top0Int > 31.toBigInteger()) return@pop2push t1
-
-            var byteIndex = 31 - top0Int.toInt()
-            val toFill = if (t1.bytes[31 - top0Int.toInt()] < 0) 0xFF.toByte() else 0x00
-            ByteArray(32).apply {
-                fill(toFill, 0, byteIndex)
-                for (byte in t1.bytes.drop(byteIndex)) {
-                    this[byteIndex++] = byte
-                }
-            }.toElement()
+        OpCode.SIGNEXTEND -> pop2push { x, b ->
+            if (b.big >= 32.toBigInteger() || b.big < 0.toBigInteger()) return@pop2push x
+            val result = when (x.bytes.size > b.int && x.bytes[x.bytes.lastIndex - b.int] < 0) {
+                true -> ByteArray(32).apply { fill(0xFF.toByte(), 0, lastIndex - b.int) }
+                false -> ByteArray((b.int + 1) * 8)
+            }
+            result.write(result.lastIndex - b.int, x.bytes.sliceArrayLast(b.int + 1))
+            result.toElement()
         }.withGas5()
 
         OpCode.LT -> pop2push { t1, t0 -> if (t0 < t1) EVMStackElement.ONE else EVMStackElement.ZERO }.withGas3()
