@@ -328,7 +328,46 @@ fun newOperation(opCode: OpCode) = OperationBuilder.build(opCode) {
         }
 
         OpCode.CREATE -> pop3 { top2, top1, top0 -> TODO() }
-        OpCode.CALL -> withExecute { TODO() }
+        OpCode.CALL -> pop7push { retLength, retOffset, argsLength, argsOffset, value, addr, gas ->
+            if ((db.findAccount(contract.address)?.balance ?: BigInteger.ZERO) < value.big) {
+                result = EVMReturn.insufficientBalance()
+                return@pop7push EVMStackElement.ZERO
+            }
+
+            db.applyAccountOrThrow(contract.address) { it.balance -= value.big }
+            val account = db.applyAccountOrCreate(addr.toAddress()) { it.balance += value.big }
+            if (account.codeHash == null) {
+                return@pop7push EVMStackElement.ONE
+            }
+
+            val result = nextFrame {
+                val calldata = memory.read(argsOffset.int, argsLength.int)
+                val nextContract = db.withAccountOrThrow(addr.toAddress(), EVMContract::of)
+                FrameContext(contract.address, value.big, calldata, nextContract, callGasTemp)
+            }
+
+            memory.write(retOffset.int, retLength.int, result.data)
+            if (result.err == null) EVMStackElement.ONE else EVMStackElement.ZERO
+        }.withMemorySize {
+            val retSize = stack.back(6).int + stack.back(5).int
+            val argSize = stack.back(4).int + stack.back(3).int
+            if (retSize > argSize) retSize else argSize
+        }.withGas(100).withDynamicGas { memorySize ->
+            var gas = 0
+            val eip158 = true
+            if (eip158) {
+                if (stack.back(2).big > BigInteger.ZERO && db.findAccount(stack.back(1).toAddress()) == null) {
+                    gas += 25000
+                }
+            } else if (db.findAccount(stack.back(1).toAddress()) == null) {
+                gas += 25000
+            }
+            if (stack.back(2).big > BigInteger.ZERO) {
+                gas += 9000
+            }
+            gas + callGas(memorySize)
+        }
+
         OpCode.CALLCODE -> withExecute { TODO() }
         OpCode.RETURN -> pop2 { size, offset -> result = EVMReturn.success(memory.read(offset.int, size.int)) }
 

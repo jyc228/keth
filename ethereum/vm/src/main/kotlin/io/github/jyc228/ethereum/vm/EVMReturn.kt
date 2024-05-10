@@ -18,6 +18,7 @@ class EVMReturn private constructor(val data: ByteArray?, val err: EVMException?
         }
 
         fun outOfGas() = failure(DefaultEVMException("out of gas"))
+        fun insufficientBalance() = failure(DefaultEVMException("insufficient balance for transfer"))
     }
 }
 

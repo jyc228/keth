@@ -42,7 +42,10 @@ class EVMStackElement(
         }
 
 
-    fun signed() = apply { signed = true }
+    fun signed() = apply {
+        signed = true
+        if (_big != null) _big = bytes.toBigInteger()
+    }
 
     override operator fun equals(other: Any?): Boolean = big == (other as? EVMStackElement?)?.big
     operator fun compareTo(other: EVMStackElement): Int = big.compareTo(other.big)
