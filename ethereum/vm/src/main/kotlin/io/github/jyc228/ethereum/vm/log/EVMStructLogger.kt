@@ -35,6 +35,7 @@ class EVMStructLogger(
         execute: suspend (FrameContext, Operation?) -> EVMReturn?
     ): EVMReturn? {
         val storageHash = storage.hashCode()
+        val nextFrameHash = frame.nextFrame?.hashCode()
         logs += StructLog(
             pc = frame.pc,
             op = operation?.opCode,
@@ -51,8 +52,12 @@ class EVMStructLogger(
         )
         val index = logs.lastIndex
         return execute(frame, operation).apply {
-            logs[index].gasCost -= frame.gas
-            if (enableStorage && storageHash != storage.hashCode()) {
+            if (nextFrameHash == frame.nextFrame?.hashCode()) {
+                logs[index].gasCost -= frame.gas
+            } else {
+                logs[index].gasCost = logs[index].gas - (frame.gas - (frame.nextFrame?.gas ?: 0))
+            }
+            if (enableStorage && nextFrameHash == frame.nextFrame?.hashCode() && storageHash != storage.hashCode()) {
                 logs[index].storage = storage.toMap()
             }
         }
