@@ -11,6 +11,7 @@ import io.github.jyc228.ethereum.vm.EVMReturn
 import io.github.jyc228.ethereum.vm.FrameContext
 import io.github.jyc228.ethereum.vm.OpCode
 import io.github.jyc228.ethereum.vm.Operation
+import java.nio.ByteBuffer
 import kotlinx.serialization.Serializable
 
 class EVMStructLogger(
@@ -18,7 +19,7 @@ class EVMStructLogger(
     private val enableStorage: Boolean = false
 ) : EVMInterpreterDelegate, AbstractStateDatabase<ManagedStateAccount>() {
     val logs = mutableListOf<StructLog>()
-    private val storage = mutableMapOf<String, String>()
+    private val storage: MutableMap<Address, MutableMap<String, String>> = mutableMapOf()
     private lateinit var originDB: StateDatabase
 
     override suspend fun execute(frame: FrameContext, execute: suspend (FrameContext) -> EVMReturn): EVMReturn {
@@ -34,7 +35,6 @@ class EVMStructLogger(
         operation: Operation?,
         execute: suspend (FrameContext, Operation?) -> EVMReturn?
     ): EVMReturn? {
-        val storageHash = storage.hashCode()
         val nextFrameHash = frame.nextFrame?.hashCode()
         logs += StructLog(
             pc = frame.pc,
@@ -57,8 +57,8 @@ class EVMStructLogger(
             } else {
                 logs[index].gasCost = logs[index].gas - (frame.gas - (frame.nextFrame?.gas ?: 0))
             }
-            if (enableStorage && nextFrameHash == frame.nextFrame?.hashCode() && storageHash != storage.hashCode()) {
-                logs[index].storage = storage.toMap()
+            if (enableStorage && (logs[index].op == OpCode.SLOAD || logs[index].op == OpCode.SSTORE)) {
+                logs[index].storage = storage[frame.contract.address]!!.toMap()
             }
         }
     }
@@ -101,14 +101,20 @@ class EVMStructLogger(
     ) : ManagedStateAccount by delegate, ManagedStateAccount.Storage by delegate.storage {
         override val storage: ManagedStateAccount.Storage get() = this
         override suspend fun get(key: ByteArray): ByteArray? {
-            return delegate.storage.get(key).apply {
-                logger.storage["0x${key.toHexString()}"] = "0x${this?.toHexString()}"
+            return delegate.storage.get(key).also {
+                logger.storage.getOrPut(address) { mutableMapOf() }[key.to32ByteHexString()] = it.to32ByteHexString()
             }
         }
 
         override suspend fun set(key: ByteArray, value: ByteArray?) {
             delegate.storage.set(key, value)
-            logger.storage["0x${key.toHexString()}"] = "0x${value?.toHexString()}"
+            logger.storage.getOrPut(address) { mutableMapOf() }[key.to32ByteHexString()] = value.to32ByteHexString()
+        }
+
+        private fun ByteArray?.to32ByteHexString(): String {
+            if (this == null) return "0x${"0".repeat(64)}"
+            if (size != 32) return "0x${ByteBuffer.allocate(32).position(32 - size).put(this).array().toHexString()}"
+            return "0x${toHexString()}"
         }
     }
 }
