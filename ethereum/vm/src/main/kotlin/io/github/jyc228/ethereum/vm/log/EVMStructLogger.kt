@@ -12,13 +12,12 @@ import io.github.jyc228.ethereum.vm.FrameContext
 import io.github.jyc228.ethereum.vm.OpCode
 import io.github.jyc228.ethereum.vm.Operation
 import kotlinx.serialization.Serializable
-import kotlinx.serialization.encodeToString
-import kotlinx.serialization.json.Json
 
 class EVMStructLogger(
-    private val enableMemory: Boolean = false
+    private val enableMemory: Boolean = false,
+    private val enableStorage: Boolean = false
 ) : EVMInterpreterDelegate, AbstractStateDatabase<ManagedStateAccount>() {
-    private val logs = mutableListOf<StructLog>()
+    val logs = mutableListOf<StructLog>()
     private val storage = mutableMapOf<String, String>()
     private lateinit var originDB: StateDatabase
 
@@ -26,13 +25,10 @@ class EVMStructLogger(
         if (frame.depth == 0) {
             originDB = frame.db
         }
-        return execute(frame.with(vm = EVMContext(frame.block, this))).apply {
-            if (frame.depth == 0) {
-                println(Json.encodeToString(logs))
-            }
-        }
+        return execute(frame.with(vm = EVMContext(frame.block, this)))
     }
 
+    @OptIn(ExperimentalStdlibApi::class)
     override suspend fun execute(
         frame: FrameContext,
         operation: Operation?,
@@ -44,19 +40,19 @@ class EVMStructLogger(
             op = operation?.opCode,
             gas = frame.gas,
             gasCost = frame.gas,
-            memory = frame.memory.takeIf { enableMemory }?.copyOf(),
+            memory = frame.memory.takeIf { enableMemory }?.toHexString(),
             memorySize = frame.memory.size.takeIf { enableMemory },
             stack = frame.stack.map { it.toHexString() },
-            returnData = frame.result?.data,
+            returnData = frame.result?.data?.toHexString(),
             storage = mapOf(),
             depth = frame.depth + 1,
             refundCounter = null,
-            err = null
+            err = frame.result?.err?.toString()
         )
         val index = logs.lastIndex
         return execute(frame, operation).apply {
             logs[index].gasCost -= frame.gas
-            if (storageHash != storage.hashCode()) {
+            if (enableStorage && storageHash != storage.hashCode()) {
                 logs[index].storage = storage.toMap()
             }
         }
@@ -118,10 +114,10 @@ data class StructLog(
     val op: OpCode?,
     val gas: Int,
     var gasCost: Int,
-    val memory: ByteArray? = null,
+    val memory: String? = null,
     val memorySize: Int? = null,
     val stack: List<String> = emptyList(),
-    val returnData: ByteArray? = null,
+    val returnData: String? = null,
     var storage: Map<String, String> = emptyMap(),
     val depth: Int,
     val refundCounter: ULong? = null,
