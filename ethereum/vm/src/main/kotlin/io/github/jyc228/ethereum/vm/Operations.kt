@@ -144,7 +144,9 @@ fun newOperation(opCode: OpCode) = OperationBuilder.build(opCode) {
         OpCode.CODECOPY -> pop3 { length, dataOffset, memOffset ->
             val code = contract.code.read(dataOffset.int, length.int)
             memory.write(memOffset.int, code)
-        }
+        }.withGas3()
+            .withDynamicGas { memoryCopyGas(2, it) }
+            .withMemorySize { stack.back(0).int + stack.back(2).int }
 
         OpCode.GASPRICE -> push { transaction.gasPrice.toElement() }.withGas2()
 
