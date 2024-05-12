@@ -22,7 +22,7 @@ fun OperationBuilder.withOpCode(opCode: OpCode): OperationBuilder { when (opCode
     OpCode.ADDMOD -> pop3push { t2, t1, t0 -> (t0 + t1) % t2 }.gas8()
     OpCode.MULMOD -> pop3push { t2, t1, t0 -> (t0 * t1) % t2 }.gas8()
     OpCode.EXP -> pop2push { exp, base -> base pow exp }.additionalGas {
-        ((stack.back(1).big.bitLength() + 7) / 8 * 50) + 10
+        ((stack.back(1).big.bitLength() + 7) / 8 * if (vmConfig.eip158) 50 else 10) + 10
     }
 
     OpCode.SIGNEXTEND -> pop2push { x, b ->
@@ -271,8 +271,7 @@ fun OperationBuilder.withOpCode(opCode: OpCode): OperationBuilder { when (opCode
         if (retSize > argSize) retSize else argSize
     }.gas(if (vmConfig.eip150) 700 else 40).additionalGas {
         var gas = 0
-        val eip158 = true
-        if (eip158) {
+        if (vmConfig.eip158) {
             if (stack.back(2).big > BigInteger.ZERO && db.findAccount(stack.back(1).toAddress()) == null) {
                 gas += 25000
             }
