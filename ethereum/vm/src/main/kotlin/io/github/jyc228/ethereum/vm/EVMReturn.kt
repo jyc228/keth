@@ -19,11 +19,13 @@ class EVMReturn private constructor(val data: ByteArray?, val err: EVMException?
 
         fun outOfGas() = failure(DefaultEVMException("out of gas"))
         fun insufficientBalance() = failure(DefaultEVMException("insufficient balance for transfer"))
+        fun executionReverted(data: ByteArray) = failure(ExecutionRevertedException(data))
     }
 }
 
 abstract class EVMException(message: String? = null) : RuntimeException(message)
 
+class ExecutionRevertedException(val data: ByteArray) : EVMException()
 class InvalidOpCodeException(val opCodeByte: Byte) : EVMException()
 class DisableOpCodeException(val opCode: OpCode) : EVMException()
 class DefaultEVMException(message: String) : EVMException(message)

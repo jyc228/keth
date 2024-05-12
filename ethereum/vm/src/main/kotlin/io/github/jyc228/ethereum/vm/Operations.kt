@@ -324,7 +324,10 @@ fun OperationBuilder.withOpCode(opCode: OpCode): OperationBuilder { when (opCode
         if (retSize > argSize) retSize else argSize
     }.gas(100).additionalGas { callGas(memorySize) }
 
-    OpCode.REVERT -> pop2 { a, b -> TODO() }
+    OpCode.REVERT -> if (vmConfig.eip140) pop2 { length, offset ->
+        result = EVMReturn.executionReverted(memory.read(offset.int, length.int))
+    }
+
     OpCode.INVALID -> pop0 { }
     OpCode.SELFDESTRUCT -> pop1 { TODO() }
 // @formatter:off
