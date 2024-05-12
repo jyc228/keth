@@ -99,7 +99,7 @@ fun OperationBuilder.withOpCode(opCode: OpCode): OperationBuilder { when (opCode
 
     OpCode.BALANCE -> pop1push { address ->
         db.findAccount(address.toAddress())?.balance?.toElement() ?: EVMStackElement.ZERO
-    }.gas(20)
+    }.gas(if (vmConfig.eip150) 400 else 20)
 
     OpCode.ORIGIN -> push { transaction.from.toElement() }.gas2()
     OpCode.CALLER -> push { caller.toElement() }.gas2()
@@ -127,9 +127,9 @@ fun OperationBuilder.withOpCode(opCode: OpCode): OperationBuilder { when (opCode
 
     OpCode.EXTCODESIZE -> pop1push { address ->
         db.withAccountOrNull(address.toAddress()) { it?.getCode()?.size ?: 0 }.toElement()
-    }.gas(20)
+    }.gas(if (vmConfig.eip150) 700 else 20)
 
-    OpCode.EXTCODECOPY -> execute { TODO() }
+    OpCode.EXTCODECOPY -> execute { TODO() }.gas(if (vmConfig.eip150) 700 else 20)
     OpCode.RETURNDATASIZE -> push { nextFrame?.result?.data?.size?.toElement() ?: EVMStackElement.ZERO }.gas2()
     OpCode.RETURNDATACOPY -> pop3 { length, dataOffset, memOffset ->
         val returnValue = nextFrame?.result?.data?.read(dataOffset.int, length.int)
@@ -177,7 +177,7 @@ fun OperationBuilder.withOpCode(opCode: OpCode): OperationBuilder { when (opCode
     OpCode.SLOAD -> pop1push { key ->
         db.withAccountOrNull(contract.address) { it?.storage?.get(key.bytes) }?.toElement()
             ?: EVMStackElement.ZERO
-    }.gas(2100) // SloadGasFrontier 50
+    }.gas(if (vmConfig.eip150) 200 else 50)
 
     OpCode.SSTORE -> pop2 { value, location ->
         db.withAccountOrCreate(contract.address) { it.storage.set(location.bytes, value.bytes) }
@@ -269,7 +269,7 @@ fun OperationBuilder.withOpCode(opCode: OpCode): OperationBuilder { when (opCode
         val retSize = stack.back(6).int + stack.back(5).int
         val argSize = stack.back(4).int + stack.back(3).int
         if (retSize > argSize) retSize else argSize
-    }.gas(100).additionalGas {
+    }.gas(if (vmConfig.eip150) 700 else 40).additionalGas {
         var gas = 0
         val eip158 = true
         if (eip158) {
@@ -285,7 +285,7 @@ fun OperationBuilder.withOpCode(opCode: OpCode): OperationBuilder { when (opCode
         gas + callGas(memorySize)
     }
 
-    OpCode.CALLCODE -> execute { TODO() }
+    OpCode.CALLCODE -> execute { TODO() }.gas(if (vmConfig.eip150) 700 else 40)
     OpCode.RETURN -> pop2 { size, offset -> result = EVMReturn.success(memory.read(offset.int, size.int)) }
 
     OpCode.DELEGATECALL -> if (vmConfig.eip7) pop6push { retLength, retOffset, argsLength, argsOffset, addr, gas ->
@@ -302,7 +302,7 @@ fun OperationBuilder.withOpCode(opCode: OpCode): OperationBuilder { when (opCode
         val retSize = stack.back(5).int + stack.back(4).int
         val argSize = stack.back(3).int + stack.back(2).int
         if (retSize > argSize) retSize else argSize
-    }.gas(100).additionalGas { callGas(memorySize) }
+    }.gas(if (vmConfig.eip150) 700 else 20).additionalGas { callGas(memorySize) }
 
     OpCode.CREATE2 -> execute { TODO() }
     OpCode.STATICCALL -> pop6push { retLength, retOffset, argsLength, argsOffset, addr, gas ->

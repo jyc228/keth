@@ -76,8 +76,7 @@ class EVMFrame(
         }
         //
         val base = memoryGasCost(memorySize)
-        val eip150 = true
-        nextFrameGas = if (eip150) {
+        nextFrameGas = if (vmConfig.eip150) {
             val availableGas = gas - base
             availableGas - availableGas / 64
         } else {
