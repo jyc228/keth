@@ -343,7 +343,7 @@ fun newOperation(opCode: OpCode) = OperationBuilder.build(opCode) {
             val result = nextFrame {
                 val calldata = memory.read(argsOffset.int, argsLength.int)
                 val nextContract = db.withAccountOrThrow(addr.toAddress(), EVMContract::of)
-                FrameContext(contract.address, value.big, calldata, nextContract, callGasTemp)
+                FrameContext(contract.address, value.big, calldata, nextContract, nextFrameGas)
             }
 
             memory.write(retOffset.int, retLength.int, result.data)
@@ -377,7 +377,7 @@ fun newOperation(opCode: OpCode) = OperationBuilder.build(opCode) {
                 val contract = db.withAccountOrThrow(addr.toAddress()) {
                     EVMContract(contract.address, requireNotNull(it.getCode()), requireNotNull(it.codeHash))
                 }
-                FrameContext(caller, callValue, calldata, contract, callGasTemp)
+                FrameContext(caller, callValue, calldata, contract, nextFrameGas)
             }
             memory.write(retOffset.int, retLength.int, result.data)
             if (result.err == null) EVMStackElement.ONE else EVMStackElement.ZERO
@@ -398,7 +398,7 @@ fun newOperation(opCode: OpCode) = OperationBuilder.build(opCode) {
             val result = nextFrame {
                 val calldata = memory.read(argsOffset.int, argsLength.int)
                 val contract = db.withAccountOrThrow(addr.toAddress(), EVMContract::of)
-                FrameContext(this.contract.address, BigInteger.ZERO, calldata, contract, callGasTemp)
+                FrameContext(this.contract.address, BigInteger.ZERO, calldata, contract, nextFrameGas)
             }
             memory.write(retOffset.int, retLength.int, result.data)
             if (result.err == null) EVMStackElement.ONE else EVMStackElement.ZERO

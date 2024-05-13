@@ -59,7 +59,7 @@ class FrameContext(
     var memory: ByteArray = ByteArray(0)
     var memoryLastGasCost: Long = 0
     val stack: EVMStack = EVMStack()
-    var callGasTemp = 0
+    var nextFrameGas = 0
     var result: EVMReturn? = null
     var nextFrame: FrameContext? = null
 
@@ -110,13 +110,13 @@ class FrameContext(
         //
         val base = memoryGasCost(memorySize)
         val eip150 = true
-        callGasTemp = if (eip150) {
+        nextFrameGas = if (eip150) {
             val availableGas = gas - base
             availableGas - availableGas / 64
         } else {
             stack.back(0).int
         }
-        val nextGas = base + callGasTemp
+        val nextGas = base + nextFrameGas
         //
         if (coldAccess) {
             gas += coldCost
