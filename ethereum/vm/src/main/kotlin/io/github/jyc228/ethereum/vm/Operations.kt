@@ -334,9 +334,11 @@ fun newOperation(opCode: OpCode) = OperationBuilder.build(opCode) {
                 return@pop7push EVMStackElement.ZERO
             }
 
+            nextFrameGas += if (value.big != BigInteger.ZERO) 2300 else 0
             db.applyAccountOrThrow(contract.address) { it.balance -= value.big }
             val account = db.applyAccountOrCreate(addr.toAddress()) { it.balance += value.big }
             if (account.codeHash == null) {
+                this.gas = nextFrameGas
                 return@pop7push EVMStackElement.ONE
             }
 
