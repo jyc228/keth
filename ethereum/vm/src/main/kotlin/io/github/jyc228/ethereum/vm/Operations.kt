@@ -14,37 +14,10 @@ fun OperationBuilder.withOpCode(opCode: OpCode): OperationBuilder { when (opCode
     OpCode.SUB -> pop2push { t1, t0 -> t0 - t1 }.gas3()
 
     OpCode.DIV -> pop2push { t1, t0 -> t0 / t1 }.gas5()
-    OpCode.SDIV -> pop2push { t1, t0 ->
-        val result = t0.signed() / t1.signed()
-        when (result.bytes.size <= 32) {
-            true -> result
-            false -> result.bytes.read(result.bytes.size - 32, 32).toElement()
-        }
-    }.gas5()
+    OpCode.SDIV -> pop2push { t1, t0 -> t0.signed() / t1.signed() }.gas5()
 
     OpCode.MOD -> pop2push { t1, t0 -> t0 % t1 }.gas5()
-    OpCode.SMOD -> pop2push { t1, t0 ->
-        val xn = if (t0.bytes.size < 32) BigInteger(1, t0.bytes) else BigInteger(t0.bytes)
-        val yn = if (t1.bytes.size < 32) BigInteger(1, t1.bytes) else BigInteger(t1.bytes)
-        if (yn == BigInteger.ZERO) EVMStackElement.ZERO
-        else {
-            var result = xn.abs() % yn.abs()
-            if (xn.signum() < 0) {
-                result = -result
-            }
-            var resultBytes = result.toByteArray()
-            if (resultBytes.size > 32) {
-                resultBytes = resultBytes.copyOfRange(resultBytes.size - 32, resultBytes.size)
-            }
-            ByteArray(32) { idx ->
-                if (idx < 32 - resultBytes.size) {
-                    if (result.signum() < 0) 0xFF.toByte() else 0x00
-                } else {
-                    resultBytes[idx - (32 - resultBytes.size)]
-                }
-            }.toElement()
-        }
-    }.gas5()
+    OpCode.SMOD -> pop2push { t1, t0 -> t0.signed() % t1.signed() }.gas5()
 
     OpCode.ADDMOD -> pop3push { t2, t1, t0 -> (t0 + t1) % t2 }.gas8()
     OpCode.MULMOD -> pop3push { t2, t1, t0 -> (t0 * t1) % t2 }.gas8()
