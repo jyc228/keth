@@ -203,19 +203,19 @@ fun OperationBuilder.withOpCode(opCode: OpCode): OperationBuilder { when (opCode
     OpCode.PUSH10, OpCode.PUSH11, OpCode.PUSH12, OpCode.PUSH13, OpCode.PUSH14, OpCode.PUSH15, OpCode.PUSH16, OpCode.PUSH17, OpCode.PUSH18, OpCode.PUSH19,
     OpCode.PUSH20, OpCode.PUSH21, OpCode.PUSH22, OpCode.PUSH23, OpCode.PUSH24, OpCode.PUSH25, OpCode.PUSH26, OpCode.PUSH27, OpCode.PUSH28, OpCode.PUSH29,
     OpCode.PUSH30, OpCode.PUSH31, OpCode.PUSH32 -> push {
-        val size = opCode.name.drop(4).toInt()
+        val size = operation.opCode.name.drop(4).toInt()
         contract.code.read(pc + 1, size).toElement().apply { pc += size }
     }.gas3()
 
     OpCode.DUP1, OpCode.DUP2, OpCode.DUP3, OpCode.DUP4, OpCode.DUP5, OpCode.DUP6, OpCode.DUP7, OpCode.DUP8, OpCode.DUP9,
     OpCode.DUP10, OpCode.DUP11, OpCode.DUP12, OpCode.DUP13, OpCode.DUP14, OpCode.DUP15, OpCode.DUP16 -> execute {
-        val size = opCode.name.drop(3).toInt()
+        val size = operation.opCode.name.drop(3).toInt()
         stack.push(stack.back(size - 1).copy())
     }.gas3()
 
     OpCode.SWAP1, OpCode.SWAP2, OpCode.SWAP3, OpCode.SWAP4, OpCode.SWAP5, OpCode.SWAP6, OpCode.SWAP7, OpCode.SWAP8, OpCode.SWAP9,
     OpCode.SWAP10, OpCode.SWAP11, OpCode.SWAP12, OpCode.SWAP13, OpCode.SWAP14, OpCode.SWAP15, OpCode.SWAP16 -> execute {
-        val size = opCode.name.drop(4).toInt()
+        val size = operation.opCode.name.drop(4).toInt()
         val a = stack.back(0)
         val b = stack.back(size)
         stack[stack.lastIndex] = b
@@ -223,10 +223,9 @@ fun OperationBuilder.withOpCode(opCode: OpCode): OperationBuilder { when (opCode
     }.gas3()
 
     OpCode.LOG0, OpCode.LOG1, OpCode.LOG2, OpCode.LOG3, OpCode.LOG4 -> execute {
-        val topicCount = opCode.name.drop(3).toInt()
         val offset = stack.pop().int
         val size = stack.pop().int
-        val topics = (1..topicCount).map { _ -> stack.pop().bytes }
+        val topics = (1..operation.opCode.name.drop(3).toInt()).map { _ -> stack.pop().bytes }
         val data = memory.read(offset, size)
         transaction.logs += createLog(topics, data)
     }.memorySize {
@@ -234,7 +233,7 @@ fun OperationBuilder.withOpCode(opCode: OpCode): OperationBuilder { when (opCode
         val size = stack.back(1).int
         offset + size
     }.additionalGas {
-        val topicCount = opCode.name.drop(3).toInt()
+        val topicCount = operation.opCode.name.drop(3).toInt()
         val size = stack.back(1).int
         var gas = memoryGasCost(memorySize)
         gas += 375

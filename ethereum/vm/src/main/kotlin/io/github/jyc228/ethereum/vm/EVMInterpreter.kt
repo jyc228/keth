@@ -34,6 +34,7 @@ open class EVMDefaultInterpreter(private val instructionSet: InstructionSet) : E
         if (operation == null) {
             return EVMReturn.unknownOpCode(frame.contract.code[frame.pc]).also { frame.result = it }
         }
+        frame.operation = operation
         frame.memorySize = operation.memorySize?.invoke(frame) ?: 0
         frame.gas -= operation.gas
         frame.gas -= operation.dynamicGas?.invoke(frame) ?: 0

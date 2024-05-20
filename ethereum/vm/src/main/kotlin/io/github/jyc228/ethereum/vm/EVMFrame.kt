@@ -16,6 +16,7 @@ class EVMFrame(
     lateinit var transaction: TransactionContext
     lateinit var interpreter: EVMInterpreter
 
+    lateinit var operation: Operation
     var depth = 0
     var pc: Int = 0
     var memory: ByteArray = ByteArray(0)
