@@ -13,7 +13,7 @@ class Operation(
     override fun toString(): String = opCode.toString()
 }
 
-class OperationBuilder {
+class OperationBuilder(val vmConfig: EVMConfig) {
     private var minStack: Int = 0
     private var defaultGas: Int = 0
     private var additionalGas: (suspend EVMFrame.() -> Int)? = null

@@ -288,7 +288,7 @@ fun OperationBuilder.withOpCode(opCode: OpCode): OperationBuilder { when (opCode
     OpCode.CALLCODE -> execute { TODO() }
     OpCode.RETURN -> pop2 { size, offset -> result = EVMReturn.success(memory.read(offset.int, size.int)) }
 
-    OpCode.DELEGATECALL -> pop6push { retLength, retOffset, argsLength, argsOffset, addr, gas ->
+    OpCode.DELEGATECALL -> if (vmConfig.eip7) pop6push { retLength, retOffset, argsLength, argsOffset, addr, gas ->
         val result = nextFrame {
             val calldata = memory.read(argsOffset.int, argsLength.int)
             val contract = db.withAccountOrThrow(addr.toAddress()) {

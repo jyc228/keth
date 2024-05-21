@@ -11,6 +11,8 @@ class EVMFrame(
     val contract: EVMContract,
     var gas: Int,
 ) {
+    var vmConfig: EVMConfig = EVMConfig()
+
     lateinit var db: StateDatabase
     lateinit var block: BlockContext
     lateinit var transaction: TransactionContext
