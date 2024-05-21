@@ -53,31 +53,16 @@ fun OperationBuilder.withOpCode(opCode: OpCode): OperationBuilder { when (opCode
         byteArrayOf(t1.bytes[pos]).toElement()
     }.gas3()
 
-    OpCode.SHL -> pop2push { value, shift ->
-        when (shift.big <= 256.toBigInteger()) {
-            true -> (value.big shl shift.int).toElement()
-            false -> EVMStackElement.ZERO
-        }
-    }.gas3()
-
-    OpCode.SHR -> pop2push { value, shift ->
-        when (shift.big <= 256.toBigInteger()) {
-            true -> (value.big shr shift.int).toElement()
-            false -> EVMStackElement.ZERO
-        }
-    }.gas3()
-
-    OpCode.SAR -> pop2push { value, shift ->
-        if (shift.big > 256.toBigInteger()) {
-            if (value.bytes[0] < 0) EVMStackElement.MAX
-            else EVMStackElement.ZERO
-        } else {
-            if (value.bytes[0] < 0) {
-                val significantBits = EVMStackElement.MAX.big.shl(256 - shift.int)
-                (value.big shr shift.int or significantBits).toElement()
-            } else {
-                value.big.shr(shift.int).toElement()
+    OpCode.SHL -> if (vmConfig.eip145) pop2push { value, shift -> runIf(shift.big <= big256) { (value.big shl shift.int).toElement() } }.gas3()
+    OpCode.SHR -> if (vmConfig.eip145) pop2push { value, shift -> runIf(shift.big <= big256) { (value.big shr shift.int).toElement() } }.gas3()
+    OpCode.SAR -> if (vmConfig.eip145) pop2push { value, shift ->
+        when (shift.big <= big256) {
+            true -> when (value.bytes[0] < 0) {
+                true -> (value.big shr shift.int or EVMStackElement.MAX.big.shl(256 - shift.int)).toElement()
+                false -> (value.big shr shift.int).toElement()
             }
+
+            false -> runIf(value.bytes[0] < 0) { EVMStackElement.MAX }
         }
     }.gas3()
 
@@ -358,3 +343,10 @@ private fun ULong.toElement() = EVMStackElement(_big = toLong().toBigInteger())
 private fun Address.toElement() = EVMStackElement(bytes)
 
 private fun EVMStackElement.toAddress() = Address(bytes.sliceArrayLast(20))
+
+private inline fun runIf(condition: Boolean, crossinline execute: () -> EVMStackElement): EVMStackElement {
+    if (condition) return execute()
+    return EVMStackElement.ZERO
+}
+
+private val big256 = 256.toBigInteger()
