@@ -130,8 +130,11 @@ fun OperationBuilder.withOpCode(opCode: OpCode): OperationBuilder { when (opCode
     }.gas(if (vmConfig.eip150) 700 else 20)
 
     OpCode.EXTCODECOPY -> execute { TODO() }.gas(if (vmConfig.eip150) 700 else 20)
-    OpCode.RETURNDATASIZE -> push { nextFrame?.result?.data?.size?.toElement() ?: EVMStackElement.ZERO }.gas2()
-    OpCode.RETURNDATACOPY -> pop3 { length, dataOffset, memOffset ->
+    OpCode.RETURNDATASIZE -> if (vmConfig.eip211) push {
+        nextFrame?.result?.data?.size?.toElement() ?: EVMStackElement.ZERO
+    }.gas2()
+
+    OpCode.RETURNDATACOPY -> if (vmConfig.eip211) pop3 { length, dataOffset, memOffset ->
         val returnValue = nextFrame?.result?.data?.read(dataOffset.int, length.int)
         memory.write(memOffset.int, returnValue ?: ByteArray(length.int))
     }.additionalGas { memoryCopyGas(2, memorySize) }.gas3()
