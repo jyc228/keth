@@ -12,7 +12,7 @@ class EVMFrame(
     var gas: Int,
 ) {
     var vmConfig: EVMConfig = EVMConfig()
-
+    var chainId: Int = 0
     lateinit var db: StateDatabase
     lateinit var block: BlockContext
     lateinit var transaction: TransactionContext

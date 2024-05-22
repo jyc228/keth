@@ -138,7 +138,7 @@ fun OperationBuilder.withOpCode(opCode: OpCode): OperationBuilder { when (opCode
     OpCode.PREVRANDAO -> push { block.random.toElement() }.gas2()
 
     OpCode.GASLIMIT -> push { block.gasLimit.toElement() }.gas2()
-    OpCode.CHAINID -> pop0 { }.gas2()
+    OpCode.CHAINID -> if (vmConfig.eip1344) push { chainId.toElement() }.gas2()
     OpCode.SELFBALANCE -> push {
         db.findAccount(contract.address)?.balance?.toElement() ?: EVMStackElement.ZERO
     }.gas5()
