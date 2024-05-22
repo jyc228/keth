@@ -124,9 +124,9 @@ fun OperationBuilder.withOpCode(opCode: OpCode): OperationBuilder { when (opCode
         memory.write(memOffset.int, returnValue ?: ByteArray(length.int))
     }.additionalGas { memoryCopyGas(2, memorySize) }.gas3()
 
-    OpCode.EXTCODEHASH -> pop1push { address ->
+    OpCode.EXTCODEHASH -> if (vmConfig.eip1052) pop1push { address ->
         db.findAccount(address.toAddress())?.codeHash?.bytes?.toElement() ?: EVMStackElement.ZERO
-    }
+    }.gas(400)
 
     OpCode.BLOCKHASH -> pop1 { }.gas(20)
     OpCode.COINBASE -> push { block.coinbase.toElement() }.gas2()

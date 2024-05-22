@@ -9,4 +9,5 @@ class EVMConfig(
     val eip211: Boolean = true,
     val eip145: Boolean = true,
     val eip1014: Boolean = true,
+    val eip1052: Boolean = true,
 )
