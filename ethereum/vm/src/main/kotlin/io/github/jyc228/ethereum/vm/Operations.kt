@@ -84,7 +84,13 @@ fun OperationBuilder.withOpCode(opCode: OpCode): OperationBuilder { when (opCode
 
     OpCode.BALANCE -> pop1push { address ->
         db.findAccount(address.toAddress())?.balance?.toElement() ?: EVMStackElement.ZERO
-    }.gas(if (vmConfig.eip150) 400 else 20)
+    }.gas(
+        when {
+            vmConfig.eip1884 -> 700
+            vmConfig.eip150 -> 400
+            else -> 20
+        }
+    )
 
     OpCode.ORIGIN -> push { transaction.from.toElement() }.gas2()
     OpCode.CALLER -> push { caller.toElement() }.gas2()
@@ -126,7 +132,7 @@ fun OperationBuilder.withOpCode(opCode: OpCode): OperationBuilder { when (opCode
 
     OpCode.EXTCODEHASH -> if (vmConfig.eip1052) pop1push { address ->
         db.findAccount(address.toAddress())?.codeHash?.bytes?.toElement() ?: EVMStackElement.ZERO
-    }.gas(400)
+    }.gas(if (vmConfig.eip1884) 700 else 400)
 
     OpCode.BLOCKHASH -> pop1 { }.gas(20)
     OpCode.COINBASE -> push { block.coinbase.toElement() }.gas2()
@@ -139,7 +145,7 @@ fun OperationBuilder.withOpCode(opCode: OpCode): OperationBuilder { when (opCode
 
     OpCode.GASLIMIT -> push { block.gasLimit.toElement() }.gas2()
     OpCode.CHAINID -> if (vmConfig.eip1344) push { chainId.toElement() }.gas2()
-    OpCode.SELFBALANCE -> push {
+    OpCode.SELFBALANCE -> if (vmConfig.eip1884) push {
         db.findAccount(contract.address)?.balance?.toElement() ?: EVMStackElement.ZERO
     }.gas5()
 
@@ -165,7 +171,13 @@ fun OperationBuilder.withOpCode(opCode: OpCode): OperationBuilder { when (opCode
     OpCode.SLOAD -> pop1push { key ->
         db.withAccountOrNull(contract.address) { it?.storage?.get(key.bytes) }?.toElement()
             ?: EVMStackElement.ZERO
-    }.gas(if (vmConfig.eip150) 200 else 50)
+    }.gas(
+        when {
+            vmConfig.eip1884 -> 800
+            vmConfig.eip150 -> 200
+            else -> 50
+        }
+    )
 
     OpCode.SSTORE -> pop2 { value, location ->
         db.withAccountOrCreate(contract.address) { it.storage.set(location.bytes, value.bytes) }
