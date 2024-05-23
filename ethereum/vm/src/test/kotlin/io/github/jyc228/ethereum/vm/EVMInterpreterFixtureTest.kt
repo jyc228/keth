@@ -91,8 +91,8 @@ private suspend fun simulateTransaction(txHash: Hash, client: EthereumClient, ex
     val tx = client.eth.getTransactionByHash(txHash).awaitOrThrow()!!
     val header = client.eth.getHeaderByNumber(tx.blockNumber.number - 1u).awaitOrThrow()
     val database = OffchainStateDatabase(header.hash, client)
-    val context: suspend () -> FrameContext = {
-        FrameContext(
+    val context: suspend () -> EVMFrame = {
+        EVMFrame(
             contract = database.withAccountOrThrow(
                 Address.fromHexString(requireNotNull(tx.to).hex),
                 EVMContract::of
@@ -102,18 +102,17 @@ private suspend fun simulateTransaction(txHash: Hash, client: EthereumClient, ex
             callValue = tx.value.number,
             gas = intrinsicGas(tx, true, true, true)
         ).with(
-            EVMContext(
-                BlockContext(
-                    number = header.number.number,
-                    difficulty = header.totalDifficulty?.number?.toLong()?.toULong() ?: 0uL,
-                    time = header.timestamp.epochSeconds.toULong() + 2u,
-                    gasLimit = header.gasLimit.number,
-                    random = header.mixHash.hex.removePrefix("0x").toByteArray(),
-                    coinbase = Address.fromHexString(header.miner?.hex ?: "0x"),
-                    baseFee = header.baseFeePerGas?.number ?: BigInteger.ZERO
-                ), database
+            database,
+            EVMFrame.BlockContext(
+                number = header.number.number,
+                difficulty = header.totalDifficulty?.number?.toLong()?.toULong() ?: 0uL,
+                time = header.timestamp.epochSeconds.toULong() + 2u,
+                gasLimit = header.gasLimit.number,
+                random = header.mixHash.hex.removePrefix("0x").toByteArray(),
+                coinbase = Address.fromHexString(header.miner?.hex ?: "0x"),
+                baseFee = header.baseFeePerGas?.number ?: BigInteger.ZERO
             ),
-            TransactionContext(
+            EVMFrame.TransactionContext(
                 Address.fromHexString(tx.from.hex),
                 Address.fromHexString(requireNotNull(tx.to).hex),
                 requireNotNull(tx.gasPrice?.number),

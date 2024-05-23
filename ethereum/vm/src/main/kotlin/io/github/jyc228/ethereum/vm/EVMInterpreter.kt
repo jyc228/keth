@@ -1,7 +1,7 @@
 package io.github.jyc228.ethereum.vm
 
 interface EVMInterpreter {
-    suspend fun execute(frame: FrameContext): EVMReturn
+    suspend fun execute(frame: EVMFrame): EVMReturn
 
     companion object {
         fun of(set: InstructionSet, delegate: EVMInterpreterDelegate? = null): EVMInterpreter {
@@ -13,24 +13,24 @@ interface EVMInterpreter {
 
 interface EVMInterpreterDelegate {
     suspend fun execute(
-        frame: FrameContext,
-        execute: suspend (FrameContext) -> EVMReturn
+        frame: EVMFrame,
+        execute: suspend (EVMFrame) -> EVMReturn
     ): EVMReturn = execute(frame)
 
     suspend fun execute(
-        frame: FrameContext,
+        frame: EVMFrame,
         operation: Operation?,
-        execute: suspend (FrameContext, Operation?) -> EVMReturn?
+        execute: suspend (EVMFrame, Operation?) -> EVMReturn?
     ): EVMReturn? = execute(frame, operation)
 }
 
 open class EVMDefaultInterpreter(private val instructionSet: InstructionSet) : EVMInterpreter {
-    override suspend fun execute(frame: FrameContext): EVMReturn {
+    override suspend fun execute(frame: EVMFrame): EVMReturn {
         frame.interpreter = this
         while (true) return execute(frame, instructionSet[frame.contract.code[frame.pc]]) ?: continue
     }
 
-    open suspend fun execute(frame: FrameContext, operation: Operation?): EVMReturn? {
+    open suspend fun execute(frame: EVMFrame, operation: Operation?): EVMReturn? {
         if (operation == null) {
             return EVMReturn.unknownOpCode(frame.contract.code[frame.pc]).also { frame.result = it }
         }
@@ -49,9 +49,9 @@ open class EVMDefaultInterpreter(private val instructionSet: InstructionSet) : E
     }
 
     class Delegate(set: InstructionSet, private val delegate: EVMInterpreterDelegate) : EVMDefaultInterpreter(set) {
-        override suspend fun execute(frame: FrameContext) = delegate.execute(frame) { super.execute(it) }
+        override suspend fun execute(frame: EVMFrame) = delegate.execute(frame) { super.execute(it) }
         override suspend fun execute(
-            frame: FrameContext,
+            frame: EVMFrame,
             operation: Operation?
         ) = delegate.execute(frame, operation) { f, o -> super.execute(f, o) }
     }
@@ -62,9 +62,9 @@ class EVMConsoleLogger : EVMInterpreterDelegate {
 
     @OptIn(ExperimentalStdlibApi::class)
     override suspend fun execute(
-        frame: FrameContext,
+        frame: EVMFrame,
         operation: Operation?,
-        execute: suspend (FrameContext, Operation?) -> EVMReturn?
+        execute: suspend (EVMFrame, Operation?) -> EVMReturn?
     ): EVMReturn? {
         index++
         if (operation != null) {

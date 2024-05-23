@@ -4,54 +4,17 @@ import io.github.jyc228.ethereum.state.StateDatabase
 import io.github.jyc228.ethereum.state.account.Address
 import java.math.BigInteger
 
-class EVMContext(
-    val block: BlockContext,
-    val db: StateDatabase,
-)
-
-class BlockContext(
-    val number: ULong = 0uL,
-    val difficulty: ULong = 0uL,
-    val time: ULong = 0uL,
-    val gasLimit: BigInteger = BigInteger.ZERO,
-    val random: ByteArray = byteArrayOf(),
-    val coinbase: Address = Address(byteArrayOf()),
-    val baseFee: BigInteger = BigInteger.ZERO
-)
-
-class TransactionContext(
-    val from: Address,
-    val to: Address,
-    val gasPrice: BigInteger = 0.toBigInteger(),
-    val value: BigInteger = 0.toBigInteger(),
-) {
-    private val logs = mutableListOf<Log>()
-
-    fun addLog(address: Address, topics: List<ByteArray>, data: ByteArray, blockNumber: ULong) {
-        logs += Log(address, topics, data, blockNumber)
-    }
-
-    private class Log(
-        val address: Address,
-        val topics: List<ByteArray>,
-        val data: ByteArray,
-        val blockNumber: ULong
-    )
-}
-
-class FrameContext(
+class EVMFrame(
     val caller: Address,
     val callValue: BigInteger,
     val callData: ByteArray,
     val contract: EVMContract,
     var gas: Int,
 ) {
+    lateinit var db: StateDatabase
+    lateinit var block: BlockContext
     lateinit var transaction: TransactionContext
     lateinit var interpreter: EVMInterpreter
-    private lateinit var vm: EVMContext
-
-    val db get() = vm.db
-    val block get() = vm.block
 
     var depth = 0
     var pc: Int = 0
@@ -61,22 +24,23 @@ class FrameContext(
     val stack: EVMStack = EVMStack()
     var nextFrameGas = 0
     var result: EVMReturn? = null
-    var nextFrame: FrameContext? = null
+    var nextFrame: EVMFrame? = null
 
-    fun with(vm: EVMContext? = null, transaction: TransactionContext? = null): FrameContext {
-        if (vm != null) this.vm = vm
+    fun with(
+        db: StateDatabase? = null,
+        block: BlockContext? = null,
+        transaction: TransactionContext? = null
+    ): EVMFrame {
+        if (db != null) this.db = db
+        if (block != null) this.block = block
         if (transaction != null) this.transaction = transaction
         return this
     }
 
-    suspend fun nextFrame(newFrame: suspend () -> FrameContext): EVMReturn {
-        val nextFrame = newFrame().with(vm, transaction).also { this.nextFrame = it }
+    suspend fun nextFrame(newFrame: suspend () -> EVMFrame): EVMReturn {
+        val nextFrame = newFrame().with(db, block, transaction).also { this.nextFrame = it }
         nextFrame.depth = this.depth + 1
         return interpreter.execute(nextFrame).apply { gas += nextFrame.gas }
-    }
-
-    fun addLog(topics: List<ByteArray>, data: ByteArray) {
-        transaction.addLog(contract.address, topics, data, block.number)
     }
 
     fun memoryGasCost(newMemorySize: Int): Int {
@@ -131,6 +95,34 @@ class FrameContext(
             if (self > MAX_UINT64 - 31uL) return MAX_UINT64 / 32uL + 1uL
             return (self + 31uL) / 32uL
         }
+
+    fun createLog(topics: List<ByteArray>, data: ByteArray) = Log(contract.address, topics, data, block.number)
+
+    class BlockContext(
+        val number: ULong = 0uL,
+        val difficulty: ULong = 0uL,
+        val time: ULong = 0uL,
+        val gasLimit: BigInteger = BigInteger.ZERO,
+        val random: ByteArray = byteArrayOf(),
+        val coinbase: Address = Address(byteArrayOf()),
+        val baseFee: BigInteger = BigInteger.ZERO
+    )
+
+    class TransactionContext(
+        val from: Address,
+        val to: Address,
+        val gasPrice: BigInteger = 0.toBigInteger(),
+        val value: BigInteger = 0.toBigInteger(),
+    ) {
+        val logs = mutableListOf<Log>()
+    }
+
+    class Log(
+        val address: Address,
+        val topics: List<ByteArray>,
+        val data: ByteArray,
+        val blockNumber: ULong
+    )
 
     companion object {
         val MAX_UINT64 = 18446744073709551615uL

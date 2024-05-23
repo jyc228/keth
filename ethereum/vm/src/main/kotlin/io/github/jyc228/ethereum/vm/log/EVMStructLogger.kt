@@ -5,10 +5,9 @@ import io.github.jyc228.ethereum.state.StateDatabase
 import io.github.jyc228.ethereum.state.account.Address
 import io.github.jyc228.ethereum.state.account.ManagedStateAccount
 import io.github.jyc228.ethereum.state.account.StateRoot
-import io.github.jyc228.ethereum.vm.EVMContext
+import io.github.jyc228.ethereum.vm.EVMFrame
 import io.github.jyc228.ethereum.vm.EVMInterpreterDelegate
 import io.github.jyc228.ethereum.vm.EVMReturn
-import io.github.jyc228.ethereum.vm.FrameContext
 import io.github.jyc228.ethereum.vm.OpCode
 import io.github.jyc228.ethereum.vm.Operation
 import java.nio.ByteBuffer
@@ -22,18 +21,18 @@ class EVMStructLogger(
     private val storage: MutableMap<Address, MutableMap<String, String>> = mutableMapOf()
     private lateinit var originDB: StateDatabase
 
-    override suspend fun execute(frame: FrameContext, execute: suspend (FrameContext) -> EVMReturn): EVMReturn {
+    override suspend fun execute(frame: EVMFrame, execute: suspend (EVMFrame) -> EVMReturn): EVMReturn {
         if (frame.depth == 0) {
             originDB = frame.db
         }
-        return execute(frame.with(vm = EVMContext(frame.block, this)))
+        return execute(frame.with(this, frame.block, frame.transaction))
     }
 
     @OptIn(ExperimentalStdlibApi::class)
     override suspend fun execute(
-        frame: FrameContext,
+        frame: EVMFrame,
         operation: Operation?,
-        execute: suspend (FrameContext, Operation?) -> EVMReturn?
+        execute: suspend (EVMFrame, Operation?) -> EVMReturn?
     ): EVMReturn? {
         val nextFrameHash = frame.nextFrame?.hashCode()
         logs += StructLog(

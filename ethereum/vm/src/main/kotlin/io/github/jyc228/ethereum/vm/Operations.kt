@@ -255,7 +255,7 @@ fun OperationBuilder.withOpCode(opCode: OpCode): OperationBuilder { when (opCode
         val size = stack.pop().int
         val topics = (1..topicCount).map { _ -> stack.pop().bytes }
         val data = memory.read(offset, size)
-        addLog(topics, data)
+        transaction.logs += createLog(topics, data)
     }.memorySize {
         val offset = stack.back(0).int
         val size = stack.back(1).int
@@ -288,7 +288,7 @@ fun OperationBuilder.withOpCode(opCode: OpCode): OperationBuilder { when (opCode
         val result = nextFrame {
             val calldata = memory.read(argsOffset.int, argsLength.int)
             val nextContract = db.withAccountOrThrow(addr.toAddress(), EVMContract::of)
-            FrameContext(contract.address, value.big, calldata, nextContract, nextFrameGas)
+            EVMFrame(contract.address, value.big, calldata, nextContract, nextFrameGas)
         }
 
         memory.write(retOffset.int, retLength.int, result.data)
@@ -322,7 +322,7 @@ fun OperationBuilder.withOpCode(opCode: OpCode): OperationBuilder { when (opCode
             val contract = db.withAccountOrThrow(addr.toAddress()) {
                 EVMContract(contract.address, requireNotNull(it.getCode()), requireNotNull(it.codeHash))
             }
-            FrameContext(caller, callValue, calldata, contract, nextFrameGas)
+            EVMFrame(caller, callValue, calldata, contract, nextFrameGas)
         }
         memory.write(retOffset.int, retLength.int, result.data)
         if (result.err == null) EVMStackElement.ONE else EVMStackElement.ZERO
@@ -343,7 +343,7 @@ fun OperationBuilder.withOpCode(opCode: OpCode): OperationBuilder { when (opCode
         val result = nextFrame {
             val calldata = memory.read(argsOffset.int, argsLength.int)
             val contract = db.withAccountOrThrow(addr.toAddress(), EVMContract::of)
-            FrameContext(this.contract.address, BigInteger.ZERO, calldata, contract, nextFrameGas)
+            EVMFrame(this.contract.address, BigInteger.ZERO, calldata, contract, nextFrameGas)
         }
         memory.write(retOffset.int, retLength.int, result.data)
         if (result.err == null) EVMStackElement.ONE else EVMStackElement.ZERO

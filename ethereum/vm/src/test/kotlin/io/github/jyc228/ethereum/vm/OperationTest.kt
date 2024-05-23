@@ -25,7 +25,7 @@ class OperationTest : DescribeSpec({
         val instructionSet = InstructionSet.all()
         val operation = instructionSet[opcode.v] ?: fail("operation not exist. $opcode")
         withData(nameFn = { "${it.index} $it" }, testCases) { tc ->
-            val context = FrameContext(
+            val context = EVMFrame(
                 contract = EVMContract(Address.fromBytes(), byteArrayOf(), CodeHash(byteArrayOf())),
                 callData = byteArrayOf(),
                 caller = Address.fromBytes(),
