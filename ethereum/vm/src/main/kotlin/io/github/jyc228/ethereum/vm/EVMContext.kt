@@ -3,7 +3,6 @@ package io.github.jyc228.ethereum.vm
 import io.github.jyc228.ethereum.state.StateDatabase
 import io.github.jyc228.ethereum.state.account.Address
 import java.math.BigInteger
-import java.nio.ByteBuffer
 
 class EVMContext(
     val block: BlockContext,
@@ -132,28 +131,6 @@ class FrameContext(
             if (self > MAX_UINT64 - 31uL) return MAX_UINT64 / 32uL + 1uL
             return (self + 31uL) / 32uL
         }
-
-    fun ByteArray.read(offset: Int, size: Int): ByteArray = copyOfRange(offset, offset + size)
-    fun ByteArray.write(offset: Int, bytes: ByteArray): ByteArray =
-        bytes.copyInto(destination = this, destinationOffset = offset)
-
-    fun ByteArray.write(offset: Int, length: Int, bytes: ByteArray?): ByteArray =
-        (bytes ?: ByteArray(length)).copyInto(destination = this, destinationOffset = offset)
-
-    fun ByteArray.sliceArrayLast(n: Int): ByteArray = when (size.compareTo(n)) {
-        -1 -> ByteBuffer.allocate(n).position(n - size).put(this).array()
-        0 -> this
-        1 -> copyOfRange(size - n, size)
-        else -> error("")
-    }
-
-    fun ByteArray.toElement() = EVMStackElement(_bytes = this)
-    fun BigInteger.toElement() = EVMStackElement(_big = this)
-    fun Int.toElement() = EVMStackElement(_int = this)
-    fun ULong.toElement() = EVMStackElement(_big = toLong().toBigInteger())
-    fun Address.toElement() = EVMStackElement(bytes)
-
-    fun EVMStackElement.toAddress() = Address(bytes.sliceArrayLast(20))
 
     companion object {
         val MAX_UINT64 = 18446744073709551615uL

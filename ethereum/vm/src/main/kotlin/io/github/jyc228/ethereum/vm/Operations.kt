@@ -1,6 +1,8 @@
 package io.github.jyc228.ethereum.vm
 
+import io.github.jyc228.ethereum.state.account.Address
 import java.math.BigInteger
+import java.nio.ByteBuffer
 import org.bouncycastle.jcajce.provider.digest.Keccak
 
 // @formatter:off
@@ -357,3 +359,25 @@ fun OperationBuilder.withOpCode(opCode: OpCode): OperationBuilder { when (opCode
 // @formatter:off
 }; return this }
 // @formatter:on
+
+private fun ByteArray.read(offset: Int, size: Int): ByteArray = copyOfRange(offset, offset + size)
+private fun ByteArray.write(offset: Int, bytes: ByteArray): ByteArray =
+    bytes.copyInto(destination = this, destinationOffset = offset)
+
+private fun ByteArray.write(offset: Int, length: Int, bytes: ByteArray?): ByteArray =
+    (bytes ?: ByteArray(length)).copyInto(destination = this, destinationOffset = offset)
+
+private fun ByteArray.sliceArrayLast(n: Int): ByteArray = when (size.compareTo(n)) {
+    -1 -> ByteBuffer.allocate(n).position(n - size).put(this).array()
+    0 -> this
+    1 -> copyOfRange(size - n, size)
+    else -> error("")
+}
+
+private fun ByteArray.toElement() = EVMStackElement(_bytes = this)
+private fun BigInteger.toElement() = EVMStackElement(_big = this)
+private fun Int.toElement() = EVMStackElement(_int = this)
+private fun ULong.toElement() = EVMStackElement(_big = toLong().toBigInteger())
+private fun Address.toElement() = EVMStackElement(bytes)
+
+private fun EVMStackElement.toAddress() = Address(bytes.sliceArrayLast(20))
