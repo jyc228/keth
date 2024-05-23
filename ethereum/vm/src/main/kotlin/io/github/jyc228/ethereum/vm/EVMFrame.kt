@@ -66,29 +66,34 @@ class EVMFrame(
         return gas + (length.wordSize.toInt() * 3)
     }
 
-    fun callGas(memorySize: Int): Int {
-        val address = stack.back(1)
-        val coldAccess = false // todo
-//            coldCost := params.ColdAccountAccessCostEIP2929 - params.WarmStorageReadCostEIP2929
-        val coldCost = 2600 - 100
-        if (coldAccess) {
-            gas -= coldCost
-        }
-        //
+    suspend fun transferValueGas(address: Address, value: BigInteger): Int {
+        return when (vmConfig.eip158) {
+            true -> if (db.findAccount(address) == null && value > BigInteger.ZERO) 25000 else 0
+            false -> if (db.findAccount(address) == null) 25000 else 0
+        } + if (value > BigInteger.ZERO) 9000 else 0
+    }
+
+    fun callGas(memorySize: Int, callGas: Int): Int {
         val base = memoryGasCost(memorySize)
-        nextFrameGas = if (vmConfig.eip150) {
+        nextFrameGas = callGas
+        if (vmConfig.eip150) {
             val availableGas = gas - base
-            availableGas - availableGas / 64
-        } else {
-            stack.back(0).int
+            val gas = availableGas - availableGas / 64
+            if (gas < callGas) nextFrameGas = gas
         }
-        val nextGas = base + nextFrameGas
-        //
-        if (coldAccess) {
-            gas += coldCost
-            return nextGas + coldCost
-        }
-        return nextGas
+        return base + nextFrameGas
+    }
+
+    fun computeAccessAccountGas(address: Address): Int {
+        if (address in (transaction.accessList!!)) return 0
+        transaction.accessList!! += address
+        return 2500
+    }
+
+    fun computeAccessSlotGas(contract: EVMContract, key: ByteArray, alreadyExistGas: Int = 0): Int {
+        if (AccessList.Slot(key) in (transaction.accessList!![contract.address])) return alreadyExistGas
+        transaction.accessList!![contract.address] += AccessList.Slot(stack.back(0).bytes)
+        return 2100
     }
 
     val Number.wordSize: ULong
@@ -115,6 +120,7 @@ class EVMFrame(
         val to: Address,
         val gasPrice: BigInteger = 0.toBigInteger(),
         val value: BigInteger = 0.toBigInteger(),
+        val accessList: AccessList? = null,
     ) {
         val logs = mutableListOf<Log>()
     }

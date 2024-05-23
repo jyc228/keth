@@ -116,9 +116,11 @@ fun OperationBuilder.withOpCode(opCode: OpCode): OperationBuilder { when (opCode
 
     OpCode.GASPRICE -> push { transaction.gasPrice.toElement() }.gas2()
 
-    OpCode.EXTCODESIZE -> pop1push { address ->
-        db.withAccountOrNull(address.toAddress()) { it?.getCode()?.size ?: 0 }.toElement()
-    }.gas(if (vmConfig.eip150) 700 else 20)
+    OpCode.EXTCODESIZE -> {
+        pop1push { addr -> db.withAccountOrNull(addr.toAddress()) { it?.getCode()?.size ?: 0 }.toElement() }
+        gas(if (vmConfig.eip150) 700 else 20)
+        if (vmConfig.eip2929) additionalGas1 { addr -> computeAccessAccountGas(addr.toAddress()) }
+    }
 
     OpCode.EXTCODECOPY -> execute { TODO() }.gas(if (vmConfig.eip150) 700 else 20)
     OpCode.RETURNDATASIZE -> if (vmConfig.eip211) push {
@@ -168,22 +170,27 @@ fun OperationBuilder.withOpCode(opCode: OpCode): OperationBuilder { when (opCode
     }
 
     OpCode.MSTORE8 -> pop2 { a, b -> TODO() }
-    OpCode.SLOAD -> pop1push { key ->
-        db.withAccountOrNull(contract.address) { it?.storage?.get(key.bytes) }?.toElement()
-            ?: EVMStackElement.ZERO
-    }.gas(
-        when {
-            vmConfig.eip2200 -> 800
-            vmConfig.eip1884 -> 800
-            vmConfig.eip150 -> 200
-            else -> 50
+    OpCode.SLOAD -> {
+        pop1push { key ->
+            db.withAccount(contract.address) { it.storage.get(key.bytes) }?.toElement() ?: EVMStackElement.ZERO
         }
-    )
+        gas(
+            when {
+                vmConfig.eip2929 -> 0
+                vmConfig.eip2200 -> 800
+                vmConfig.eip1884 -> 800
+                vmConfig.eip150 -> 200
+                else -> 50
+            }
+        )
+        if (vmConfig.eip2929) additionalGas1 { key -> computeAccessSlotGas(contract, key.bytes, alreadyExistGas = 100) }
+    }
 
     OpCode.SSTORE -> pop2 { value, key ->
         db.withAccountOrCreate(contract.address) { it.storage.set(key.bytes, value.bytes.takeIfNotAllZero()) }
     }.additionalGas2 { value, key ->
         val ssStoreGas = when {
+            vmConfig.eip2929 -> SStoreGas.eip2929(computeAccessSlotGas(contract, key.bytes))
             vmConfig.eip2200 -> SStoreGas.eip2200()
             vmConfig.eip1716 -> null
             vmConfig.eip1283 -> SStoreGas.eip1283()
@@ -306,20 +313,21 @@ fun OperationBuilder.withOpCode(opCode: OpCode): OperationBuilder { when (opCode
         val retSize = stack.back(6).int + stack.back(5).int
         val argSize = stack.back(4).int + stack.back(3).int
         if (retSize > argSize) retSize else argSize
-    }.gas(if (vmConfig.eip150) 700 else 40).additionalGas {
-        var gas = 0
-        if (vmConfig.eip158) {
-            if (stack.back(2).big > BigInteger.ZERO && db.findAccount(stack.back(1).toAddress()) == null) {
-                gas += 25000
+    }.gas(if (vmConfig.eip150) 700 else 40).additionalGas3 { value, addr, gas ->
+        if (vmConfig.eip2929) {
+            if (addr.toAddress() in transaction.accessList!!) {
+                return@additionalGas3 transferValueGas(addr.toAddress(), value.big) + callGas(memorySize, gas.int)
             }
-        } else if (db.findAccount(stack.back(1).toAddress()) == null) {
-            gas += 25000
-        }
-        if (stack.back(2).big > BigInteger.ZERO) {
-            gas += 9000
-        }
-        gas + callGas(memorySize)
+            transaction.accessList!! += addr.toAddress()
+            this.gas -= 2500
+
+            val nextGas = transferValueGas(addr.toAddress(), value.big) + callGas(memorySize, gas.int)
+
+            this.gas += 2500
+            nextGas + 2500
+        } else transferValueGas(addr.toAddress(), value.big) + callGas(memorySize, gas.int)
     }
+
 
     OpCode.CALLCODE -> execute { TODO() }.gas(if (vmConfig.eip150) 700 else 40)
     OpCode.RETURN -> pop2 { size, offset -> result = EVMReturn.success(memory.read(offset.int, size.int)) }
@@ -338,7 +346,21 @@ fun OperationBuilder.withOpCode(opCode: OpCode): OperationBuilder { when (opCode
         val retSize = stack.back(5).int + stack.back(4).int
         val argSize = stack.back(3).int + stack.back(2).int
         if (retSize > argSize) retSize else argSize
-    }.gas(if (vmConfig.eip150) 700 else 20).additionalGas { callGas(memorySize) }
+    }.gas(if (vmConfig.eip150) 700 else 20).additionalGas2 { addr, gas ->
+        if (vmConfig.eip2929) {
+            if (addr.toAddress() in transaction.accessList!!) {
+                return@additionalGas2 callGas(memorySize, gas.int)
+            }
+            transaction.accessList!! += addr.toAddress()
+            this.gas -= 2500
+
+            val nextGas = callGas(memorySize, gas.int)
+
+            this.gas += 2500
+            nextGas + 2500
+        } else callGas(memorySize, gas.int)
+    }
+
 
     OpCode.CREATE2 -> if (vmConfig.eip1014) execute { TODO("CREATE2") }
     OpCode.STATICCALL -> if (vmConfig.eip214) pop6push { retLength, retOffset, argsLength, argsOffset, addr, gas ->
@@ -359,7 +381,7 @@ fun OperationBuilder.withOpCode(opCode: OpCode): OperationBuilder { when (opCode
         val retSize = stack.back(5).int + stack.back(4).int
         val argSize = stack.back(3).int + stack.back(2).int
         if (retSize > argSize) retSize else argSize
-    }.gas(100).additionalGas { callGas(memorySize) }
+    }.gas(100).additionalGas1 { gas -> callGas(memorySize, gas.int) }
 
     OpCode.REVERT -> if (vmConfig.eip140) pop2 { length, offset ->
         result = EVMReturn.executionReverted(memory.read(offset.int, length.int))
@@ -383,6 +405,18 @@ private data class SStoreGas(
     val resetOriginSlot: Int,
 ) {
     companion object {
+        fun eip2929(accessSlot: Int) = SStoreGas(
+            reentrancy = 2300,
+            doNothing = 100 + accessSlot,
+            createSlot = 20000 + accessSlot,
+            recreateSlot = 15000,
+            deleteSlot = 15000,
+            updateSlot = 2900 + accessSlot,
+            updateDirtySlot = 100 + accessSlot,
+            resetDeleteSlot = 19900,
+            resetOriginSlot = 2800
+        )
+
         fun eip2200() = SStoreGas(
             reentrancy = 2300,
             doNothing = 800,

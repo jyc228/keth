@@ -46,7 +46,7 @@ class EVMInterpreterTest : DescribeSpec({
         ).with(
             db,
             EVMFrame.BlockContext(),
-            EVMFrame.TransactionContext(Address.fromBytes(), Address.fromBytes())
+            EVMFrame.TransactionContext(Address.fromBytes(), Address.fromBytes(), accessList = AccessList())
         )
         EVMInterpreter.of(InstructionSet.all(), EVMConsoleLogger()).execute(context)
 
