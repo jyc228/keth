@@ -4,7 +4,7 @@ class Operation(
     val opCode: OpCode,
     val minStack: Int,
     val gas: Int,
-    val dynamicGas: (suspend FrameContext.(memorySize: Int) -> Int)?,
+    val dynamicGas: (suspend FrameContext.() -> Int)?,
     val memorySize: (FrameContext.() -> Int)?,
     val execute: suspend FrameContext.() -> Unit
 ) {
@@ -16,7 +16,7 @@ class Operation(
 class OperationBuilder {
     private var minStack: Int = 0
     private var defaultGas: Int = 0
-    private var additionalGas: (suspend FrameContext.(memorySize: Int) -> Int)? = null
+    private var additionalGas: (suspend FrameContext.() -> Int)? = null
     private var memorySize: (FrameContext.() -> Int)? = null
     private var execute: (suspend FrameContext.() -> Unit)? = null
 
@@ -28,7 +28,7 @@ class OperationBuilder {
 
     fun execute(execute: suspend FrameContext.() -> Unit) = apply { this.execute = execute }
     fun memorySize(execute: FrameContext.() -> Int) = apply { this.memorySize = execute }
-    fun additionalGas(execute: suspend FrameContext.(memorySize: Int) -> Int) = apply { this.additionalGas = execute }
+    fun additionalGas(execute: suspend FrameContext.() -> Int) = apply { this.additionalGas = execute }
 
     fun pop0(execute: suspend FrameContext.() -> Unit) = execute(execute)
 

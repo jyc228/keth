@@ -34,11 +34,11 @@ open class EVMDefaultInterpreter(private val instructionSet: InstructionSet) : E
         if (operation == null) {
             return EVMReturn.unknownOpCode(frame.contract.code[frame.pc]).also { frame.result = it }
         }
-        val memSize = operation.memorySize?.invoke(frame) ?: 0
+        frame.memorySize = operation.memorySize?.invoke(frame) ?: 0
         frame.gas -= operation.gas
-        frame.gas -= operation.dynamicGas?.invoke(frame, memSize) ?: 0
-        if (frame.memory.size < memSize) {
-            frame.memory = frame.memory.copyOf(memSize)
+        frame.gas -= operation.dynamicGas?.invoke(frame) ?: 0
+        if (frame.memory.size < frame.memorySize) {
+            frame.memory = frame.memory.copyOf(frame.memorySize)
         }
         if (frame.gas < 0) {
             return EVMReturn.outOfGas().also { frame.result = it }

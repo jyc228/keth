@@ -57,6 +57,7 @@ class FrameContext(
     var depth = 0
     var pc: Int = 0
     var memory: ByteArray = ByteArray(0)
+    var memorySize: Int = 0
     var memoryLastGasCost: Long = 0
     val stack: EVMStack = EVMStack()
     var nextFrameGas = 0
