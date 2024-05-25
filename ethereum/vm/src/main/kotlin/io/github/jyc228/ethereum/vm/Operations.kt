@@ -190,6 +190,7 @@ fun OperationBuilder.withOpCode(opCode: OpCode): OperationBuilder { when (opCode
         db.withAccountOrCreate(contract.address) { it.storage.set(key.bytes, value.bytes.takeIfNotAllZero()) }
     }.additionalGas2 { value, key ->
         val ssStoreGas = when {
+            vmConfig.eip3529 -> SStoreGas.eip3529(computeAccessSlotGas(contract, key.bytes))
             vmConfig.eip2929 -> SStoreGas.eip2929(computeAccessSlotGas(contract, key.bytes))
             vmConfig.eip2200 -> SStoreGas.eip2200()
             vmConfig.eip1716 -> null
@@ -405,6 +406,18 @@ private data class SStoreGas(
     val resetOriginSlot: Int,
 ) {
     companion object {
+        fun eip3529(accessSlot: Int) = SStoreGas(
+            reentrancy = 2300,
+            doNothing = 100 + accessSlot,
+            createSlot = 20000 + accessSlot,
+            recreateSlot = 4800,
+            deleteSlot = 4800,
+            updateSlot = 2900 + accessSlot,
+            updateDirtySlot = 100 + accessSlot,
+            resetDeleteSlot = 19900,
+            resetOriginSlot = 2800
+        )
+
         fun eip2929(accessSlot: Int) = SStoreGas(
             reentrancy = 2300,
             doNothing = 100 + accessSlot,
