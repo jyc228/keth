@@ -179,9 +179,35 @@ fun OperationBuilder.withOpCode(opCode: OpCode): OperationBuilder { when (opCode
         }
     )
 
-    OpCode.SSTORE -> pop2 { value, location ->
-        db.withAccountOrCreate(contract.address) { it.storage.set(location.bytes, value.bytes) }
-    }.gas(2900)
+    OpCode.SSTORE -> pop2 { value, key ->
+        db.withAccountOrCreate(contract.address) { it.storage.set(key.bytes, value.bytes.takeIfNotAllZero()) }
+    }.additionalGas2 { value, key ->
+        val new = value.bytes.takeIfNotAllZero()
+        val dirty = db.withAccount(contract.address) { it.storage.get(key.bytes) }
+        if (vmConfig.eip1283) {
+            if (dirty.contentEquals(new)) return@additionalGas2 200
+            val origin = db.withAccount(contract.address) { it.storage.getCommittedState(key.bytes) }
+            if (dirty.contentEquals(origin)) {
+                if (origin == null) return@additionalGas2 20000
+                if (new == null) gas += 15000
+                return@additionalGas2 5000
+            }
+            if (origin != null) {
+                if (dirty == null) gas -= 15000
+                else if (new == null) gas += 15000
+            }
+            if (origin.contentEquals(new)) {
+                if (origin == null) gas += 19800
+                else gas -= 4800
+            }
+            return@additionalGas2 200
+        }
+        when {
+            dirty == null && new != null -> 20000
+            dirty != null && new == null -> 5000
+            else -> 5000
+        }
+    }
 
     OpCode.JUMP -> pop1 { pos -> pc = pos.int - 1 }.gas8()
     OpCode.JUMPI -> pop2 { condition, pos ->
@@ -362,3 +388,5 @@ private inline fun runIf(condition: Boolean, crossinline execute: () -> EVMStack
 }
 
 private val big256 = 256.toBigInteger()
+
+private fun ByteArray.takeIfNotAllZero() = takeIf { it.any { b -> b != 0.toByte() } }

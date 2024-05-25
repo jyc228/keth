@@ -30,6 +30,10 @@ class OperationBuilder(val vmConfig: EVMConfig) {
     fun memorySize(execute: EVMFrame.() -> Int) = apply { this.memorySize = execute }
     fun additionalGas(execute: suspend EVMFrame.() -> Int) = apply { this.additionalGas = execute }
 
+    inline fun additionalGas2(
+        crossinline execute: suspend EVMFrame.(top1: EVMStackElement, top0: EVMStackElement) -> Int
+    ) = additionalGas { execute(stack.back(1), stack.back(0)) }
+
     fun pop0(execute: suspend EVMFrame.() -> Unit) = execute(execute)
 
     inline fun pop1(
