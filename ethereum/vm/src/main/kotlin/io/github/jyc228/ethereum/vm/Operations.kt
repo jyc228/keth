@@ -173,6 +173,7 @@ fun OperationBuilder.withOpCode(opCode: OpCode): OperationBuilder { when (opCode
             ?: EVMStackElement.ZERO
     }.gas(
         when {
+            vmConfig.eip2200 -> 800
             vmConfig.eip1884 -> 800
             vmConfig.eip150 -> 200
             else -> 50
@@ -182,25 +183,35 @@ fun OperationBuilder.withOpCode(opCode: OpCode): OperationBuilder { when (opCode
     OpCode.SSTORE -> pop2 { value, key ->
         db.withAccountOrCreate(contract.address) { it.storage.set(key.bytes, value.bytes.takeIfNotAllZero()) }
     }.additionalGas2 { value, key ->
+        val ssStoreGas = when {
+            vmConfig.eip2200 -> SStoreGas.eip2200()
+            vmConfig.eip1716 -> null
+            vmConfig.eip1283 -> SStoreGas.eip1283()
+            else -> null
+        }
         val new = value.bytes.takeIfNotAllZero()
         val dirty = db.withAccount(contract.address) { it.storage.get(key.bytes) }
-        if (!vmConfig.eip1716 && vmConfig.eip1283) {
-            if (dirty.contentEquals(new)) return@additionalGas2 200
+        if (ssStoreGas != null) {
+            if (ssStoreGas.reentrancy != null && gas <= ssStoreGas.reentrancy) {
+                result = EVMReturn.outOfGas()
+                return@additionalGas2 0
+            }
+            if (dirty.contentEquals(new)) return@additionalGas2 ssStoreGas.doNothing
             val origin = db.withAccount(contract.address) { it.storage.getCommittedState(key.bytes) }
             if (dirty.contentEquals(origin)) {
-                if (origin == null) return@additionalGas2 20000
-                if (new == null) gas += 15000
-                return@additionalGas2 5000
+                if (origin == null) return@additionalGas2 ssStoreGas.createSlot
+                if (new == null) gas += ssStoreGas.deleteSlot
+                return@additionalGas2 ssStoreGas.updateSlot
             }
             if (origin != null) {
-                if (dirty == null) gas -= 15000
-                else if (new == null) gas += 15000
+                if (dirty == null) gas -= ssStoreGas.recreateSlot
+                else if (new == null) gas += ssStoreGas.deleteSlot
             }
             if (origin.contentEquals(new)) {
-                if (origin == null) gas += 19800
-                else gas -= 4800
+                if (origin == null) gas += ssStoreGas.resetDeleteSlot
+                else gas -= ssStoreGas.resetOriginSlot
             }
-            return@additionalGas2 200
+            return@additionalGas2 ssStoreGas.updateDirtySlot
         }
         when {
             dirty == null && new != null -> 20000
@@ -359,6 +370,43 @@ fun OperationBuilder.withOpCode(opCode: OpCode): OperationBuilder { when (opCode
 // @formatter:off
 }; return this }
 // @formatter:on
+
+private data class SStoreGas(
+    val reentrancy: Int? = null,
+    val doNothing: Int,
+    val createSlot: Int,
+    val recreateSlot: Int,
+    val deleteSlot: Int,
+    val updateSlot: Int,
+    val updateDirtySlot: Int,
+    val resetDeleteSlot: Int,
+    val resetOriginSlot: Int,
+) {
+    companion object {
+        fun eip2200() = SStoreGas(
+            reentrancy = 2300,
+            doNothing = 800,
+            createSlot = 20000,
+            recreateSlot = 15000,
+            deleteSlot = 15000,
+            updateSlot = 5000,
+            updateDirtySlot = 800,
+            resetDeleteSlot = 19200,
+            resetOriginSlot = 4200
+        )
+
+        fun eip1283() = SStoreGas(
+            doNothing = 200,
+            createSlot = 20000,
+            recreateSlot = 15000,
+            deleteSlot = 15000,
+            updateSlot = 5000,
+            updateDirtySlot = 200,
+            resetDeleteSlot = 19800,
+            resetOriginSlot = 4800
+        )
+    }
+}
 
 private fun ByteArray.read(offset: Int, size: Int): ByteArray = copyOfRange(offset, offset + size)
 private fun ByteArray.write(offset: Int, bytes: ByteArray): ByteArray =
