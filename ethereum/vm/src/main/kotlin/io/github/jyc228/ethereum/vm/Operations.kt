@@ -284,7 +284,8 @@ fun OperationBuilder.withOpCode(opCode: OpCode): OperationBuilder { when (opCode
         gas
     }
 
-    OpCode.CREATE -> pop3 { top2, top1, top0 -> TODO() }
+    OpCode.CREATE -> pop3 { top2, top1, top0 -> TODO("CREATE") }
+        .apply { if (vmConfig.eip3860) additionalGas { TODO("CREATE") } }
     OpCode.CALL -> pop7push { retLength, retOffset, argsLength, argsOffset, value, addr, gas ->
         if ((db.findAccount(contract.address)?.balance ?: BigInteger.ZERO) < value.big) {
             result = EVMReturn.insufficientBalance()
@@ -361,6 +362,7 @@ fun OperationBuilder.withOpCode(opCode: OpCode): OperationBuilder { when (opCode
 
 
     OpCode.CREATE2 -> if (vmConfig.eip1014) execute { TODO("CREATE2") }
+        .apply { if (vmConfig.eip3860) additionalGas { TODO("CREATE2") } }
     OpCode.STATICCALL -> if (vmConfig.eip214) pop6push { retLength, retOffset, argsLength, argsOffset, addr, gas ->
         // We do an AddBalance of zero here, just in order to trigger a touch.
         // This doesn't matter on Mainnet, where all empties are gone at the time of Byzantium,
