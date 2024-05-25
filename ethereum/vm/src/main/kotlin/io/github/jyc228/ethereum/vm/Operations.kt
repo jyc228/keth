@@ -151,7 +151,7 @@ fun OperationBuilder.withOpCode(opCode: OpCode): OperationBuilder { when (opCode
         db.findAccount(contract.address)?.balance?.toElement() ?: EVMStackElement.ZERO
     }.gas5()
 
-    OpCode.BASEFEE -> push { block.baseFee.toElement() }.gas2()
+    OpCode.BASEFEE -> if (vmConfig.eip3198) push { block.baseFee.toElement() }.gas2()
     OpCode.BLOBHASH -> pop1push { TODO() }.gas3()
     OpCode.BLOBBASEFEE -> push { TODO() }.gas2()
     OpCode.POP -> pop1 { _ -> }.gas2()
