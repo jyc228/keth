@@ -184,7 +184,7 @@ fun OperationBuilder.withOpCode(opCode: OpCode): OperationBuilder { when (opCode
     }.additionalGas2 { value, key ->
         val new = value.bytes.takeIfNotAllZero()
         val dirty = db.withAccount(contract.address) { it.storage.get(key.bytes) }
-        if (vmConfig.eip1283) {
+        if (!vmConfig.eip1716 && vmConfig.eip1283) {
             if (dirty.contentEquals(new)) return@additionalGas2 200
             val origin = db.withAccount(contract.address) { it.storage.getCommittedState(key.bytes) }
             if (dirty.contentEquals(origin)) {
