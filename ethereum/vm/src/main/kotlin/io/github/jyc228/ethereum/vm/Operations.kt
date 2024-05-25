@@ -239,7 +239,7 @@ fun OperationBuilder.withOpCode(opCode: OpCode): OperationBuilder { when (opCode
     OpCode.TSTORE -> pop2 { a, b -> }
     OpCode.MCOPY -> pop3 { a, b, c -> }.gas3()
 
-    OpCode.PUSH0 -> push { EVMStackElement.ZERO }.gas2()
+    OpCode.PUSH0 -> if (vmConfig.eip3855) push { EVMStackElement.ZERO }.gas2()
     OpCode.PUSH1 -> push { byteArrayOf(contract.code[++pc]).toElement() }.gas3()
     OpCode.PUSH2, OpCode.PUSH3, OpCode.PUSH4, OpCode.PUSH5, OpCode.PUSH6, OpCode.PUSH7, OpCode.PUSH8, OpCode.PUSH9,
     OpCode.PUSH10, OpCode.PUSH11, OpCode.PUSH12, OpCode.PUSH13, OpCode.PUSH14, OpCode.PUSH15, OpCode.PUSH16, OpCode.PUSH17, OpCode.PUSH18, OpCode.PUSH19,
