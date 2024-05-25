@@ -141,10 +141,7 @@ fun OperationBuilder.withOpCode(opCode: OpCode): OperationBuilder { when (opCode
     OpCode.TIMESTAMP -> push { block.time.toElement() }.gas2()
     OpCode.NUMBER -> push { block.number.toElement() }.gas2()
     OpCode.DIFFICULTY -> push { block.difficulty.toElement() }.gas2()
-
-    OpCode.RANDOM,
-    OpCode.PREVRANDAO -> push { block.random.toElement() }.gas2()
-
+    OpCode.PREVRANDAO -> if (vmConfig.eip4399) push { block.random.toElement() }.gas2()
     OpCode.GASLIMIT -> push { block.gasLimit.toElement() }.gas2()
     OpCode.CHAINID -> if (vmConfig.eip1344) push { chainId.toElement() }.gas2()
     OpCode.SELFBALANCE -> if (vmConfig.eip1884) push {

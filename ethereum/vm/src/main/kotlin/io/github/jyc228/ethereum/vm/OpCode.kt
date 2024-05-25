@@ -58,7 +58,6 @@ enum class OpCode(val v: Byte) {
     TIMESTAMP(0x42),
     NUMBER(0x43),
     DIFFICULTY(0x44),
-    RANDOM(0x44), // Same as DIFFICULTY
     PREVRANDAO(0x44), // Same as DIFFICULTY
     GASLIMIT(0x45),
     CHAINID(0x46),
