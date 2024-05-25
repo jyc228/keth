@@ -291,7 +291,7 @@ fun OperationBuilder.withOpCode(opCode: OpCode): OperationBuilder { when (opCode
         if (retSize > argSize) retSize else argSize
     }.gas(if (vmConfig.eip150) 700 else 20).additionalGas { callGas(memorySize) }
 
-    OpCode.CREATE2 -> execute { TODO() }
+    OpCode.CREATE2 -> if (vmConfig.eip1014) execute { TODO("CREATE2") }
     OpCode.STATICCALL -> if (vmConfig.eip214) pop6push { retLength, retOffset, argsLength, argsOffset, addr, gas ->
         // We do an AddBalance of zero here, just in order to trigger a touch.
         // This doesn't matter on Mainnet, where all empties are gone at the time of Byzantium,
