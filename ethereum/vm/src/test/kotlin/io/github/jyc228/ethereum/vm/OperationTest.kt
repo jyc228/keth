@@ -30,7 +30,7 @@ class OperationTest : DescribeSpec({
                 callData = byteArrayOf(),
                 caller = Address.fromBytes(),
                 callValue = BigInteger.ZERO,
-                gas = 10000000
+                remainGas = 10000000
             )
             context.stack.push(EVMStackElement(_bytes = tc.X.hexToByteArray()))
             context.stack.push(EVMStackElement(_bytes = tc.Y.hexToByteArray()))

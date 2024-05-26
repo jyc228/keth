@@ -9,7 +9,7 @@ class EVMFrame(
     val callValue: BigInteger,
     val callData: ByteArray,
     val contract: EVMContract,
-    var gas: Int,
+    var remainGas: Int,
 ) {
     var vmConfig: EVMConfig = EVMConfig()
     var chainId: Int = 0
@@ -43,7 +43,7 @@ class EVMFrame(
     suspend fun nextFrame(newFrame: suspend () -> EVMFrame): EVMReturn {
         val nextFrame = newFrame().with(db, block, transaction).also { this.nextFrame = it }
         nextFrame.depth = this.depth + 1
-        return interpreter.execute(nextFrame).apply { gas += nextFrame.gas }
+        return interpreter.execute(nextFrame).apply { remainGas += nextFrame.remainGas }
     }
 
     fun memoryGasCost(newMemorySize: Int): Int {
@@ -77,7 +77,7 @@ class EVMFrame(
         val base = memoryGasCost(memorySize)
         nextFrameGas = callGas
         if (vmConfig.eip150) {
-            val availableGas = gas - base
+            val availableGas = remainGas - base
             val gas = availableGas - availableGas / 64
             if (gas < callGas) nextFrameGas = gas
         }

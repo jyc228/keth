@@ -21,7 +21,7 @@ fun OperationBuilder.withOpCode(opCode: OpCode): OperationBuilder { when (opCode
 
     OpCode.ADDMOD -> pop3push { t2, t1, t0 -> (t0 + t1) % t2 }.gas8()
     OpCode.MULMOD -> pop3push { t2, t1, t0 -> (t0 * t1) % t2 }.gas8()
-    OpCode.EXP -> pop2push { exp, base -> base pow exp }.additionalGas {
+    OpCode.EXP -> pop2push { exp, base -> base pow exp }.extraGas {
         ((stack.back(1).big.bitLength() + 7) / 8 * if (vmConfig.eip158) 50 else 10) + 10
     }
 
@@ -73,7 +73,7 @@ fun OperationBuilder.withOpCode(opCode: OpCode): OperationBuilder { when (opCode
         val offset = stack.back(0)
         val size = stack.back(1)
         offset.int + size.int
-    }.additionalGas {
+    }.extraGas {
         val gas = memoryGasCost(memorySize)
         val size = stack.back(1).int
         val wordSize = (size + 31) / 32
@@ -102,7 +102,7 @@ fun OperationBuilder.withOpCode(opCode: OpCode): OperationBuilder { when (opCode
         val callData = callData.read(dataOffset.int, length.int)
         memory.write(memOffset.int, callData)
     }.gas3()
-        .additionalGas { memoryCopyGas(2, memorySize) }
+        .extraGas { memoryCopyGas(2, memorySize) }
         .memorySize { stack.back(2).int + stack.back(0).int }
 
     OpCode.CODESIZE -> push { contract.code.size.toElement() }.gas2()
@@ -111,7 +111,7 @@ fun OperationBuilder.withOpCode(opCode: OpCode): OperationBuilder { when (opCode
         val code = contract.code.read(dataOffset.int, length.int)
         memory.write(memOffset.int, code)
     }.gas3()
-        .additionalGas { memoryCopyGas(2, memorySize) }
+        .extraGas { memoryCopyGas(2, memorySize) }
         .memorySize { stack.back(0).int + stack.back(2).int }
 
     OpCode.GASPRICE -> push { transaction.gasPrice.toElement() }.gas2()
@@ -119,7 +119,7 @@ fun OperationBuilder.withOpCode(opCode: OpCode): OperationBuilder { when (opCode
     OpCode.EXTCODESIZE -> {
         pop1push { addr -> db.withAccountOrNull(addr.toAddress()) { it?.getCode()?.size ?: 0 }.toElement() }
         gas(if (vmConfig.eip150) 700 else 20)
-        if (vmConfig.eip2929) additionalGas1 { addr -> computeAccessAccountGas(addr.toAddress()) }
+        if (vmConfig.eip2929) extraGas1 { addr -> computeAccessAccountGas(addr.toAddress()) }
     }
 
     OpCode.EXTCODECOPY -> execute { TODO() }.gas(if (vmConfig.eip150) 700 else 20)
@@ -130,7 +130,7 @@ fun OperationBuilder.withOpCode(opCode: OpCode): OperationBuilder { when (opCode
     OpCode.RETURNDATACOPY -> if (vmConfig.eip211) pop3 { length, dataOffset, memOffset ->
         val returnValue = nextFrame?.result?.data?.read(dataOffset.int, length.int)
         memory.write(memOffset.int, returnValue ?: ByteArray(length.int))
-    }.additionalGas { memoryCopyGas(2, memorySize) }.gas3()
+    }.extraGas { memoryCopyGas(2, memorySize) }.gas3()
 
     OpCode.EXTCODEHASH -> if (vmConfig.eip1052) pop1push { address ->
         db.findAccount(address.toAddress())?.codeHash?.bytes?.toElement() ?: EVMStackElement.ZERO
@@ -156,13 +156,13 @@ fun OperationBuilder.withOpCode(opCode: OpCode): OperationBuilder { when (opCode
     OpCode.MLOAD -> pop1push { offset -> memory.read(offset.int, 32).toElement() }
         .memorySize { stack.back(0).int + 32 }
         .gas3()
-        .additionalGas { memoryGasCost(stack.back(0).int + 32) }
+        .extraGas { memoryGasCost(stack.back(0).int + 32) }
 
     OpCode.MSTORE -> gas3().pop2 { value, offset ->
         memory.write(offset.int, value.bytes.sliceArrayLast(32))
     }.memorySize {
         stack.back(0).int + 32
-    }.additionalGas {
+    }.extraGas {
         memoryGasCost(stack.back(0).int + 32)
     }
 
@@ -180,12 +180,12 @@ fun OperationBuilder.withOpCode(opCode: OpCode): OperationBuilder { when (opCode
                 else -> 50
             }
         )
-        if (vmConfig.eip2929) additionalGas1 { key -> computeAccessSlotGas(contract, key.bytes, alreadyExistGas = 100) }
+        if (vmConfig.eip2929) extraGas1 { key -> computeAccessSlotGas(contract, key.bytes, alreadyExistGas = 100) }
     }
 
     OpCode.SSTORE -> pop2 { value, key ->
         db.withAccountOrCreate(contract.address) { it.storage.set(key.bytes, value.bytes.takeIfNotAllZero()) }
-    }.additionalGas2 { value, key ->
+    }.extraGas2 { value, key ->
         val ssStoreGas = when {
             vmConfig.eip3529 -> SStoreGas.eip3529(computeAccessSlotGas(contract, key.bytes))
             vmConfig.eip2929 -> SStoreGas.eip2929(computeAccessSlotGas(contract, key.bytes))
@@ -197,26 +197,26 @@ fun OperationBuilder.withOpCode(opCode: OpCode): OperationBuilder { when (opCode
         val new = value.bytes.takeIfNotAllZero()
         val dirty = db.withAccount(contract.address) { it.storage.get(key.bytes) }
         if (ssStoreGas != null) {
-            if (ssStoreGas.reentrancy != null && gas <= ssStoreGas.reentrancy) {
+            if (ssStoreGas.reentrancy != null && remainGas <= ssStoreGas.reentrancy) {
                 result = EVMReturn.outOfGas()
-                return@additionalGas2 0
+                return@extraGas2 0
             }
-            if (dirty.contentEquals(new)) return@additionalGas2 ssStoreGas.doNothing
+            if (dirty.contentEquals(new)) return@extraGas2 ssStoreGas.doNothing
             val origin = db.withAccount(contract.address) { it.storage.getCommittedState(key.bytes) }
             if (dirty.contentEquals(origin)) {
-                if (origin == null) return@additionalGas2 ssStoreGas.createSlot
-                if (new == null) gas += ssStoreGas.deleteSlot
-                return@additionalGas2 ssStoreGas.updateSlot
+                if (origin == null) return@extraGas2 ssStoreGas.createSlot
+                if (new == null) remainGas += ssStoreGas.deleteSlot
+                return@extraGas2 ssStoreGas.updateSlot
             }
             if (origin != null) {
-                if (dirty == null) gas -= ssStoreGas.recreateSlot
-                else if (new == null) gas += ssStoreGas.deleteSlot
+                if (dirty == null) remainGas -= ssStoreGas.recreateSlot
+                else if (new == null) remainGas += ssStoreGas.deleteSlot
             }
             if (origin.contentEquals(new)) {
-                if (origin == null) gas += ssStoreGas.resetDeleteSlot
-                else gas -= ssStoreGas.resetOriginSlot
+                if (origin == null) remainGas += ssStoreGas.resetDeleteSlot
+                else remainGas -= ssStoreGas.resetOriginSlot
             }
-            return@additionalGas2 ssStoreGas.updateDirtySlot
+            return@extraGas2 ssStoreGas.updateDirtySlot
         }
         when {
             dirty == null && new != null -> 20000
@@ -233,7 +233,7 @@ fun OperationBuilder.withOpCode(opCode: OpCode): OperationBuilder { when (opCode
 
     OpCode.PC -> push { pc.toElement() }
     OpCode.MSIZE -> pop0 { }.gas2()
-    OpCode.GAS -> push { gas.toElement() }.gas2()
+    OpCode.GAS -> push { remainGas.toElement() }.gas2()
     OpCode.JUMPDEST -> pop0 { }.gas(1)
     OpCode.TLOAD -> pop1 { }
     OpCode.TSTORE -> pop2 { a, b -> }
@@ -274,7 +274,7 @@ fun OperationBuilder.withOpCode(opCode: OpCode): OperationBuilder { when (opCode
         val offset = stack.back(0).int
         val size = stack.back(1).int
         offset + size
-    }.additionalGas {
+    }.extraGas {
         val topicCount = operation.opCode.name.drop(3).toInt()
         val size = stack.back(1).int
         var gas = memoryGasCost(memorySize)
@@ -285,7 +285,8 @@ fun OperationBuilder.withOpCode(opCode: OpCode): OperationBuilder { when (opCode
     }
 
     OpCode.CREATE -> pop3 { top2, top1, top0 -> TODO("CREATE") }
-        .apply { if (vmConfig.eip3860) additionalGas { TODO("CREATE") } }
+        .apply { if (vmConfig.eip3860) extraGas { TODO("CREATE") } }
+
     OpCode.CALL -> pop7push { retLength, retOffset, argsLength, argsOffset, value, addr, gas ->
         if ((db.findAccount(contract.address)?.balance ?: BigInteger.ZERO) < value.big) {
             result = EVMReturn.insufficientBalance()
@@ -296,7 +297,7 @@ fun OperationBuilder.withOpCode(opCode: OpCode): OperationBuilder { when (opCode
         db.applyAccountOrThrow(contract.address) { it.balance -= value.big }
         val account = db.applyAccountOrCreate(addr.toAddress()) { it.balance += value.big }
         if (account.codeHash == null) {
-            this.gas = nextFrameGas
+            this.remainGas = nextFrameGas
             return@pop7push EVMStackElement.ONE
         }
 
@@ -312,17 +313,17 @@ fun OperationBuilder.withOpCode(opCode: OpCode): OperationBuilder { when (opCode
         val retSize = stack.back(6).int + stack.back(5).int
         val argSize = stack.back(4).int + stack.back(3).int
         if (retSize > argSize) retSize else argSize
-    }.gas(if (vmConfig.eip150) 700 else 40).additionalGas3 { value, addr, gas ->
+    }.gas(if (vmConfig.eip150) 700 else 40).extraGas3 { value, addr, gas ->
         if (vmConfig.eip2929) {
             if (addr.toAddress() in transaction.accessList!!) {
-                return@additionalGas3 transferValueGas(addr.toAddress(), value.big) + callGas(memorySize, gas.int)
+                return@extraGas3 transferValueGas(addr.toAddress(), value.big) + callGas(memorySize, gas.int)
             }
             transaction.accessList!! += addr.toAddress()
-            this.gas -= 2500
+            this.remainGas -= 2500
 
             val nextGas = transferValueGas(addr.toAddress(), value.big) + callGas(memorySize, gas.int)
 
-            this.gas += 2500
+            this.remainGas += 2500
             nextGas + 2500
         } else transferValueGas(addr.toAddress(), value.big) + callGas(memorySize, gas.int)
     }
@@ -345,24 +346,25 @@ fun OperationBuilder.withOpCode(opCode: OpCode): OperationBuilder { when (opCode
         val retSize = stack.back(5).int + stack.back(4).int
         val argSize = stack.back(3).int + stack.back(2).int
         if (retSize > argSize) retSize else argSize
-    }.gas(if (vmConfig.eip150) 700 else 20).additionalGas2 { addr, gas ->
+    }.gas(if (vmConfig.eip150) 700 else 20).extraGas2 { addr, gas ->
         if (vmConfig.eip2929) {
             if (addr.toAddress() in transaction.accessList!!) {
-                return@additionalGas2 callGas(memorySize, gas.int)
+                return@extraGas2 callGas(memorySize, gas.int)
             }
             transaction.accessList!! += addr.toAddress()
-            this.gas -= 2500
+            this.remainGas -= 2500
 
             val nextGas = callGas(memorySize, gas.int)
 
-            this.gas += 2500
+            this.remainGas += 2500
             nextGas + 2500
         } else callGas(memorySize, gas.int)
     }
 
 
     OpCode.CREATE2 -> if (vmConfig.eip1014) execute { TODO("CREATE2") }
-        .apply { if (vmConfig.eip3860) additionalGas { TODO("CREATE2") } }
+        .apply { if (vmConfig.eip3860) extraGas { TODO("CREATE2") } }
+
     OpCode.STATICCALL -> if (vmConfig.eip214) pop6push { retLength, retOffset, argsLength, argsOffset, addr, gas ->
         // We do an AddBalance of zero here, just in order to trigger a touch.
         // This doesn't matter on Mainnet, where all empties are gone at the time of Byzantium,
@@ -381,7 +383,7 @@ fun OperationBuilder.withOpCode(opCode: OpCode): OperationBuilder { when (opCode
         val retSize = stack.back(5).int + stack.back(4).int
         val argSize = stack.back(3).int + stack.back(2).int
         if (retSize > argSize) retSize else argSize
-    }.gas(100).additionalGas1 { gas -> callGas(memorySize, gas.int) }
+    }.gas(100).extraGas1 { gas -> callGas(memorySize, gas.int) }
 
     OpCode.REVERT -> if (vmConfig.eip140) pop2 { length, offset ->
         result = EVMReturn.executionReverted(memory.read(offset.int, length.int))

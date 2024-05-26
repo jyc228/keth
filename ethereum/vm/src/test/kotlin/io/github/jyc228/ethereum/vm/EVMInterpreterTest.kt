@@ -42,7 +42,7 @@ class EVMInterpreterTest : DescribeSpec({
             callData = "a9059cbb000000000000000000000000dc79d2384e22824f72a935794a1a47b508e8d20100000000000000000000000000000000000000000000000000000006fc23ac00".hexToByteArray(),
             caller = Address.fromHexString("0x9872F9cFD51dD9f5CF45a54F96a16eeE238A056a"),
             callValue = BigInteger.ZERO,
-            gas = 47555
+            remainGas = 47555
         ).with(
             db,
             EVMFrame.BlockContext(),

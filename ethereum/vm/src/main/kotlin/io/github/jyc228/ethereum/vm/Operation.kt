@@ -4,7 +4,7 @@ class Operation(
     val opCode: OpCode,
     val minStack: Int,
     val gas: Int,
-    val dynamicGas: (suspend EVMFrame.() -> Int)?,
+    val extraGas: (suspend EVMFrame.() -> Int)?,
     val memorySize: (EVMFrame.() -> Int)?,
     val execute: suspend EVMFrame.() -> Unit
 ) {
@@ -15,32 +15,32 @@ class Operation(
 
 class OperationBuilder(val vmConfig: EVMConfig) {
     private var minStack: Int = 0
-    private var defaultGas: Int = 0
-    private var additionalGas: (suspend EVMFrame.() -> Int)? = null
+    private var gas: Int = 0
+    private var extraGas: (suspend EVMFrame.() -> Int)? = null
     private var memorySize: (EVMFrame.() -> Int)? = null
     private var execute: (suspend EVMFrame.() -> Unit)? = null
+
+    fun memorySize(execute: EVMFrame.() -> Int) = apply { this.memorySize = execute }
 
     fun gas2(): OperationBuilder = gas(2)
     fun gas3(): OperationBuilder = gas(3)
     fun gas5(): OperationBuilder = gas(5)
     fun gas8(): OperationBuilder = gas(8)
-    fun gas(gas: Int): OperationBuilder = apply { this.defaultGas = gas }
+    fun gas(gas: Int): OperationBuilder = apply { this.gas = gas }
 
-    fun execute(execute: suspend EVMFrame.() -> Unit) = apply { this.execute = execute }
-    fun memorySize(execute: EVMFrame.() -> Int) = apply { this.memorySize = execute }
-    fun additionalGas(execute: suspend EVMFrame.() -> Int) = apply { this.additionalGas = execute }
-
-    inline fun additionalGas1(
+    inline fun extraGas1(
         crossinline execute: suspend EVMFrame.(top0: EVMStackElement) -> Int
-    ) = additionalGas { execute(stack.back(0)) }
+    ) = extraGas { execute(stack.back(0)) }
 
-    inline fun additionalGas2(
+    inline fun extraGas2(
         crossinline execute: suspend EVMFrame.(top1: EVMStackElement, top0: EVMStackElement) -> Int
-    ) = additionalGas { execute(stack.back(1), stack.back(0)) }
+    ) = extraGas { execute(stack.back(1), stack.back(0)) }
 
-    inline fun additionalGas3(
+    inline fun extraGas3(
         crossinline execute: suspend EVMFrame.(top2: EVMStackElement, top1: EVMStackElement, top0: EVMStackElement) -> Int
-    ) = additionalGas { execute(stack.back(2), stack.back(1), stack.back(0)) }
+    ) = extraGas { execute(stack.back(2), stack.back(1), stack.back(0)) }
+
+    fun extraGas(execute: suspend EVMFrame.() -> Int) = apply { this.extraGas = execute }
 
     fun pop0(execute: suspend EVMFrame.() -> Unit) = execute(execute)
 
@@ -125,12 +125,14 @@ class OperationBuilder(val vmConfig: EVMConfig) {
         stack.push(result)
     }
 
+    fun execute(execute: suspend EVMFrame.() -> Unit) = apply { this.execute = execute }
+
     fun build(opCode: OpCode): Operation? {
         return Operation(
             opCode = opCode,
             minStack = minStack,
-            gas = defaultGas,
-            dynamicGas = additionalGas,
+            gas = gas,
+            extraGas = extraGas,
             memorySize = memorySize,
             execute = execute ?: return null
         )

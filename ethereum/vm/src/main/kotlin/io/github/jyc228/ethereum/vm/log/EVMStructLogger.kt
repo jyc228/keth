@@ -38,8 +38,8 @@ class EVMStructLogger(
         logs += StructLog(
             pc = frame.pc,
             op = operation?.opCode,
-            gas = frame.gas,
-            gasCost = frame.gas,
+            gas = frame.remainGas,
+            gasCost = frame.remainGas,
             memory = frame.memory.takeIf { enableMemory }?.toHexString(),
             memorySize = frame.memory.size.takeIf { enableMemory },
             stack = frame.stack.map { it.toHexString() },
@@ -52,9 +52,9 @@ class EVMStructLogger(
         val index = logs.lastIndex
         return execute(frame, operation).apply {
             if (nextFrameHash == frame.nextFrame?.hashCode()) {
-                logs[index].gasCost -= frame.gas
+                logs[index].gasCost -= frame.remainGas
             } else {
-                logs[index].gasCost = logs[index].gas - (frame.gas - (frame.nextFrame?.gas ?: 0))
+                logs[index].gasCost = logs[index].gas - (frame.remainGas - (frame.nextFrame?.remainGas ?: 0))
             }
             if (enableStorage && (logs[index].op == OpCode.SLOAD || logs[index].op == OpCode.SSTORE)) {
                 logs[index].storage = storage[frame.contract.address]!!.toMap()

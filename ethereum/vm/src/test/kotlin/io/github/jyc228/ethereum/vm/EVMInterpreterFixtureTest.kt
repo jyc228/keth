@@ -100,7 +100,7 @@ private suspend fun simulateTransaction(txHash: Hash, client: EthereumClient, ex
             callData = tx.input.removePrefix("0x").hexToByteArray(),
             caller = Address.fromHexString(tx.from.hex),
             callValue = tx.value.number,
-            gas = intrinsicGas(tx, true, true, true)
+            remainGas = intrinsicGas(tx, true, true, true)
         ).with(
             database,
             EVMFrame.BlockContext(

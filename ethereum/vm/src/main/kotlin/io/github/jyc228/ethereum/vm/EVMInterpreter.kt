@@ -36,12 +36,12 @@ open class EVMDefaultInterpreter(private val instructionSet: InstructionSet) : E
         }
         frame.operation = operation
         frame.memorySize = operation.memorySize?.invoke(frame) ?: 0
-        frame.gas -= operation.gas
-        frame.gas -= operation.dynamicGas?.invoke(frame) ?: 0
+        frame.remainGas -= operation.gas
+        frame.remainGas -= operation.extraGas?.invoke(frame) ?: 0
         if (frame.memory.size < frame.memorySize) {
             frame.memory = frame.memory.copyOf(frame.memorySize)
         }
-        if (frame.gas < 0) {
+        if (frame.remainGas < 0) {
             return EVMReturn.outOfGas().also { frame.result = it }
         }
         operation.execute(frame)
@@ -69,8 +69,8 @@ class EVMConsoleLogger : EVMInterpreterDelegate {
     ): EVMReturn? {
         index++
         if (operation != null) {
-            val beforeGas = frame.gas
-            var prefix = "$index\t${frame.pc}\t${frame.gas}\t${operation.opCode}"
+            val beforeGas = frame.remainGas
+            var prefix = "$index\t${frame.pc}\t${frame.remainGas}\t${operation.opCode}"
             if (operation.opCode.name.startsWith("SLOAD")) {
                 prefix += "(0x${frame.contract.address.bytes.toHexString()}, ${frame.stack.last()})"
             }

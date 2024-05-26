@@ -25,7 +25,7 @@ private suspend fun simulateTransaction(txHash: Hash, client: EthereumClient) {
         callData = tx.input.removePrefix("0x").hexToByteArray(),
         caller = Address.fromHexString(tx.from.hex),
         callValue = tx.value.number,
-        gas = tx.gas.number.toInt()
+        remainGas = tx.gas.number.toInt()
     ).with(
         database,
         EVMFrame.BlockContext(
