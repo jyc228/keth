@@ -1,6 +1,7 @@
 package io.github.jyc228.ethereum.vm
 
 class EVMConfig(
+    val eip2: Boolean = true,
     val eip7: Boolean = true,
     val eip150: Boolean = true,
     val eip158: Boolean = true,
@@ -18,6 +19,7 @@ class EVMConfig(
     val eip2929: Boolean = true,
     val eip3198: Boolean = true,
     val eip3529: Boolean = true,
+    val eip3541: Boolean = true,
     val eip3855: Boolean = true,
     val eip3860: Boolean = true,
     val eip4399: Boolean = true,

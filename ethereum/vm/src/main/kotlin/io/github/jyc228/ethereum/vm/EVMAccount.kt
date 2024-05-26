@@ -3,7 +3,6 @@ package io.github.jyc228.ethereum.vm
 import io.github.jyc228.ethereum.state.account.Address
 import io.github.jyc228.ethereum.state.account.CodeHash
 import io.github.jyc228.ethereum.state.account.ManagedStateAccount
-import java.math.BigInteger
 
 interface EVMAccount {
     val address: Address
@@ -16,6 +15,7 @@ class EVMContract(
     val code: ByteArray,
     val codeHash: CodeHash
 ) : EVMAccount {
+    constructor(address: Address, code: ByteArray) : this(address, code, CodeHash.keccak256FromBytes(code))
 
 //    val caller: AccountReference,
 //    val self: AccountReference,
@@ -28,10 +28,6 @@ class EVMContract(
 //    val value: BigInteger
 
     companion object {
-        fun new(address: Address, caller: EVMAccount, value: BigInteger, gas: ULong): EVMContract {
-            error("")
-        }
-
         suspend fun of(account: ManagedStateAccount) = EVMContract(
             address = account.address,
             code = requireNotNull(account.getCode()),

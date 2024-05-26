@@ -38,12 +38,16 @@ class Address(val bytes: ByteArray) {
 //            return fromByteArray(key.bytes().drop(1).toByteArray().toKeccak256().drop(12).toByteArray())
 //        }
 
-        fun fromPrivateKey() {
-
+        fun new(address: Address, nonce: ULong): Address {
+            val data = RLPEncoder.encodeArray { addBytes(address.bytes).addULong(nonce) }
+            return Address(data.keccak256().copyOfRange(12, 32))
         }
 
-        fun new(from: Address, nonce: ULong): Address {
-            val data = RLPEncoder.encodeArray { addBytes(from.bytes).addULong(nonce) }
+        fun new(address: Address, salt: ByteArray, initHash: ByteArray): Address {
+            val data = ByteBuffer
+                .allocate(1 + address.bytes.size + salt.size + initHash.size)
+                .put(0xFF.toByte()).put(address.bytes).put(salt).put(initHash)
+                .array()
             return Address(data.keccak256().copyOfRange(12, 32))
         }
     }

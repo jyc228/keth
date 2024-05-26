@@ -105,6 +105,13 @@ class OperationBuilder(val vmConfig: EVMConfig) {
         stack.push(result)
     }
 
+    inline fun pop4push(
+        crossinline execute: suspend EVMFrame.(E, E, E, E) -> EVMStackElement
+    ) = execute {
+        val result = execute(stack.pop(), stack.pop(), stack.pop(), stack.pop())
+        stack.push(result)
+    }
+
     inline fun pop6push(
         crossinline execute: suspend EVMFrame.(E, E, E, E, E, E) -> E
     ) = execute {

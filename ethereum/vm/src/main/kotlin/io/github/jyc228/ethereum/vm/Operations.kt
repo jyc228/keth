@@ -255,9 +255,6 @@ fun OperationBuilder.withOpCode(opCode: OpCode): OperationBuilder { when (opCode
         gas + size.int * 8
     }
 
-    OpCode.CREATE -> pop3 { top2, top1, top0 -> TODO("CREATE") }
-        .apply { if (vmConfig.eip3860) extraGas { TODO("CREATE") } }
-
     OpCode.CALL -> pop7push { gas, addr, value, argsOffset, argsLength, retOffset, retLength ->
         if ((db.findAccount(contract.address)?.balance ?: BigInteger.ZERO) < value.big) {
             result = EVMReturn.insufficientBalance()
@@ -328,9 +325,30 @@ fun OperationBuilder.withOpCode(opCode: OpCode): OperationBuilder { when (opCode
         } else callGas(memorySize, gas.int)
     }
 
+    OpCode.CREATE -> pop3push { value, offset, size ->
+        val newContract = db.withAccountOrThrow(contract.address) {
+            EVMContract(Address.new(it.address, it.nonce), memory.read(offset.int, size.int))
+        }
+        deployContract(contract.address, newContract, value.big)
+    }.gas(32000).extraGas3 { _, _, size ->
+        if (vmConfig.eip3860 && maxInitCodeSize < size.int) 0.also { result = EVMReturn.initMaxCodeSizeExceeded() }
+        else memoryGasCost(memorySize) + when (vmConfig.eip3860) {
+            true -> size.int.wordSize * 2
+            false -> 0
+        }
+    }.memorySize3 { _, offset, size -> offset.int + size.int }
 
-    OpCode.CREATE2 -> if (vmConfig.eip1014) execute { TODO("CREATE2") }
-        .apply { if (vmConfig.eip3860) extraGas { TODO("CREATE2") } }
+    OpCode.CREATE2 -> if (vmConfig.eip1014) pop4push { value, offset, size, salt ->
+        val code = memory.read(offset.int, size.int)
+        val newContract = EVMContract(Address.new(contract.address, salt.bytes, code.keccak256()), code)
+        deployContract(contract.address, newContract, value.big)
+    }.gas(32000).extraGas3 { _, _, size ->
+        if (vmConfig.eip3860 && maxInitCodeSize < size.int) 0.also { result = EVMReturn.initMaxCodeSizeExceeded() }
+        else memoryGasCost(memorySize) + when (vmConfig.eip3860) {
+            true -> size.int.wordSize * (2 + keccak256Gas)
+            false -> size.int.wordSize * keccak256Gas
+        }
+    }.memorySize3 { _, offset, size -> offset.int + size.int }
 
     OpCode.STATICCALL -> if (vmConfig.eip214) pop6push { gas, addr, argsOffset, argsLength, retOffset, retLength ->
         // We do an AddBalance of zero here, just in order to trigger a touch.
@@ -360,8 +378,61 @@ fun OperationBuilder.withOpCode(opCode: OpCode): OperationBuilder { when (opCode
 }; return this }
 // @formatter:on
 
+private suspend fun EVMFrame.deployContract(
+    caller: Address,
+    newContract: EVMContract,
+    value: BigInteger
+): EVMStackElement {
+    result = db.withAccount(caller) {
+        if (it.balance < BigInteger.ZERO) EVMReturn.insufficientBalance()
+        else if (it.nonce == ULong.MAX_VALUE) EVMReturn.nonceOverflow()
+        else null
+    } ?: db.withAccount(newContract.address) {
+        if (it.nonce > 0u || it.codeHash != null) EVMReturn.contractAddressCollision()
+        else null
+    }
+    if (result != null) return EVMStackElement.ZERO
+
+    db.withAccountOrThrow(caller) { it.balance -= value }
+    db.createAccount(newContract.address) {
+        it.balance += value
+        if (vmConfig.eip158) it.nonce = 1u
+    }
+
+    val deploymentResult = nextFrame {
+        val gas = if (vmConfig.eip150) remainGas - (remainGas / 64) else remainGas
+        EVMFrame(caller, value, byteArrayOf(), newContract, gas)
+    }
+
+    result = when {
+        deploymentResult.err != null -> deploymentResult
+        deploymentResult.data!!.size > maxCodeSize -> EVMReturn.maxCodeSizeExceeded()
+        deploymentResult.data.getOrNull(0) == 0xEF.toByte() && vmConfig.eip3541 -> EVMReturn.invalidCode()
+        else -> null
+    }
+    if (result != null) {
+        // todo execution reverted
+        // todo rollback state
+        return EVMStackElement.ZERO
+    }
+
+    this.remainGas -= deploymentResult.data!!.size * 200
+    if (this.remainGas >= 0) {
+        db.applyAccount(newContract.address) { it.setCode(deploymentResult.data) }
+        return newContract.address.toElement()
+    }
+    result = EVMReturn.codeStoreOutOfGas()
+    if (vmConfig.eip2) {
+        // todo execution reverted
+        // todo rollback state
+    }
+    return EVMStackElement.ZERO
+}
+
 private const val memoryCopyGas = 3
 private const val keccak256Gas = 6
+private const val maxCodeSize = 24576
+private const val maxInitCodeSize = maxCodeSize * 2
 
 private data class SStoreGas(
     val reentrancy: Int? = null,
