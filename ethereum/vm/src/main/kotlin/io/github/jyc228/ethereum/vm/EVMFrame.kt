@@ -47,7 +47,7 @@ class EVMFrame(
     }
 
     fun memoryGasCost(newMemorySize: Int): Int {
-        val newMemSizeWords = newMemorySize.wordSize.toInt()
+        val newMemSizeWords = newMemorySize.wordSize
         if (newMemSizeWords * 32 > memory.size) {
             val square = newMemSizeWords * newMemSizeWords
             val linCoef = newMemSizeWords * 3
@@ -58,12 +58,6 @@ class EVMFrame(
             return fee.toInt()
         }
         return 0
-    }
-
-    fun memoryCopyGas(stackPos: Int, newMemorySize: Int): Int {
-        val gas = memoryGasCost(newMemorySize)
-        val length = stack.back(stackPos).int
-        return gas + (length.wordSize.toInt() * 3)
     }
 
     suspend fun transferValueGas(address: Address, value: BigInteger): Int {
@@ -96,12 +90,7 @@ class EVMFrame(
         return 2100
     }
 
-    val Number.wordSize: ULong
-        get() {
-            val self = this.toLong().toULong()
-            if (self > MAX_UINT64 - 31uL) return MAX_UINT64 / 32uL + 1uL
-            return (self + 31uL) / 32uL
-        }
+    val Int.wordSize: Int get() = (this + 31) / 32
 
     fun createLog(topics: List<ByteArray>, data: ByteArray) = Log(contract.address, topics, data, block.number)
 
@@ -131,8 +120,4 @@ class EVMFrame(
         val data: ByteArray,
         val blockNumber: ULong
     )
-
-    companion object {
-        val MAX_UINT64 = 18446744073709551615uL
-    }
 }
