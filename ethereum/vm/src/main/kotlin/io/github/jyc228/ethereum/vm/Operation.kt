@@ -20,6 +20,45 @@ class OperationBuilder(val vmConfig: EVMConfig) {
     private var memorySize: (EVMFrame.() -> Int)? = null
     private var execute: (suspend EVMFrame.() -> Unit)? = null
 
+    inline fun memorySize1(
+        crossinline execute: EVMFrame.(top0: EVMStackElement) -> Int
+    ) = memorySize { execute(stack.back(0)) }
+
+    inline fun memorySize2(
+        crossinline execute: EVMFrame.(top1: EVMStackElement, top0: EVMStackElement) -> Int
+    ) = memorySize { execute(stack.back(1), stack.back(0)) }
+
+    inline fun memorySize3(
+        crossinline execute: EVMFrame.(top2: EVMStackElement, top1: EVMStackElement, top0: EVMStackElement) -> Int
+    ) = memorySize { execute(stack.back(2), stack.back(1), stack.back(0)) }
+
+    inline fun memorySize6(
+        crossinline execute: EVMFrame.(top5: EVMStackElement, top4: EVMStackElement, top3: EVMStackElement, top2: EVMStackElement, top1: EVMStackElement, top0: EVMStackElement) -> Int
+    ) = memorySize {
+        execute(
+            stack.back(5),
+            stack.back(4),
+            stack.back(3),
+            stack.back(2),
+            stack.back(1),
+            stack.back(0)
+        )
+    }
+
+    inline fun memorySize7(
+        crossinline execute: EVMFrame.(top6: EVMStackElement, top5: EVMStackElement, top4: EVMStackElement, top3: EVMStackElement, top2: EVMStackElement, top1: EVMStackElement, top0: EVMStackElement) -> Int
+    ) = memorySize {
+        execute(
+            stack.back(6),
+            stack.back(5),
+            stack.back(4),
+            stack.back(3),
+            stack.back(2),
+            stack.back(1),
+            stack.back(0)
+        )
+    }
+
     fun memorySize(execute: EVMFrame.() -> Int) = apply { this.memorySize = execute }
 
     fun gas2(): OperationBuilder = gas(2)

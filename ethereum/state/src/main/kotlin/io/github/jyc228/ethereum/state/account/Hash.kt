@@ -40,4 +40,4 @@ abstract class HashFactory<T>(
     fun keccak256FromBytes(bytes: ByteArray) = new(bytes.keccak256())
 }
 
-fun ByteArray.keccak256() = Keccak.Digest256().digest(this)
+fun ByteArray.keccak256(): ByteArray = Keccak.Digest256().digest(this)
