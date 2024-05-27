@@ -2,6 +2,7 @@ package io.github.jyc228.ethereum.vm
 
 interface EVMInterpreter {
     suspend fun execute(frame: EVMFrame): EVMReturn
+    suspend fun execute(frame: EVMFrame, opCode: OpCode): EVMReturn?
 
     companion object {
         fun of(set: InstructionSet, delegate: EVMInterpreterDelegate? = null): EVMInterpreter {
@@ -29,6 +30,8 @@ open class EVMDefaultInterpreter(private val instructionSet: InstructionSet) : E
         frame.interpreter = this
         while (true) return execute(frame, instructionSet[frame.contract.code[frame.pc]]) ?: continue
     }
+
+    override suspend fun execute(frame: EVMFrame, opCode: OpCode) = execute(frame, instructionSet[opCode.v])
 
     open suspend fun execute(frame: EVMFrame, operation: Operation?): EVMReturn? {
         if (operation == null) {
