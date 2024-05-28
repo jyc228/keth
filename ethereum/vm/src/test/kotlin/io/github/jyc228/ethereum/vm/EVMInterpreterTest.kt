@@ -4,6 +4,8 @@ import ethereum.core.database.TreeDatabase
 import ethereum.core.repository.ContractCodeRepository
 import io.github.jyc228.ethereum.state.OnchainStateDatabase
 import io.github.jyc228.ethereum.state.account.Address
+import io.github.jyc228.ethereum.vm.interpreter.EVMConsoleLogger
+import io.github.jyc228.ethereum.vm.interpreter.EVMInterpreter
 import io.kotest.core.spec.style.DescribeSpec
 import io.kotest.matchers.shouldBe
 import java.math.BigInteger
@@ -48,7 +50,7 @@ class EVMInterpreterTest : DescribeSpec({
             EVMFrame.BlockContext(),
             EVMFrame.TransactionContext(Address.fromBytes(), Address.fromBytes(), accessList = AccessList())
         )
-        EVMInterpreter.of(InstructionSet.all(), EVMConsoleLogger()).execute(context)
+        EVMInterpreter.of(InstructionSet.fromConfig(EVMConfig()), EVMConsoleLogger()).execute(context)
 
         db.withAccountOrThrow(Address.fromHexString("0xdAC17F958D2ee523a2206206994597C13D831ec7")) {
             it.storage.get("89cdf1400af6f92f542466cd5dc347aa2eefc2e5d558654ff7207159972c436f".hexToByteArray())

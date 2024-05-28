@@ -22,7 +22,7 @@ class OperationTest : DescribeSpec({
             .also { addTc?.invoke(it) }
             .onEachIndexed { index, testCase -> testCase.index = index }
 
-        val instructionSet = InstructionSet.all()
+        val instructionSet = InstructionSet.fromConfig(EVMConfig())
         val operation = instructionSet[opcode.v] ?: fail("operation not exist. $opcode")
         withData(nameFn = { "${it.index} $it" }, testCases) { tc ->
             val context = EVMFrame(

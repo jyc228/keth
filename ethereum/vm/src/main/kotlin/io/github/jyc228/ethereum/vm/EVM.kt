@@ -4,14 +4,18 @@ import io.github.jyc228.ethereum.BlockHeader
 import io.github.jyc228.ethereum.Transaction
 import io.github.jyc228.ethereum.state.StateDatabase
 import io.github.jyc228.ethereum.state.account.Address
+import io.github.jyc228.ethereum.vm.interpreter.EVMInterpreter
+import io.github.jyc228.ethereum.vm.interpreter.EVMInterpreterDelegate
 import java.math.BigInteger
 
 class EVM(
     private val findHeader: suspend (Transaction) -> BlockHeader,
     private val createDatabase: suspend (BlockHeader) -> StateDatabase,
-    private val interpreter: EVMInterpreter,
-    private val config: EVMConfig = EVMConfig()
+    private val config: EVMConfig = EVMConfig(),
+    delegate: EVMInterpreterDelegate? = null
 ) {
+    private val interpreter = EVMInterpreter.of(InstructionSet.fromConfig(config), delegate)
+
     @OptIn(ExperimentalStdlibApi::class)
     suspend fun execute(transaction: Transaction) {
         val header = findHeader(transaction)

@@ -1,4 +1,4 @@
-package io.github.jyc228.ethereum.vm.log
+package io.github.jyc228.ethereum.vm.interpreter
 
 import io.github.jyc228.ethereum.state.AbstractStateDatabase
 import io.github.jyc228.ethereum.state.StateDatabase
@@ -6,7 +6,6 @@ import io.github.jyc228.ethereum.state.account.Address
 import io.github.jyc228.ethereum.state.account.ManagedStateAccount
 import io.github.jyc228.ethereum.state.account.StateRoot
 import io.github.jyc228.ethereum.vm.EVMFrame
-import io.github.jyc228.ethereum.vm.EVMInterpreterDelegate
 import io.github.jyc228.ethereum.vm.EVMReturn
 import io.github.jyc228.ethereum.vm.OpCode
 import io.github.jyc228.ethereum.vm.Operation

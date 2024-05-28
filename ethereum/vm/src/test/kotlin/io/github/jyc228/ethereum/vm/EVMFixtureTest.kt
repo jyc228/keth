@@ -4,8 +4,8 @@ import io.github.jyc228.ethereum.Hash
 import io.github.jyc228.ethereum.rpc.EthereumClient
 import io.github.jyc228.ethereum.rpc.fromRpcUrl
 import io.github.jyc228.ethereum.state.OffchainStateDatabase
-import io.github.jyc228.ethereum.vm.log.EVMStructLogger
-import io.github.jyc228.ethereum.vm.log.StructLog
+import io.github.jyc228.ethereum.vm.interpreter.EVMStructLogger
+import io.github.jyc228.ethereum.vm.interpreter.StructLog
 import io.github.jyc228.jsonrpc.JsonRpcRequest
 import io.github.jyc228.jsonrpc.KtorJsonRpcClient
 import io.kotest.core.spec.style.DescribeSpec
@@ -17,7 +17,7 @@ import kotlinx.serialization.json.decodeFromJsonElement
 import kotlinx.serialization.json.encodeToJsonElement
 import kotlinx.serialization.json.jsonObject
 
-class EVMInterpreterFixtureTest : DescribeSpec({
+class EVMFixtureTest : DescribeSpec({
     val client = EthereumClient.fromRpcUrl("http://apne2c-mainnet-debug01.kroma.network:8545")
 
     xit("0x58eb9c19eb03a3c3db71eaa5887f3513a87bb29f9d39c89f459bf55356cd4434") {
@@ -34,7 +34,7 @@ class EVMInterpreterFixtureTest : DescribeSpec({
 })
 
 private suspend fun readExpected(txHash: String): List<StructLog> {
-    val root = File(requireNotNull(EVMInterpreterFixtureTest::class.java.getResource("/")).toURI())
+    val root = File(requireNotNull(EVMFixtureTest::class.java.getResource("/")).toURI())
     val fixtureDir = File(root, "fixture")
     if (!fixtureDir.exists()) {
         fixtureDir.mkdirs()
@@ -60,7 +60,7 @@ private suspend fun simulateTransaction(txHash: Hash, client: EthereumClient, ex
     val evm = EVM(
         { client.eth.getHeaderByNumber(it.blockNumber.number - 1u).awaitOrThrow() },
         { OffchainStateDatabase(it.hash, client) },
-        EVMInterpreter.of(InstructionSet.all(), logger)
+        delegate = logger
     )
     evm.execute(client.eth.getTransactionByHash(txHash).awaitOrThrow()!!)
     logger.logs.asSequence().withIndex()
