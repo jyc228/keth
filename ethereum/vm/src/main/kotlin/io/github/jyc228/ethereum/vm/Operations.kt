@@ -19,7 +19,7 @@ fun OperationBuilder.withOpCode(opCode: OpCode): OperationBuilder { when (opCode
     OpCode.SMOD -> pop2push { a, b -> a.signed() % b.signed() }.gas5()
     OpCode.ADDMOD -> pop3push { a, b, n -> (a + b) % n }.gas8()
     OpCode.MULMOD -> pop3push { a, b, n -> (a * b) % n }.gas8()
-    OpCode.EXP -> pop2push { base, exp -> base pow exp }.extraGas2 { _, exp -> ((exp.big.bitLength() + 7) / 8 * if (vmConfig.eip158) 50 else 10) + 10 }
+    OpCode.EXP -> pop2push { base, exp -> base pow exp }.extraGas2 { _, exp -> ((exp.big.bitLength() + 7) / 8 * if (vmConfig.eip160) 50 else 10) + 10 }
 
     OpCode.SIGNEXTEND -> pop2push { b, x ->
         if (b.big >= 32.toBigInteger() || b.big < 0.toBigInteger()) return@pop2push x
