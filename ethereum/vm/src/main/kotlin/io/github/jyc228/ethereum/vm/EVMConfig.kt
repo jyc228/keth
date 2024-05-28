@@ -1,5 +1,8 @@
 package io.github.jyc228.ethereum.vm
 
+import io.github.jyc228.keth.fork.HardFork
+import kotlin.reflect.full.primaryConstructor
+
 class EVMConfig(
     val eip2: Boolean = true,
     val eip7: Boolean = true,
@@ -25,4 +28,11 @@ class EVMConfig(
     val eip3855: Boolean = true,
     val eip3860: Boolean = true,
     val eip4399: Boolean = true,
-)
+) {
+    companion object {
+        fun fromHardFork(fork: HardFork): EVMConfig {
+            val const = requireNotNull(EVMConfig::class.primaryConstructor)
+            return const.callBy(const.parameters.associateWith { it.name in fork.eips })
+        }
+    }
+}

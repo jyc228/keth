@@ -8,6 +8,7 @@ import io.github.jyc228.ethereum.vm.interpreter.EVMStructLogger
 import io.github.jyc228.ethereum.vm.interpreter.StructLog
 import io.github.jyc228.jsonrpc.JsonRpcRequest
 import io.github.jyc228.jsonrpc.KtorJsonRpcClient
+import io.github.jyc228.keth.fork.HardForkManager
 import io.kotest.core.spec.style.DescribeSpec
 import io.kotest.matchers.resource.resourceAsString
 import java.io.File
@@ -60,9 +61,9 @@ private suspend fun simulateTransaction(txHash: Hash, client: EthereumClient, ex
     val evm = EVM(
         { client.eth.getHeaderByNumber(it.blockNumber.number - 1u).awaitOrThrow() },
         { OffchainStateDatabase(it.hash, client) },
-        delegate = logger
+        HardForkManager.fromNetworkName("mainnet")
     )
-    evm.execute(client.eth.getTransactionByHash(txHash).awaitOrThrow()!!)
+    evm.execute(client.eth.getTransactionByHash(txHash).awaitOrThrow()!!, logger)
     logger.logs.asSequence().withIndex()
         .filter { (index, log) -> expected[index].copy(gas = 0) != log.copy(gas = 0) }
         .take(30)

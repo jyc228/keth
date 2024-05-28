@@ -6,40 +6,41 @@ import io.github.jyc228.ethereum.state.StateDatabase
 import io.github.jyc228.ethereum.state.account.Address
 import io.github.jyc228.ethereum.vm.interpreter.EVMInterpreter
 import io.github.jyc228.ethereum.vm.interpreter.EVMInterpreterDelegate
+import io.github.jyc228.keth.fork.HardForkManager
 import java.math.BigInteger
 
 class EVM(
     private val findHeader: suspend (Transaction) -> BlockHeader,
     private val createDatabase: suspend (BlockHeader) -> StateDatabase,
-    private val config: EVMConfig = EVMConfig(),
-    delegate: EVMInterpreterDelegate? = null
+    private val hardForkManager: HardForkManager,
 ) {
-    private val interpreter = EVMInterpreter.of(InstructionSet.fromConfig(config), delegate)
-
     @OptIn(ExperimentalStdlibApi::class)
-    suspend fun execute(transaction: Transaction) {
+    suspend fun execute(transaction: Transaction, delegate: EVMInterpreterDelegate? = null) {
         val header = findHeader(transaction)
-        val database = createDatabase(header)
+        val db = createDatabase(header)
+
+        val config = EVMConfig.fromHardFork(hardForkManager.findFork(header.number.number))
+        val interpreter = EVMInterpreter.of(InstructionSet.fromConfig(config), delegate)
 
         when (val to = transaction.to) {
             null -> EVMFrame(
-                contract = database.withAccountOrThrow(Address.fromHexString(transaction.from.hex)) {
+                contract = db.withAccountOrThrow(Address.fromHexString(transaction.from.hex)) {
                     val newContractAddress = Address.new(it.address, it.nonce)
                     EVMContract(newContractAddress, transaction.input.removePrefix("0x").hexToByteArray())
                 },
                 callData = byteArrayOf(),
                 caller = Address.fromHexString(transaction.from.hex),
                 callValue = transaction.value.number,
-                remainGas = intrinsicGas(transaction)
-            ).with(database, context(header), context(transaction)).let { interpreter.execute(it, OpCode.CREATE) }
+                remainGas = intrinsicGas(transaction, config)
+            ).with(db, context(header), context(transaction, config)).let { interpreter.execute(it, OpCode.CREATE) }
 
             else -> EVMFrame(
-                contract = database.withAccountOrThrow(Address.fromHexString(to.hex), EVMContract::of),
+                contract = db.withAccountOrThrow(Address.fromHexString(to.hex), EVMContract::of),
                 callData = transaction.input.removePrefix("0x").hexToByteArray(),
                 caller = Address.fromHexString(transaction.from.hex),
                 callValue = transaction.value.number,
-                remainGas = intrinsicGas(transaction)
-            ).with(database, context(header), context(transaction)).let { interpreter.execute(it) }
+                remainGas = intrinsicGas(transaction, config)
+            ).with(db, context(header), context(transaction, config)).let { interpreter.execute(it) }
         }
     }
 
@@ -54,7 +55,7 @@ class EVM(
     )
 
     @OptIn(ExperimentalStdlibApi::class)
-    private fun context(transaction: Transaction) = EVMFrame.TransactionContext(
+    private fun context(transaction: Transaction, config: EVMConfig) = EVMFrame.TransactionContext(
         Address.fromHexString(transaction.from.hex),
         Address.fromHexString(requireNotNull(transaction.to).hex),
         requireNotNull(transaction.gasPrice?.number),
@@ -75,7 +76,7 @@ class EVM(
     )
 
     @OptIn(ExperimentalStdlibApi::class)
-    private fun intrinsicGas(tx: Transaction): Int {
+    private fun intrinsicGas(tx: Transaction, config: EVMConfig): Int {
         var gas = if (tx.to == null && config.eip2) 53000 else 21000
         val calldata = tx.input.removePrefix("0x").hexToByteArray()
         if (calldata.isNotEmpty()) {
