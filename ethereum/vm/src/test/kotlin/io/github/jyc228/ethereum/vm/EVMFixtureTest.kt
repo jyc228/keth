@@ -61,7 +61,7 @@ private suspend fun simulateTransaction(txHash: Hash, client: EthereumClient, ex
     val evm = EVM(
         { client.eth.getHeaderByNumber(it.blockNumber.number - 1u).awaitOrThrow() },
         { OffchainStateDatabase(it.hash, client) },
-        HardForkManager.fromNetworkName("mainnet")
+        HardForkManager.fromNetworkName("kroma-mainnet")
     )
     evm.execute(client.eth.getTransactionByHash(txHash).awaitOrThrow()!!, logger)
     logger.logs.asSequence().withIndex()

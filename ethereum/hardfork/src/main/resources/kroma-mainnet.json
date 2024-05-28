@@ -1,0 +1,52 @@
+[
+  {
+    "name": "Kroma",
+    "activate": {
+      "blockNumber": 0
+    },
+    "eips": [
+      "eip2",
+      "eip7",
+      "eip8",
+      "eip100",
+      "eip140",
+      "eip145",
+      "eip150",
+      "eip152",
+      "eip155",
+      "eip158",
+      "eip160",
+      "eip161",
+      "eip170",
+      "eip196",
+      "eip197",
+      "eip198",
+      "eip211",
+      "eip214",
+      "eip649",
+      "eip658",
+      "eip1014",
+      "eip1052",
+      "eip1108",
+      "eip1234",
+      "eip1344",
+      "eip1559",
+      "eip1884",
+      "eip2028",
+      "eip2200",
+      "eip2384",
+      "eip2565",
+      "eip2718",
+      "eip2929",
+      "eip2930",
+      "eip3198",
+      "eip3529",
+      "eip3541",
+      "eip3554",
+      "eip3675",
+      "eip4345",
+      "eip4399",
+      "eip5133"
+    ]
+  }
+]
