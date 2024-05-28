@@ -101,7 +101,13 @@ fun OperationBuilder.withOpCode(opCode: OpCode): OperationBuilder { when (opCode
 
     OpCode.EXTCODESIZE -> {
         pop1push { addr -> db.withAccountOrNull(addr.toAddress()) { it?.getCode()?.size ?: 0 }.toElement() }
-        gas(if (vmConfig.eip150) 700 else 20)
+        gas(
+            when {
+                vmConfig.eip2929 -> 100
+                vmConfig.eip150 -> 700
+                else -> 20
+            }
+        )
         if (vmConfig.eip2929) extraGas1 { addr -> computeAccessAccountGas(addr.toAddress()) }
     }
 
@@ -279,7 +285,13 @@ fun OperationBuilder.withOpCode(opCode: OpCode): OperationBuilder { when (opCode
         if (result.err == null) EVMStackElement.ONE else EVMStackElement.ZERO
     }.memorySize7 { _, _, _, argsOffset, argsLength, retOffset, retLength ->
         max(retLength.int + retOffset.int, argsLength.int + argsOffset.int)
-    }.gas(if (vmConfig.eip150) 700 else 40).extraGas3 { gas, addr, value ->
+    }.gas(
+        when {
+            vmConfig.eip2929 -> 100
+            vmConfig.eip150 -> 700
+            else -> 40
+        }
+    ).extraGas3 { gas, addr, value ->
         if (vmConfig.eip2929) {
             if (addr.toAddress() in transaction.accessList!!) {
                 return@extraGas3 transferValueGas(addr.toAddress(), value.big) + callGas(memorySize, gas.int)
@@ -310,7 +322,13 @@ fun OperationBuilder.withOpCode(opCode: OpCode): OperationBuilder { when (opCode
         if (result.err == null) EVMStackElement.ONE else EVMStackElement.ZERO
     }.memorySize6 { _, _, argsOffset, argsLength, retOffset, retLength ->
         max(retLength.int + retOffset.int, argsLength.int + argsOffset.int)
-    }.gas(if (vmConfig.eip150) 700 else 20).extraGas2 { gas, addr ->
+    }.gas(
+        when {
+            vmConfig.eip2929 -> 100
+            vmConfig.eip150 -> 700
+            else -> 20
+        }
+    ).extraGas2 { gas, addr ->
         if (vmConfig.eip2929) {
             if (addr.toAddress() in transaction.accessList!!) {
                 return@extraGas2 callGas(memorySize, gas.int)
@@ -366,7 +384,25 @@ fun OperationBuilder.withOpCode(opCode: OpCode): OperationBuilder { when (opCode
         if (result.err == null) EVMStackElement.ONE else EVMStackElement.ZERO
     }.memorySize6 { _, _, argsOffset, argsLength, retOffset, retLength ->
         max(retLength.int + retOffset.int, argsLength.int + argsOffset.int)
-    }.gas(100).extraGas1 { gas -> callGas(memorySize, gas.int) }
+    }.gas(
+        when {
+            vmConfig.eip2929 -> 100
+            else -> 700
+        }
+    ).extraGas2 { gas, addr ->
+        if (vmConfig.eip2929) {
+            if (addr.toAddress() in transaction.accessList!!) {
+                return@extraGas2 callGas(memorySize, gas.int)
+            }
+            transaction.accessList!! += addr.toAddress()
+            this.remainGas -= 2500
+
+            val nextGas = callGas(memorySize, gas.int)
+
+            this.remainGas += 2500
+            nextGas + 2500
+        } else callGas(memorySize, gas.int)
+    }
 
     OpCode.REVERT -> if (vmConfig.eip140) pop2 { offset, length ->
         result = EVMReturn.executionReverted(memory.read(offset.int, length.int))
