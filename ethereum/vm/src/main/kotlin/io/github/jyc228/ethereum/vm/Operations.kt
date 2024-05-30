@@ -119,7 +119,8 @@ fun OperationBuilder.withOpCode(opCode: OpCode): OperationBuilder { when (opCode
     OpCode.RETURNDATACOPY -> if (vmConfig.eip211) pop3 { memOffset, offset, length ->
         val returnValue = nextFrame?.result?.data?.read(offset.int, length.int)
         memory.write(memOffset.int, returnValue ?: ByteArray(length.int))
-    }.gas3().extraGas3 { _, _, length -> memoryGasCost(memorySize) + (length.int.wordSize * memoryCopyGas) }
+    }.memorySize3 { memOffset, _, length -> length.int + memOffset.int }
+        .gas3().extraGas3 { _, _, length -> memoryGasCost(memorySize) + (length.int.wordSize * memoryCopyGas) }
 
     OpCode.EXTCODEHASH -> if (vmConfig.eip1052) pop1push { address ->
         db.findAccount(address.toAddress())?.codeHash?.bytes?.toElement() ?: EVMStackElement.ZERO
