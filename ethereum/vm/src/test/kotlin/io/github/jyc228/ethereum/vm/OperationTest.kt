@@ -25,17 +25,17 @@ class OperationTest : DescribeSpec({
         val instructionSet = InstructionSet.fromConfig(EVMConfig())
         val operation = instructionSet[opcode.v] ?: fail("operation not exist. $opcode")
         withData(nameFn = { "${it.index} $it" }, testCases) { tc ->
-            val context = EVMFrame(
+            val frame = EVMFrame(
                 contract = EVMContract(Address.fromBytes(), byteArrayOf(), CodeHash(byteArrayOf())),
                 callData = byteArrayOf(),
                 caller = Address.fromBytes(),
                 callValue = BigInteger.ZERO,
                 remainGas = 10000000
             )
-            context.stack.push(EVMStackElement(_bytes = tc.X.hexToByteArray()))
-            context.stack.push(EVMStackElement(_bytes = tc.Y.hexToByteArray()))
-            operation.execute(context)
-            val result = context.stack.last().bytes.toHexString().trimStart('0')
+            frame.stack.push(EVMStackElement(_bytes = tc.X.hexToByteArray()))
+            frame.stack.push(EVMStackElement(_bytes = tc.Y.hexToByteArray()))
+            operation.execute(frame, frame.stack)
+            val result = frame.stack.last().bytes.toHexString().trimStart('0')
             result shouldBeEqualIgnoringCase tc.Expected.trimStart('0')
         }
     }

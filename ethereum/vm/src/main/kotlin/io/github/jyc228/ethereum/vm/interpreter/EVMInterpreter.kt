@@ -28,7 +28,7 @@ open class EVMInterpreter(private val instructionSet: InstructionSet) {
         if (frame.remainGas < 0) {
             return EVMReturn.outOfGas().also { frame.result = it }
         }
-        operation.execute(frame)
+        operation.execute(frame, frame.stack)
         frame.pc++
         return frame.result
     }

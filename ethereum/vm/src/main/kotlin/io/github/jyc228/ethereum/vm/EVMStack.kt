@@ -7,13 +7,20 @@ class EVMStack(elements: MutableList<EVMStackElement> = mutableListOf()) : Mutab
     fun pop() = this@EVMStack.removeLast()
     fun back(index: Int) = this@EVMStack[this@EVMStack.lastIndex - index]
 
-    inline operator fun component1() = back(0)
-    inline operator fun component2() = back(1)
-    inline operator fun component3() = back(2)
-    inline operator fun component4() = back(3)
-    inline operator fun component5() = back(4)
-    inline operator fun component6() = back(5)
-    inline operator fun component7() = back(6)
+    var destructuringPopIndex = -1
+
+    inline operator fun component1() = if (destructuringPopIndex >= 0) destructuringPop(1) else back(0)
+    inline operator fun component2() = if (destructuringPopIndex >= 0) destructuringPop(2) else back(1)
+    inline operator fun component3() = if (destructuringPopIndex >= 0) destructuringPop(3) else back(2)
+    inline operator fun component4() = if (destructuringPopIndex >= 0) destructuringPop(4) else back(3)
+    inline operator fun component5() = if (destructuringPopIndex >= 0) destructuringPop(5) else back(4)
+    inline operator fun component6() = if (destructuringPopIndex >= 0) destructuringPop(6) else back(5)
+    inline operator fun component7() = if (destructuringPopIndex >= 0) destructuringPop(7) else back(6)
+
+    inline fun destructuringPop(componentN: Int): EVMStackElement {
+        while (++destructuringPopIndex != componentN) pop()
+        return pop()
+    }
 }
 
 data class EVMStackElement(

@@ -9,20 +9,20 @@ import kotlin.math.max
 // @formatter:off
 fun OperationBuilder.withOpCode(opCode: OpCode): OperationBuilder { when (opCode) { // https://ethervm.io/
 // @formatter:on
-    OpCode.STOP -> pop0 { result = EVMReturn.success(byteArrayOf()) }
-    OpCode.ADD -> pop2push { a, b -> a + b }.gas3()
-    OpCode.MUL -> pop2push { a, b -> a * b }.gas5()
-    OpCode.SUB -> pop2push { a, b -> a - b }.gas3()
-    OpCode.DIV -> pop2push { a, b -> a / b }.gas5()
-    OpCode.SDIV -> pop2push { a, b -> a.signed() / b.signed() }.gas5()
-    OpCode.MOD -> pop2push { a, b -> a % b }.gas5()
-    OpCode.SMOD -> pop2push { a, b -> a.signed() % b.signed() }.gas5()
-    OpCode.ADDMOD -> pop3push { a, b, n -> (a + b) % n }.gas8()
-    OpCode.MULMOD -> pop3push { a, b, n -> (a * b) % n }.gas8()
-    OpCode.EXP -> pop2push { base, exp -> base pow exp }.extraGas { (_, exp) -> ((exp.big.bitLength() + 7) / 8 * if (vmConfig.eip160) 50 else 10) + 10 }
+    OpCode.STOP -> execute { result = EVMReturn.success(byteArrayOf()) }
+    OpCode.ADD -> poppush { (a, b) -> a + b }.gas3()
+    OpCode.MUL -> poppush { (a, b) -> a * b }.gas5()
+    OpCode.SUB -> poppush { (a, b) -> a - b }.gas3()
+    OpCode.DIV -> poppush { (a, b) -> a / b }.gas5()
+    OpCode.SDIV -> poppush { (a, b) -> a.signed() / b.signed() }.gas5()
+    OpCode.MOD -> poppush { (a, b) -> a % b }.gas5()
+    OpCode.SMOD -> poppush { (a, b) -> a.signed() % b.signed() }.gas5()
+    OpCode.ADDMOD -> poppush { (a, b, n) -> (a + b) % n }.gas8()
+    OpCode.MULMOD -> poppush { (a, b, n) -> (a * b) % n }.gas8()
+    OpCode.EXP -> poppush { (base, exp) -> base pow exp }.extraGas { (_, exp) -> ((exp.big.bitLength() + 7) / 8 * if (vmConfig.eip160) 50 else 10) + 10 }
 
-    OpCode.SIGNEXTEND -> pop2push { b, x ->
-        if (b.big >= 32.toBigInteger() || b.big < 0.toBigInteger()) return@pop2push x
+    OpCode.SIGNEXTEND -> poppush { (b, x) ->
+        if (b.big >= 32.toBigInteger() || b.big < 0.toBigInteger()) return@poppush x
         val result = when (x.bytes.size > b.int && x.bytes[x.bytes.lastIndex - b.int] < 0) {
             true -> ByteArray(32).apply { fill(0xFF.toByte(), 0, lastIndex - b.int) }
             false -> ByteArray((b.int + 1) * 8)
@@ -31,27 +31,27 @@ fun OperationBuilder.withOpCode(opCode: OpCode): OperationBuilder { when (opCode
         result.toElement()
     }.gas5()
 
-    OpCode.LT -> pop2push { a, b -> if (b > a) EVMStackElement.ONE else EVMStackElement.ZERO }.gas3()
-    OpCode.GT -> pop2push { a, b -> if (b < a) EVMStackElement.ONE else EVMStackElement.ZERO }.gas3()
-    OpCode.SLT -> pop2push { a, b -> if (b.signed() > a.signed()) EVMStackElement.ONE else EVMStackElement.ZERO }.gas3()
-    OpCode.SGT -> pop2push { a, b -> if (b.signed() < a.signed()) EVMStackElement.ONE else EVMStackElement.ZERO }.gas3()
-    OpCode.EQ -> pop2push { a, b -> if (b == a) EVMStackElement.ONE else EVMStackElement.ZERO }.gas3()
-    OpCode.ISZERO -> pop1push { a -> if (a == EVMStackElement.ZERO) EVMStackElement.ONE else EVMStackElement.ZERO }.gas3()
-    OpCode.AND -> pop2push { a, b -> b and a }.gas3()
-    OpCode.OR -> pop2push { a, b -> b or a }.gas3()
-    OpCode.XOR -> pop2push { a, b -> b xor a }.gas3()
-    OpCode.NOT -> pop1push { a -> a.not() }.gas3()
-    OpCode.BYTE -> pop2push { a, b ->
+    OpCode.LT -> poppush { (a, b) -> if (b > a) EVMStackElement.ONE else EVMStackElement.ZERO }.gas3()
+    OpCode.GT -> poppush { (a, b) -> if (b < a) EVMStackElement.ONE else EVMStackElement.ZERO }.gas3()
+    OpCode.SLT -> poppush { (a, b) -> if (b.signed() > a.signed()) EVMStackElement.ONE else EVMStackElement.ZERO }.gas3()
+    OpCode.SGT -> poppush { (a, b) -> if (b.signed() < a.signed()) EVMStackElement.ONE else EVMStackElement.ZERO }.gas3()
+    OpCode.EQ -> poppush { (a, b) -> if (b == a) EVMStackElement.ONE else EVMStackElement.ZERO }.gas3()
+    OpCode.ISZERO -> poppush { (a) -> if (a == EVMStackElement.ZERO) EVMStackElement.ONE else EVMStackElement.ZERO }.gas3()
+    OpCode.AND -> poppush { (a, b) -> b and a }.gas3()
+    OpCode.OR -> poppush { (a, b) -> b or a }.gas3()
+    OpCode.XOR -> poppush { (a, b) -> b xor a }.gas3()
+    OpCode.NOT -> poppush { (a) -> a.not() }.gas3()
+    OpCode.BYTE -> poppush { (a, b) ->
         val index = a.big
-        if (32.toBigInteger() <= index) return@pop2push EVMStackElement.ZERO
+        if (32.toBigInteger() <= index) return@poppush EVMStackElement.ZERO
         val pos = index.toInt() - 32 + b.bytes.size
-        if (pos < 0 || 32 <= pos) return@pop2push EVMStackElement.ZERO
+        if (pos < 0 || 32 <= pos) return@poppush EVMStackElement.ZERO
         byteArrayOf(b.bytes[pos]).toElement()
     }.gas3()
 
-    OpCode.SHL -> if (vmConfig.eip145) pop2push { shift, value -> runIf(shift.big <= big256) { (value.big shl shift.int).toElement() } }.gas3()
-    OpCode.SHR -> if (vmConfig.eip145) pop2push { shift, value -> runIf(shift.big <= big256) { (value.big shr shift.int).toElement() } }.gas3()
-    OpCode.SAR -> if (vmConfig.eip145) pop2push { shift, value ->
+    OpCode.SHL -> if (vmConfig.eip145) poppush { (shift, value) -> runIf(shift.big <= big256) { (value.big shl shift.int).toElement() } }.gas3()
+    OpCode.SHR -> if (vmConfig.eip145) poppush { (shift, value) -> runIf(shift.big <= big256) { (value.big shr shift.int).toElement() } }.gas3()
+    OpCode.SAR -> if (vmConfig.eip145) poppush { (shift, value) ->
         when (shift.big <= big256) {
             true -> when (value.bytes[0] < 0) {
                 true -> (value.big shr shift.int or EVMStackElement.MAX.big.shl(256 - shift.int)).toElement()
@@ -62,13 +62,13 @@ fun OperationBuilder.withOpCode(opCode: OpCode): OperationBuilder { when (opCode
         }
     }.gas3()
 
-    OpCode.KECCAK256 -> pop2push { offset, size -> memory.read(offset.int, size.int).keccak256().toElement() }
+    OpCode.KECCAK256 -> poppush { (offset, size) -> memory.read(offset.int, size.int).keccak256().toElement() }
         .memorySize { (offset, size) -> offset.int + size.int }
         .gas(30).extraGas { (_, size) -> memoryGasCost() + (size.int.wordSize * keccak256Gas) }
 
     OpCode.ADDRESS -> push { contract.address.toElement() }.gas2()
 
-    OpCode.BALANCE -> pop1push { address ->
+    OpCode.BALANCE -> poppush { (address) ->
         db.findAccount(address.toAddress())?.balance?.toElement() ?: EVMStackElement.ZERO
     }.gas(
         when {
@@ -81,10 +81,10 @@ fun OperationBuilder.withOpCode(opCode: OpCode): OperationBuilder { when (opCode
     OpCode.ORIGIN -> push { transaction.from.toElement() }.gas2()
     OpCode.CALLER -> push { caller.toElement() }.gas2()
     OpCode.CALLVALUE -> push { callValue.toElement() }.gas2()
-    OpCode.CALLDATALOAD -> pop1push { i -> callData.read(i.int, 32).toElement() }.gas3()
+    OpCode.CALLDATALOAD -> poppush { (i) -> callData.read(i.int, 32).toElement() }.gas3()
     OpCode.CALLDATASIZE -> push { callData.size.toElement() }.gas2()
 
-    OpCode.CALLDATACOPY -> pop3 { memOffset, offset, length ->
+    OpCode.CALLDATACOPY -> pop { (memOffset, offset, length) ->
         memory.write(memOffset.int, callData.read(offset.int, length.int))
     }.memorySize { (memOffset, _, length) -> length.int + memOffset.int }
         .gas3().extraGas { (_, _, length) -> memoryGasCost() + (length.int.wordSize * memoryCopyGas) }
@@ -92,7 +92,7 @@ fun OperationBuilder.withOpCode(opCode: OpCode): OperationBuilder { when (opCode
 
     OpCode.CODESIZE -> push { contract.code.size.toElement() }.gas2()
 
-    OpCode.CODECOPY -> pop3 { memOffset, offset, length ->
+    OpCode.CODECOPY -> pop { (memOffset, offset, length) ->
         memory.write(memOffset.int, contract.code.read(offset.int, length.int))
     }.memorySize { (memOffset, _, length) -> length.int + memOffset.int }
         .gas3().extraGas { (_, _, length) -> memoryGasCost() + (length.int.wordSize * memoryCopyGas) }
@@ -100,7 +100,7 @@ fun OperationBuilder.withOpCode(opCode: OpCode): OperationBuilder { when (opCode
     OpCode.GASPRICE -> push { transaction.gasPrice.toElement() }.gas2()
 
     OpCode.EXTCODESIZE -> {
-        pop1push { addr -> db.withAccountOrNull(addr.toAddress()) { it?.getCode()?.size ?: 0 }.toElement() }
+        poppush { (addr) -> db.withAccountOrNull(addr.toAddress()) { it?.getCode()?.size ?: 0 }.toElement() }
         gas(
             when {
                 vmConfig.eip2929 -> 100
@@ -116,17 +116,17 @@ fun OperationBuilder.withOpCode(opCode: OpCode): OperationBuilder { when (opCode
         nextFrame?.result?.data?.size?.toElement() ?: EVMStackElement.ZERO
     }.gas2()
 
-    OpCode.RETURNDATACOPY -> if (vmConfig.eip211) pop3 { memOffset, offset, length ->
+    OpCode.RETURNDATACOPY -> if (vmConfig.eip211) pop { (memOffset, offset, length) ->
         val returnValue = nextFrame?.result?.data?.read(offset.int, length.int)
         memory.write(memOffset.int, returnValue ?: ByteArray(length.int))
     }.memorySize { (memOffset, _, length) -> length.int + memOffset.int }
         .gas3().extraGas { (_, _, length) -> memoryGasCost() + (length.int.wordSize * memoryCopyGas) }
 
-    OpCode.EXTCODEHASH -> if (vmConfig.eip1052) pop1push { address ->
+    OpCode.EXTCODEHASH -> if (vmConfig.eip1052) poppush { (address) ->
         db.findAccount(address.toAddress())?.codeHash?.bytes?.toElement() ?: EVMStackElement.ZERO
     }.gas(if (vmConfig.eip1884) 700 else 400)
 
-    OpCode.BLOCKHASH -> pop1 { }.gas(20)
+    OpCode.BLOCKHASH -> pop { TODO("BLOCKHASH") }.gas(20)
     OpCode.COINBASE -> push { block.coinbase.toElement() }.gas2()
     OpCode.TIMESTAMP -> push { block.time.toElement() }.gas2()
     OpCode.NUMBER -> push { block.number.toElement() }.gas2()
@@ -139,21 +139,21 @@ fun OperationBuilder.withOpCode(opCode: OpCode): OperationBuilder { when (opCode
     }.gas5()
 
     OpCode.BASEFEE -> if (vmConfig.eip3198) push { block.baseFee.toElement() }.gas2()
-    OpCode.BLOBHASH -> pop1push { TODO() }.gas3()
-    OpCode.BLOBBASEFEE -> push { TODO() }.gas2()
-    OpCode.POP -> pop1 { _ -> }.gas2()
+    OpCode.BLOBHASH -> poppush { TODO("BLOBHASH") }.gas3()
+    OpCode.BLOBBASEFEE -> push { TODO("BLOBBASEFEE") }.gas2()
+    OpCode.POP -> pop { (n) -> }.gas2()
 
-    OpCode.MLOAD -> pop1push { offset -> memory.read(offset.int, 32).toElement() }
+    OpCode.MLOAD -> poppush { (offset) -> memory.read(offset.int, 32).toElement() }
         .memorySize { (offset) -> offset.int + 32 }
         .gas3().extraGas { memoryGasCost() }
 
-    OpCode.MSTORE -> pop2 { offset, value -> memory.write(offset.int, value.bytes.sliceArrayLast(32)) }
+    OpCode.MSTORE -> pop { (offset, value) -> memory.write(offset.int, value.bytes.sliceArrayLast(32)) }
         .memorySize { (offset) -> offset.int + 32 }
         .gas3().extraGas { memoryGasCost() }
 
-    OpCode.MSTORE8 -> pop2 { a, b -> TODO() }
+    OpCode.MSTORE8 -> pop { (a, b) -> TODO("MSTORE8") }
     OpCode.SLOAD -> {
-        pop1push { key ->
+        poppush { (key) ->
             db.withAccount(contract.address) { it.storage.get(key.bytes) }?.toElement() ?: EVMStackElement.ZERO
         }
         gas(
@@ -168,7 +168,7 @@ fun OperationBuilder.withOpCode(opCode: OpCode): OperationBuilder { when (opCode
         if (vmConfig.eip2929) extraGas { (key) -> computeAccessSlotGas(contract, key.bytes, alreadyExistGas = 100) }
     }
 
-    OpCode.SSTORE -> pop2 { key, value ->
+    OpCode.SSTORE -> pop { (key, value) ->
         db.withAccountOrCreate(contract.address) { it.storage.set(key.bytes, value.bytes.takeIfNotAllZero()) }
     }.extraGas { (key, value) ->
         val ssStoreGas = when {
@@ -210,19 +210,19 @@ fun OperationBuilder.withOpCode(opCode: OpCode): OperationBuilder { when (opCode
         }
     }
 
-    OpCode.JUMP -> pop1 { pos -> pc = pos.int - 1 }.gas8()
-    OpCode.JUMPI -> pop2 { pos, condition ->
-        if (condition == EVMStackElement.ZERO) return@pop2
+    OpCode.JUMP -> pop { (pos) -> pc = pos.int - 1 }.gas8()
+    OpCode.JUMPI -> pop { (pos, condition) ->
+        if (condition == EVMStackElement.ZERO) return@pop
         pc = pos.int - 1 // pc will be increased by the interpreter loop
     }.gas(10)
 
     OpCode.PC -> push { pc.toElement() }
-    OpCode.MSIZE -> pop0 { }.gas2()
+    OpCode.MSIZE -> pop { TODO("MSIZE") }.gas2()
     OpCode.GAS -> push { remainGas.toElement() }.gas2()
-    OpCode.JUMPDEST -> pop0 { }.gas(1)
-    OpCode.TLOAD -> pop1 { }
-    OpCode.TSTORE -> pop2 { a, b -> }
-    OpCode.MCOPY -> pop3 { a, b, c -> }.gas3()
+    OpCode.JUMPDEST -> pop { }.gas(1)
+    OpCode.TLOAD -> pop { TODO("TLOAD") }
+    OpCode.TSTORE -> pop { (a, b) -> TODO("TSTORE") }
+    OpCode.MCOPY -> pop { (a, b, c) -> TODO("MCOPY") }.gas3()
 
     OpCode.PUSH0 -> if (vmConfig.eip3855) push { EVMStackElement.ZERO }.gas2()
     OpCode.PUSH1 -> push { byteArrayOf(contract.code[++pc]).toElement() }.gas3()
@@ -262,10 +262,10 @@ fun OperationBuilder.withOpCode(opCode: OpCode): OperationBuilder { when (opCode
         gas + size.int * 8
     }
 
-    OpCode.CALL -> pop7push { gas, addr, value, argsOffset, argsLength, retOffset, retLength ->
+    OpCode.CALL -> poppush { (gas, addr, value, argsOffset, argsLength, retOffset, retLength) ->
         if ((db.findAccount(contract.address)?.balance ?: BigInteger.ZERO) < value.big) {
             result = EVMReturn.insufficientBalance()
-            return@pop7push EVMStackElement.ZERO
+            return@poppush EVMStackElement.ZERO
         }
 
         nextFrameGas += if (value.big != BigInteger.ZERO) 2300 else 0
@@ -273,7 +273,7 @@ fun OperationBuilder.withOpCode(opCode: OpCode): OperationBuilder { when (opCode
         val account = db.applyAccountOrCreate(addr.toAddress()) { it.balance += value.big }
         if (account.codeHash == null) {
             this.remainGas = nextFrameGas
-            return@pop7push EVMStackElement.ONE
+            return@poppush EVMStackElement.ONE
         }
 
         val result = nextFrame {
@@ -309,9 +309,9 @@ fun OperationBuilder.withOpCode(opCode: OpCode): OperationBuilder { when (opCode
 
 
     OpCode.CALLCODE -> execute { TODO() }.gas(if (vmConfig.eip150) 700 else 40)
-    OpCode.RETURN -> pop2 { offset, size -> result = EVMReturn.success(memory.read(offset.int, size.int)) }
+    OpCode.RETURN -> pop { (offset, size) -> result = EVMReturn.success(memory.read(offset.int, size.int)) }
 
-    OpCode.DELEGATECALL -> if (vmConfig.eip7) pop6push { gas, addr, argsOffset, argsLength, retOffset, retLength ->
+    OpCode.DELEGATECALL -> if (vmConfig.eip7) poppush { (gas, addr, argsOffset, argsLength, retOffset, retLength) ->
         val result = nextFrame {
             val calldata = memory.read(argsOffset.int, argsLength.int)
             val contract = db.withAccountOrThrow(addr.toAddress()) {
@@ -344,7 +344,7 @@ fun OperationBuilder.withOpCode(opCode: OpCode): OperationBuilder { when (opCode
         } else callGas(gas.int)
     }
 
-    OpCode.CREATE -> pop3push { value, offset, size ->
+    OpCode.CREATE -> poppush { (value, offset, size) ->
         val newContract = db.withAccountOrThrow(contract.address) {
             EVMContract(Address.new(it.address, it.nonce), memory.read(offset.int, size.int))
         }
@@ -357,7 +357,7 @@ fun OperationBuilder.withOpCode(opCode: OpCode): OperationBuilder { when (opCode
         }
     }.memorySize { (_, offset, size) -> offset.int + size.int }
 
-    OpCode.CREATE2 -> if (vmConfig.eip1014) pop4push { value, offset, size, salt ->
+    OpCode.CREATE2 -> if (vmConfig.eip1014) poppush { (value, offset, size, salt) ->
         val code = memory.read(offset.int, size.int)
         val newContract = EVMContract(Address.new(contract.address, salt.bytes, code.keccak256()), code)
         deployContract(contract.address, newContract, value.big)
@@ -369,7 +369,7 @@ fun OperationBuilder.withOpCode(opCode: OpCode): OperationBuilder { when (opCode
         }
     }.memorySize { (_, offset, size) -> offset.int + size.int }
 
-    OpCode.STATICCALL -> if (vmConfig.eip214) pop6push { gas, addr, argsOffset, argsLength, retOffset, retLength ->
+    OpCode.STATICCALL -> if (vmConfig.eip214) poppush { (gas, addr, argsOffset, argsLength, retOffset, retLength) ->
         // We do an AddBalance of zero here, just in order to trigger a touch.
         // This doesn't matter on Mainnet, where all empties are gone at the time of Byzantium,
         // but is the correct thing to do and matters on other networks, in tests, and potential
@@ -405,12 +405,12 @@ fun OperationBuilder.withOpCode(opCode: OpCode): OperationBuilder { when (opCode
         } else callGas(gas.int)
     }
 
-    OpCode.REVERT -> if (vmConfig.eip140) pop2 { offset, length ->
+    OpCode.REVERT -> if (vmConfig.eip140) pop { (offset, length) ->
         result = EVMReturn.executionReverted(memory.read(offset.int, length.int))
     }
 
-    OpCode.INVALID -> pop0 { }
-    OpCode.SELFDESTRUCT -> pop1 { TODO() }
+    OpCode.INVALID -> pop { }
+    OpCode.SELFDESTRUCT -> pop { (_) -> TODO("SELFDESTRUCT") }
 // @formatter:off
 }; return this }
 // @formatter:on

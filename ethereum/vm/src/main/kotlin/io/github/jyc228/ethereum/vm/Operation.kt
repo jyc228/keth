@@ -6,7 +6,7 @@ class Operation(
     val gas: Int,
     val extraGas: (suspend EVMFrame.(EVMStack) -> Int)?,
     val memorySize: (EVMFrame.(EVMStack) -> Int)?,
-    val execute: suspend EVMFrame.() -> Unit
+    val execute: suspend EVMFrame.(EVMStack) -> Unit
 ) {
     val maxStack: Int = 0
 
@@ -20,7 +20,7 @@ class OperationBuilder(val vmConfig: EVMConfig) {
     private var gas: Int = 0
     private var extraGas: (suspend EVMFrame.(EVMStack) -> Int)? = null
     private var memorySize: (EVMFrame.(EVMStack) -> Int)? = null
-    private var execute: (suspend EVMFrame.() -> Unit)? = null
+    private var execute: (suspend EVMFrame.(EVMStack) -> Unit)? = null
 
     fun gas2(): OperationBuilder = gas(2)
     fun gas3(): OperationBuilder = gas(3)
@@ -28,67 +28,24 @@ class OperationBuilder(val vmConfig: EVMConfig) {
     fun gas8(): OperationBuilder = gas(8)
     fun gas(gas: Int): OperationBuilder = apply { this.gas = gas }
     fun extraGas(execute: suspend EVMFrame.(EVMStack) -> Int) = apply { this.extraGas = execute }
+
     fun memorySize(execute: EVMFrame.(EVMStack) -> Int) = apply { this.memorySize = execute }
 
-    fun pop0(execute: suspend EVMFrame.() -> Unit) = execute(execute)
+    inline fun pop(crossinline execute: suspend EVMFrame.(EVMStack) -> Unit) = execute {
+        stack.destructuringPopIndex = 0
+        execute(stack)
+        stack.destructuringPopIndex = -1
+    }
 
-    inline fun pop1(
-        crossinline execute: suspend EVMFrame.(E) -> Unit
-    ) = execute { execute(stack.pop()) }
-
-    inline fun pop2(
-        crossinline execute: suspend EVMFrame.(E, E) -> Unit
-    ) = execute { execute(stack.pop(), stack.pop()) }
-
-    inline fun pop3(
-        crossinline execute: suspend EVMFrame.(E, E, E) -> Unit
-    ) = execute { execute(stack.pop(), stack.pop(), stack.pop()) }
+    inline fun poppush(crossinline execute: suspend EVMFrame.(EVMStack) -> E) = execute {
+        stack.destructuringPopIndex = 0
+        stack.push(execute(stack))
+        stack.destructuringPopIndex = -1
+    }
 
     inline fun push(crossinline execute: suspend EVMFrame.() -> E) = execute { stack.push(execute()) }
 
-    inline fun pop1push(
-        crossinline execute: suspend EVMFrame.(E) -> E
-    ) = execute {
-        val result = execute(stack.pop())
-        stack.push(result)
-    }
-
-    inline fun pop2push(
-        crossinline execute: suspend EVMFrame.(E, E) -> E
-    ) = execute {
-        val result = execute(stack.pop(), stack.pop())
-        stack.push(result)
-    }
-
-    inline fun pop3push(
-        crossinline execute: suspend EVMFrame.(E, E, E) -> E
-    ) = execute {
-        val result = execute(stack.pop(), stack.pop(), stack.pop())
-        stack.push(result)
-    }
-
-    inline fun pop4push(
-        crossinline execute: suspend EVMFrame.(E, E, E, E) -> EVMStackElement
-    ) = execute {
-        val result = execute(stack.pop(), stack.pop(), stack.pop(), stack.pop())
-        stack.push(result)
-    }
-
-    inline fun pop6push(
-        crossinline execute: suspend EVMFrame.(E, E, E, E, E, E) -> E
-    ) = execute {
-        val result = execute(stack.pop(), stack.pop(), stack.pop(), stack.pop(), stack.pop(), stack.pop())
-        stack.push(result)
-    }
-
-    inline fun pop7push(
-        crossinline execute: suspend EVMFrame.(E, E, E, E, E, E, E) -> E
-    ) = execute {
-        val result = execute(stack.pop(), stack.pop(), stack.pop(), stack.pop(), stack.pop(), stack.pop(), stack.pop())
-        stack.push(result)
-    }
-
-    fun execute(execute: suspend EVMFrame.() -> Unit) = apply { this.execute = execute }
+    fun execute(execute: suspend EVMFrame.(EVMStack) -> Unit) = apply { this.execute = execute }
 
     fun build(opCode: OpCode): Operation? {
         return Operation(
