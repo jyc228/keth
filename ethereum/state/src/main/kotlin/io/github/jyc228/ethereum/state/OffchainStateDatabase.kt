@@ -100,7 +100,7 @@ class OffchainStateDatabase(
                 ?.hex
                 ?.removePrefix("0x")
                 ?.hexToByteArray()
-                ?.also { origin[key.toHexString()] = it }
+                ?.also { origin[key.toHexString()] = if (it.all { c -> c == 0.toByte() }) null else it }
         }
 
         @OptIn(ExperimentalStdlibApi::class)
