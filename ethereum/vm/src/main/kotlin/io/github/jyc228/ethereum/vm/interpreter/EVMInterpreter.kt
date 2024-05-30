@@ -19,9 +19,9 @@ open class EVMInterpreter(private val instructionSet: InstructionSet) {
             return EVMReturn.unknownOpCode(frame.contract.code[frame.pc]).also { frame.result = it }
         }
         frame.operation = operation
-        frame.memorySize = operation.memorySize?.invoke(frame) ?: 0
+        frame.memorySize = operation.memorySize?.invoke(frame, frame.stack) ?: 0
         frame.remainGas -= operation.gas
-        frame.remainGas -= operation.extraGas?.invoke(frame) ?: 0
+        frame.remainGas -= operation.extraGas?.invoke(frame, frame.stack) ?: 0
         if (frame.memory.size < frame.memorySize) {
             frame.memory = frame.memory.copyOf(frame.memorySize)
         }

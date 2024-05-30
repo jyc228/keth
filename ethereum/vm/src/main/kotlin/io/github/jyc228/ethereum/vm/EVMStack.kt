@@ -2,11 +2,18 @@ package io.github.jyc228.ethereum.vm
 
 import java.math.BigInteger
 
-class EVMStack(private val elements: MutableList<EVMStackElement> = mutableListOf()) :
-    MutableList<EVMStackElement> by elements {
-    fun push(b: EVMStackElement) = apply { elements.add(b) }
-    fun pop() = elements.removeLast()
-    fun back(index: Int) = elements[elements.lastIndex - index]
+class EVMStack(elements: MutableList<EVMStackElement> = mutableListOf()) : MutableList<EVMStackElement> by elements {
+    fun push(b: EVMStackElement) = apply { this@EVMStack.add(b) }
+    fun pop() = this@EVMStack.removeLast()
+    fun back(index: Int) = this@EVMStack[this@EVMStack.lastIndex - index]
+
+    inline operator fun component1() = back(0)
+    inline operator fun component2() = back(1)
+    inline operator fun component3() = back(2)
+    inline operator fun component4() = back(3)
+    inline operator fun component5() = back(4)
+    inline operator fun component6() = back(5)
+    inline operator fun component7() = back(6)
 }
 
 data class EVMStackElement(

@@ -4,8 +4,8 @@ class Operation(
     val opCode: OpCode,
     val minStack: Int,
     val gas: Int,
-    val extraGas: (suspend EVMFrame.() -> Int)?,
-    val memorySize: (EVMFrame.() -> Int)?,
+    val extraGas: (suspend EVMFrame.(EVMStack) -> Int)?,
+    val memorySize: (EVMFrame.(EVMStack) -> Int)?,
     val execute: suspend EVMFrame.() -> Unit
 ) {
     val maxStack: Int = 0
@@ -18,55 +18,17 @@ private typealias E = EVMStackElement
 class OperationBuilder(val vmConfig: EVMConfig) {
     private var minStack: Int = 0
     private var gas: Int = 0
-    private var extraGas: (suspend EVMFrame.() -> Int)? = null
-    private var memorySize: (EVMFrame.() -> Int)? = null
+    private var extraGas: (suspend EVMFrame.(EVMStack) -> Int)? = null
+    private var memorySize: (EVMFrame.(EVMStack) -> Int)? = null
     private var execute: (suspend EVMFrame.() -> Unit)? = null
-
-    inline fun memorySize1(
-        crossinline execute: EVMFrame.(E) -> Int
-    ) = memorySize { execute(stack.back(0)) }
-
-    inline fun memorySize2(
-        crossinline execute: EVMFrame.(E, E) -> Int
-    ) = memorySize { execute(stack.back(0), stack.back(1)) }
-
-    inline fun memorySize3(
-        crossinline execute: EVMFrame.(E, E, E) -> Int
-    ) = memorySize { execute(stack.back(0), stack.back(1), stack.back(2)) }
-
-    inline fun memorySize6(
-        crossinline execute: EVMFrame.(E, E, E, E, E, E) -> Int
-    ) = memorySize {
-        execute(stack.back(0), stack.back(1), stack.back(2), stack.back(3), stack.back(4), stack.back(5))
-    }
-
-    inline fun memorySize7(
-        crossinline execute: EVMFrame.(E, E, E, E, E, E, E) -> Int
-    ) = memorySize {
-        execute(stack.back(0), stack.back(1), stack.back(2), stack.back(3), stack.back(4), stack.back(5), stack.back(6))
-    }
-
-    fun memorySize(execute: EVMFrame.() -> Int) = apply { this.memorySize = execute }
 
     fun gas2(): OperationBuilder = gas(2)
     fun gas3(): OperationBuilder = gas(3)
     fun gas5(): OperationBuilder = gas(5)
     fun gas8(): OperationBuilder = gas(8)
     fun gas(gas: Int): OperationBuilder = apply { this.gas = gas }
-
-    inline fun extraGas1(
-        crossinline execute: suspend EVMFrame.(E) -> Int
-    ) = extraGas { execute(stack.back(0)) }
-
-    inline fun extraGas2(
-        crossinline execute: suspend EVMFrame.(E, E) -> Int
-    ) = extraGas { execute(stack.back(0), stack.back(1)) }
-
-    inline fun extraGas3(
-        crossinline execute: suspend EVMFrame.(E, E, E) -> Int
-    ) = extraGas { execute(stack.back(0), stack.back(1), stack.back(2)) }
-
-    fun extraGas(execute: suspend EVMFrame.() -> Int) = apply { this.extraGas = execute }
+    fun extraGas(execute: suspend EVMFrame.(EVMStack) -> Int) = apply { this.extraGas = execute }
+    fun memorySize(execute: EVMFrame.(EVMStack) -> Int) = apply { this.memorySize = execute }
 
     fun pop0(execute: suspend EVMFrame.() -> Unit) = execute(execute)
 
