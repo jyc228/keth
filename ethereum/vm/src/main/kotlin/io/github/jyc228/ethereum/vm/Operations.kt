@@ -293,20 +293,10 @@ fun OperationBuilder.withOpCode(opCode: OpCode): OperationBuilder { when (opCode
             else -> 40
         }
     ).extraGas { (gas, addr, value) ->
-        if (vmConfig.eip2929) {
-            if (addr.toAddress() in transaction.accessList!!) {
-                return@extraGas transferValueGas(addr.toAddress(), value.big) + callGas(gas.int)
-            }
-            transaction.accessList!! += addr.toAddress()
-            this.remainGas -= 2500
-
-            val nextGas = transferValueGas(addr.toAddress(), value.big) + callGas(gas.int)
-
-            this.remainGas += 2500
-            nextGas + 2500
+        if (vmConfig.eip2929) computeAccessContractCallGas(addr.toAddress()) {
+            transferValueGas(addr.toAddress(), value.big) + callGas(gas.int)
         } else transferValueGas(addr.toAddress(), value.big) + callGas(gas.int)
     }
-
 
     OpCode.CALLCODE -> execute { TODO() }.gas(if (vmConfig.eip150) 700 else 40)
     OpCode.RETURN -> pop { (offset, size) -> result = EVMReturn.success(memory.read(offset.int, size.int)) }
@@ -330,18 +320,7 @@ fun OperationBuilder.withOpCode(opCode: OpCode): OperationBuilder { when (opCode
             else -> 20
         }
     ).extraGas { (gas, addr) ->
-        if (vmConfig.eip2929) {
-            if (addr.toAddress() in transaction.accessList!!) {
-                return@extraGas callGas(gas.int)
-            }
-            transaction.accessList!! += addr.toAddress()
-            this.remainGas -= 2500
-
-            val nextGas = callGas(gas.int)
-
-            this.remainGas += 2500
-            nextGas + 2500
-        } else callGas(gas.int)
+        if (vmConfig.eip2929) computeAccessContractCallGas(addr.toAddress()) { callGas(gas.int) } else callGas(gas.int)
     }
 
     OpCode.CREATE -> poppush { (value, offset, size) ->
@@ -391,18 +370,7 @@ fun OperationBuilder.withOpCode(opCode: OpCode): OperationBuilder { when (opCode
             else -> 700
         }
     ).extraGas { (gas, addr) ->
-        if (vmConfig.eip2929) {
-            if (addr.toAddress() in transaction.accessList!!) {
-                return@extraGas callGas(gas.int)
-            }
-            transaction.accessList!! += addr.toAddress()
-            this.remainGas -= 2500
-
-            val nextGas = callGas(gas.int)
-
-            this.remainGas += 2500
-            nextGas + 2500
-        } else callGas(gas.int)
+        if (vmConfig.eip2929) computeAccessContractCallGas(addr.toAddress()) { callGas(gas.int) } else callGas(gas.int)
     }
 
     OpCode.REVERT -> if (vmConfig.eip140) pop { (offset, length) ->

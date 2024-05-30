@@ -85,6 +85,15 @@ class EVMFrame(
         return 2500
     }
 
+    suspend fun computeAccessContractCallGas(address: Address, contractCallGas: suspend () -> Int): Int {
+        if (address in (transaction.accessList!!)) return contractCallGas()
+        transaction.accessList!! += address
+        this.remainGas -= 2500
+        val nextGas = contractCallGas()
+        this.remainGas += 2500
+        return nextGas + 2500
+    }
+
     fun computeAccessSlotGas(contract: EVMContract, key: ByteArray, alreadyExistGas: Int = 0): Int {
         if (AccessList.Slot(key) in (transaction.accessList!![contract.address])) return alreadyExistGas
         transaction.accessList!![contract.address] += AccessList.Slot(stack.back(0).bytes)
