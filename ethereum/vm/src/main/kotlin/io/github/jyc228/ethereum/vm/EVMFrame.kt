@@ -47,8 +47,8 @@ class EVMFrame(
         return interpreter.execute(nextFrame).apply { remainGas += nextFrame.remainGas }
     }
 
-    fun memoryGasCost(newMemorySize: Int): Int {
-        val newMemSizeWords = newMemorySize.wordSize
+    fun memoryGasCost(): Int {
+        val newMemSizeWords = memorySize.wordSize
         if (newMemSizeWords * 32 > memory.size) {
             val square = newMemSizeWords * newMemSizeWords
             val linCoef = newMemSizeWords * 3
@@ -68,8 +68,8 @@ class EVMFrame(
         } + if (value > BigInteger.ZERO) 9000 else 0
     }
 
-    fun callGas(memorySize: Int, callGas: Int): Int {
-        val base = memoryGasCost(memorySize)
+    fun callGas(callGas: Int): Int {
+        val base = memoryGasCost()
         nextFrameGas = callGas
         if (vmConfig.eip150) {
             val availableGas = remainGas - base
