@@ -179,7 +179,7 @@ fun OperationBuilder.withOpCode(opCode: OpCode): OperationBuilder { when (opCode
             vmConfig.eip1283 -> SStoreGas.eip1283()
             else -> null
         }
-        val new = value.bytes.takeIfNotAllZero()
+        val new = value.bytes.takeIfNotAllZero()?.copyInto(ByteArray(32), 32 - value.bytes.size)
         val dirty = db.withAccount(contract.address) { it.storage.get(key.bytes) }
         if (ssStoreGas != null) {
             if (ssStoreGas.reentrancy != null && remainGas <= ssStoreGas.reentrancy) {
