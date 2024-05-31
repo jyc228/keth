@@ -49,6 +49,18 @@ class EVMStructLogger(
             err = frame.result?.err?.toString()
         )
         val index = logs.lastIndex
+        if (operation?.opCode == OpCode.CALL) {
+            return execute(frame, Operation(
+                operation.opCode,
+                operation.minStack,
+                operation.gas,
+                operation.extraGas,
+                operation.memorySize
+            ) {
+                logs[index].gasCost = logs[index].gas - this.remainGas
+                operation.execute(this, it)
+            })
+        }
         return execute(frame, operation).apply {
             if (nextFrameHash == frame.nextFrame?.hashCode()) {
                 logs[index].gasCost -= frame.remainGas

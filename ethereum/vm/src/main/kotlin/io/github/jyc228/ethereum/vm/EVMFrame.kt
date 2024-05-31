@@ -47,6 +47,8 @@ class EVMFrame(
         return interpreter.execute(nextFrame).apply { remainGas += nextFrame.remainGas }
     }
 
+    fun memorySize(offset: Int, size: Int): Int = if (size == 0) 0 else offset + size
+
     fun memoryGasCost(): Int {
         val newMemSizeWords = memorySize.wordSize
         if (newMemSizeWords * 32 > memory.size) {
@@ -68,15 +70,14 @@ class EVMFrame(
         } + if (value > BigInteger.ZERO) 9000 else 0
     }
 
-    fun callGas(callGas: Int): Int {
-        val base = memoryGasCost()
+    fun callGas(callGas: Int, baseGas: Int): Int {
         nextFrameGas = callGas
         if (vmConfig.eip150) {
-            val availableGas = remainGas - base
+            val availableGas = remainGas - baseGas
             val gas = availableGas - availableGas / 64
             if (gas < callGas) nextFrameGas = gas
         }
-        return base + nextFrameGas
+        return baseGas + nextFrameGas
     }
 
     fun computeAccessAccountGas(address: Address): Int {
@@ -100,9 +101,7 @@ class EVMFrame(
         return 2100
     }
 
-    val Int.wordSize: Int get() = (this + 31) / 32
-
-    fun createLog(topics: List<ByteArray>, data: ByteArray) = Log(contract.address, topics, data, block.number)
+    fun createLog(topics: List<ByteArray>, data: ByteArray?) = Log(contract.address, topics, data, block.number)
 
     class BlockContext(
         val number: ULong = 0uL,
@@ -127,7 +126,7 @@ class EVMFrame(
     class Log(
         val address: Address,
         val topics: List<ByteArray>,
-        val data: ByteArray,
+        val data: ByteArray?,
         val blockNumber: ULong
     )
 }

@@ -65,8 +65,7 @@ private suspend fun simulateTransaction(txHash: Hash, client: EthereumClient, ex
     )
     evm.execute(client.eth.getTransactionByHash(txHash).awaitOrThrow()!!, logger)
     logger.logs.asSequence().withIndex()
-        .filter { (index, log) -> expected[index].copy(gas = 0) != log.copy(gas = 0) }
-        .take(30)
+        .filter { (index, log) -> expected[index] != log }
         .forEach { (index, log) ->
             println(
                 """

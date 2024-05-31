@@ -5,6 +5,7 @@ import io.github.jyc228.ethereum.vm.EVMReturn
 import io.github.jyc228.ethereum.vm.InstructionSet
 import io.github.jyc228.ethereum.vm.OpCode
 import io.github.jyc228.ethereum.vm.Operation
+import io.github.jyc228.ethereum.vm.wordSize
 
 open class EVMInterpreter(private val instructionSet: InstructionSet) {
     open suspend fun execute(frame: EVMFrame): EVMReturn {
@@ -19,7 +20,7 @@ open class EVMInterpreter(private val instructionSet: InstructionSet) {
             return EVMReturn.unknownOpCode(frame.contract.code[frame.pc]).also { frame.result = it }
         }
         frame.operation = operation
-        frame.memorySize = operation.memorySize?.invoke(frame, frame.stack) ?: 0
+        frame.memorySize = operation.memorySize?.invoke(frame, frame.stack)?.wordSize?.times(32) ?: 0
         frame.remainGas -= operation.gas
         frame.remainGas -= operation.extraGas?.invoke(frame, frame.stack) ?: 0
         if (frame.memory.size < frame.memorySize) {
