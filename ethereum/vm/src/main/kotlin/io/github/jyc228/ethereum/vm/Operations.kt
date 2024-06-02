@@ -190,16 +190,16 @@ fun OperationBuilder.withOpCode(opCode: OpCode): OperationBuilder { when (opCode
             val origin = db.withAccount(contract.address) { it.storage.getCommittedState(key.bytes) }
             if (dirty.contentEquals(origin)) {
                 if (origin == null) return@extraGas ssStoreGas.createSlot
-                if (new == null) remainGas += ssStoreGas.deleteSlot
+                if (new == null) refundGas += ssStoreGas.deleteSlot
                 return@extraGas ssStoreGas.updateSlot
             }
             if (origin != null) {
-                if (dirty == null) remainGas -= ssStoreGas.recreateSlot
-                else if (new == null) remainGas += ssStoreGas.deleteSlot
+                if (dirty == null) refundGas -= ssStoreGas.recreateSlot
+                else if (new == null) refundGas += ssStoreGas.deleteSlot
             }
             if (origin.contentEquals(new)) {
-                if (origin == null) remainGas += ssStoreGas.resetDeleteSlot
-                else remainGas -= ssStoreGas.resetOriginSlot
+                refundGas += if (origin == null) ssStoreGas.resetDeleteSlot
+                else ssStoreGas.resetOriginSlot
             }
             return@extraGas ssStoreGas.updateDirtySlot
         }

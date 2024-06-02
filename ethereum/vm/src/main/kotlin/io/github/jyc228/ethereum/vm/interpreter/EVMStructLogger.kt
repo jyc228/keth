@@ -7,6 +7,7 @@ import io.github.jyc228.ethereum.state.account.ManagedStateAccount
 import io.github.jyc228.ethereum.state.account.StateRoot
 import io.github.jyc228.ethereum.vm.EVMFrame
 import io.github.jyc228.ethereum.vm.EVMReturn
+import io.github.jyc228.ethereum.vm.EVMStack
 import io.github.jyc228.ethereum.vm.OpCode
 import io.github.jyc228.ethereum.vm.Operation
 import java.nio.ByteBuffer
@@ -34,7 +35,8 @@ class EVMStructLogger(
         execute: suspend (EVMFrame, Operation?) -> EVMReturn?
     ): EVMReturn? {
         val nextFrameHash = frame.nextFrame?.hashCode()
-        logs += StructLog(
+
+        val log = StructLog(
             pc = frame.pc,
             op = operation?.opCode,
             gas = frame.remainGas,
@@ -45,32 +47,33 @@ class EVMStructLogger(
             returnData = frame.result?.data?.toHexString(),
             storage = mapOf(),
             depth = frame.depth + 1,
-            refundCounter = null,
+            refund = frame.refundGas.takeIf { it != 0 },
             err = frame.result?.err?.toString()
-        )
-        val index = logs.lastIndex
-        if (operation?.opCode == OpCode.CALL) {
-            return execute(frame, Operation(
-                operation.opCode,
-                operation.minStack,
-                operation.gas,
-                operation.extraGas,
-                operation.memorySize
-            ) {
-                logs[index].gasCost = logs[index].gas - this.remainGas
-                operation.execute(this, it)
-            })
-        }
-        return execute(frame, operation).apply {
+        ).also { logs += it }
+
+        return execute(frame, when (operation?.opCode) {
+            OpCode.CALL,
+            OpCode.STATICCALL,
+            OpCode.DELEGATECALL -> operation.beforeExecute { log.gasCost = log.gas - this.remainGas }
+
+            OpCode.SSTORE -> operation.beforeExecute { log.refund = refundGas.takeIf { g -> g != 0 } }
+
+            else -> operation
+        }).apply {
             if (nextFrameHash == frame.nextFrame?.hashCode()) {
-                logs[index].gasCost -= frame.remainGas
-            } else {
-                logs[index].gasCost = logs[index].gas - (frame.remainGas - (frame.nextFrame?.remainGas ?: 0))
+                log.gasCost -= frame.remainGas
             }
-            if (enableStorage && (logs[index].op == OpCode.SLOAD || logs[index].op == OpCode.SSTORE)) {
-                logs[index].storage = storage[frame.contract.address]!!.toMap()
+            if (enableStorage && (log.op == OpCode.SLOAD || log.op == OpCode.SSTORE)) {
+                log.storage = storage[frame.contract.address]!!.toMap()
             }
         }
+    }
+
+    private fun Operation.beforeExecute(
+        action: suspend EVMFrame.(EVMStack) -> Unit
+    ) = Operation(opCode, minStack, gas, extraGas, memorySize) {
+        action(this, it)
+        this@beforeExecute.execute(this, it)
     }
 
     override suspend fun createAccount(
@@ -141,6 +144,6 @@ data class StructLog(
     val returnData: String? = null,
     var storage: Map<String, String> = emptyMap(),
     val depth: Int,
-    val refundCounter: ULong? = null,
+    var refund: Int? = null,
     val err: String? = null
 )

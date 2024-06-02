@@ -12,6 +12,7 @@ class EVMFrame(
     val contract: EVMContract,
     var remainGas: Int,
 ) {
+    var refundGas: Int = 0
     var vmConfig: EVMConfig = EVMConfig()
     var chainId: Int = 0
     lateinit var db: StateDatabase
@@ -44,7 +45,11 @@ class EVMFrame(
     suspend fun nextFrame(newFrame: suspend () -> EVMFrame): EVMReturn {
         val nextFrame = newFrame().with(db, block, transaction).also { this.nextFrame = it }
         nextFrame.depth = this.depth + 1
-        return interpreter.execute(nextFrame).apply { remainGas += nextFrame.remainGas }
+        nextFrame.refundGas = this.refundGas
+        return interpreter.execute(nextFrame).apply {
+            remainGas += nextFrame.remainGas
+            refundGas = nextFrame.refundGas
+        }
     }
 
     fun memorySize(offset: Int, size: Int): Int = if (size == 0) 0 else offset + size
