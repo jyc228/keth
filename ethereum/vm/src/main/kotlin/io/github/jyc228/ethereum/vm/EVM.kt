@@ -1,28 +1,35 @@
 package io.github.jyc228.ethereum.vm
 
 import io.github.jyc228.ethereum.BlockHeader
+import io.github.jyc228.ethereum.HexBigInt
+import io.github.jyc228.ethereum.HexData
+import io.github.jyc228.ethereum.HexInt
+import io.github.jyc228.ethereum.Log
 import io.github.jyc228.ethereum.Transaction
+import io.github.jyc228.ethereum.TransactionReceipt
+import io.github.jyc228.ethereum.TransactionStatus
 import io.github.jyc228.ethereum.state.StateDatabase
 import io.github.jyc228.ethereum.state.account.Address
 import io.github.jyc228.ethereum.vm.interpreter.EVMInterpreter
 import io.github.jyc228.ethereum.vm.interpreter.EVMInterpreterDelegate
 import io.github.jyc228.keth.fork.HardForkManager
 import java.math.BigInteger
+import kotlin.math.min
 
 class EVM(
-    private val findHeader: suspend (Transaction) -> BlockHeader,
+    private val findHeader: suspend (ULong) -> BlockHeader,
     private val createDatabase: suspend (BlockHeader) -> StateDatabase,
     private val hardForkManager: HardForkManager,
 ) {
     @OptIn(ExperimentalStdlibApi::class)
-    suspend fun execute(transaction: Transaction, delegate: EVMInterpreterDelegate? = null) {
-        val header = findHeader(transaction)
+    suspend fun execute(transaction: Transaction, delegate: EVMInterpreterDelegate? = null): TransactionReceipt {
+        val header = findHeader(transaction.blockNumber.number - 1u)
         val db = createDatabase(header)
 
         val config = EVMConfig.fromHardFork(hardForkManager.findFork(header.number.number))
         val interpreter = EVMInterpreter.of(InstructionSet.fromConfig(config), delegate)
 
-        when (val to = transaction.to) {
+        val frame = when (val to = transaction.to) {
             null -> EVMFrame(
                 contract = db.withAccountOrThrow(Address.fromHexString(transaction.from.hex)) {
                     val newContractAddress = Address.new(it.address, it.nonce)
@@ -32,7 +39,7 @@ class EVM(
                 caller = Address.fromHexString(transaction.from.hex),
                 callValue = transaction.value.number,
                 remainGas = intrinsicGas(transaction, config)
-            ).with(db, context(header), context(transaction, config)).let { interpreter.execute(it, OpCode.CREATE) }
+            ).with(db, context(header), context(transaction, config)).also { interpreter.execute(it, OpCode.CREATE) }
 
             else -> EVMFrame(
                 contract = db.withAccountOrThrow(Address.fromHexString(to.hex), EVMContract::of),
@@ -40,8 +47,9 @@ class EVM(
                 caller = Address.fromHexString(transaction.from.hex),
                 callValue = transaction.value.number,
                 remainGas = intrinsicGas(transaction, config)
-            ).with(db, context(header), context(transaction, config)).let { interpreter.execute(it) }
+            ).with(db, context(header), context(transaction, config)).also { interpreter.execute(it) }
         }
+        return receipt(transaction, frame)
     }
 
     private fun context(header: BlockHeader) = EVMFrame.BlockContext(
@@ -94,5 +102,46 @@ class EVM(
             gas += tx.accessList.flatMap { it.storageKeys }.size * 1900
         }
         return tx.gas.number.toInt() - gas
+    }
+
+    @OptIn(ExperimentalStdlibApi::class)
+    private suspend fun receipt(transaction: Transaction, frame: EVMFrame): TransactionReceipt {
+        frame.remainGas += min(
+            transaction.gas.number.toInt() - frame.remainGas / if (frame.vmConfig.eip3529) 5 else 2,
+            frame.refundGas
+        )
+        frame.db.applyAccount(Address.fromHexString(transaction.from.hex)) {
+            it.balance += frame.remainGas.toBigInteger() * requireNotNull(transaction.gasPrice).number
+        }
+        return TransactionReceipt(
+            transactionHash = transaction.hash,
+            transactionIndex = transaction.transactionIndex,
+            blockHash = transaction.blockHash,
+            blockNumber = transaction.blockNumber,
+            from = transaction.from,
+            to = transaction.to,
+            effectiveGasPrice = transaction.gasPrice,
+            cumulativeGasUsed = transaction.gas - HexBigInt(frame.remainGas.toBigInteger()), // todo
+            gasUsed = transaction.gas - HexBigInt(frame.remainGas.toBigInteger()),
+            contractAddress = when (transaction.to) {
+                null -> io.github.jyc228.ethereum.Address(frame.contract.address.hex)
+                else -> null
+            },
+            status = if (frame.result?.err == null) TransactionStatus.Success else TransactionStatus.Fail,
+            type = transaction.type,
+            logs = frame.transaction.logs.mapIndexed { i, log ->
+                Log(
+                    removed = false,
+                    logIndex = HexInt(number = i),
+                    transactionIndex = transaction.transactionIndex,
+                    transactionHash = transaction.hash,
+                    blockHash = transaction.blockHash,
+                    blockNumber = transaction.blockNumber,
+                    address = io.github.jyc228.ethereum.Address(hex = log.address.hex),
+                    data = HexData("0x${log.data?.toHexString() ?: ""}"),
+                    topics = log.topics.map { HexData("0x${it.copyInto(ByteArray(32), 32 - it.size).toHexString()}") }
+                )
+            }
+        )
     }
 }
