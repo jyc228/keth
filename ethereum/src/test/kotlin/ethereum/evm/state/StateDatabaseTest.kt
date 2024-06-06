@@ -2,8 +2,8 @@ package ethereum.evm.state
 
 import ethereum.core.database.TreeDatabase
 import ethereum.core.repository.ContractCodeRepository
+import io.github.jyc228.ethereum.Address
 import io.github.jyc228.ethereum.state.OnchainStateDatabase
-import io.github.jyc228.ethereum.state.account.Address
 import io.github.jyc228.ethereum.state.account.OnchainManagedStateAccount
 import io.kotest.common.runBlocking
 import io.kotest.matchers.shouldBe
@@ -19,11 +19,11 @@ class StateDatabaseTest {
     @Test
     fun `touch delete`() = runBlocking {
         var db = emptyDB()
-        db.accountTree.create(Address.EMPTY)
+        db.accountTree.create(Address.build { })
         db.commit(false)
         db = OnchainStateDatabase.from(db)
         val snapshot = db.snapshot()
-        db.withAccountOrCreate(Address.EMPTY) { it.balance += BigInteger.ZERO }
+        db.withAccountOrCreate(Address.build { }) { it.balance += BigInteger.ZERO }
         db.revertSnapshot(snapshot)
     }
 
@@ -36,7 +36,7 @@ class StateDatabaseTest {
     @Test
     fun `test snapshot1`() = runBlocking<Unit> {
         val db = emptyDB()
-        val address = Address.fromString("aa")
+        val address = Address.fromHexString("aa")
 
         val genesis = db.snapshot()
 
@@ -60,8 +60,8 @@ class StateDatabaseTest {
     fun `test snapshot`() = runBlocking<Unit> {
         var db = emptyDB()
 
-        val addr0 = Address.fromString("so0")
-        val addr1 = Address.fromString("so1")
+        val addr0 = Address.fromHexString("00")
+        val addr1 = Address.fromHexString("01")
 
         db.withAccountOrCreate(addr0) { it.storage.set(byteArrayOf(1), byteArrayOf(31, 17)) }
         db.withAccountOrCreate(addr1) { it.storage.set(byteArrayOf(1), byteArrayOf(31, 18)) }
@@ -112,15 +112,15 @@ class StateDatabaseTest {
     @Test
     fun `dump`() = runBlocking {
         val db = emptyDB()
-        val acc1 = db.applyAccountOrCreate(Address.fromBytes(1)) {
+        val acc1 = db.applyAccountOrCreate(Address.build { it[19] = 1 }) {
             it.balance += 22.toBigInteger()
         }
-        val acc2 = db.applyAccountOrCreate(Address.fromBytes(1, 2)) {
+        val acc2 = db.applyAccountOrCreate(Address.build { it[18] = 2; it[19] = 1 }) {
             it as OnchainManagedStateAccount
             it.balance = 22.toBigInteger()
             it.setCode(byteArrayOf(3, 3, 3, 3, 3, 3, 3))
         }
-        db.withAccountOrCreate(Address.fromBytes(2)) {
+        db.withAccountOrCreate(Address.build { it[19] = 2 }) {
             it.balance = 44.toBigInteger()
         }
     }

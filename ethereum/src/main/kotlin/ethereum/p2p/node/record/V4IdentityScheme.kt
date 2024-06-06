@@ -1,7 +1,7 @@
 package ethereum.p2p.node.record
 
-import ethereum.toKeccak256
 import java.nio.ByteBuffer
+import org.bouncycastle.jcajce.provider.digest.Keccak
 
 class V4IdentityScheme : IdentityScheme {
     fun sign() {
@@ -18,6 +18,6 @@ class V4IdentityScheme : IdentityScheme {
             .put(pubKey.x.toByteArray())
             .put(pubKey.y.toByteArray())
             .array()
-            .toKeccak256()
+            .let { Keccak.Digest256().digest(it) }
     }
 }

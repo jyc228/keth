@@ -2,8 +2,8 @@ package io.github.jyc228.ethereum.vm
 
 import ethereum.core.database.TreeDatabase
 import ethereum.core.repository.ContractCodeRepository
+import io.github.jyc228.ethereum.Address
 import io.github.jyc228.ethereum.state.OnchainStateDatabase
-import io.github.jyc228.ethereum.state.account.Address
 import io.github.jyc228.ethereum.vm.interpreter.EVMConsoleLogger
 import io.github.jyc228.ethereum.vm.interpreter.EVMInterpreter
 import io.kotest.core.spec.style.DescribeSpec
@@ -48,7 +48,7 @@ class EVMInterpreterTest : DescribeSpec({
         ).with(
             db,
             EVMFrame.BlockContext(),
-            EVMFrame.TransactionContext(Address.fromBytes(), Address.fromBytes(), accessList = AccessList())
+            EVMFrame.TransactionContext(Address.build { }, Address.build { }, accessList = AccessList())
         )
         EVMInterpreter.of(InstructionSet.fromConfig(EVMConfig()), EVMConsoleLogger()).execute(context)
 

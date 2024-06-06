@@ -1,32 +1,49 @@
 package io.github.jyc228.ethereum
 
 import java.math.BigInteger
-import kotlin.reflect.full.companionObjectInstance
 import kotlinx.serialization.Serializable
 
-interface HexString {
-    val hex: String
+abstract class HexString {
+    abstract val hex: String
+    val with0x get() = "0x$hex"
+
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (other !is HexString) return false
+        return hex == other.hex
+    }
+
+    override fun hashCode(): Int = hex.hashCode()
+    override fun toString(): String = with0x
+
+    @OptIn(ExperimentalStdlibApi::class)
+    abstract class Factory<T : HexString>(protected val new: (String) -> T) {
+        fun fromHexString(hex: String): T = new(hex.removePrefix("0x").lowercase())
+        fun fromByteArray(bytes: ByteArray): T = new(bytes.toHexString())
+        fun unsafe(value: String) = new(value)
+    }
 }
 
 @Serializable(HashSerializer::class)
-data class Hash(override val hex: String) : HexString {
-    override fun toString(): String = hex
-
-    companion object : StrictHexStringFactory<Hash>(::Hash, true, 66)
+class Hash private constructor(override val hex: String) : HexString() {
+    companion object : Factory<Hash>(::Hash)
 }
 
+@OptIn(ExperimentalStdlibApi::class)
 @Serializable(AddressSerializer::class)
-data class Address(override val hex: String) : HexString {
-    override fun toString(): String = hex
+class Address private constructor(override val hex: String) : HexString() {
+    val bytes get() = hex.hexToByteArray()
 
-    companion object : StrictHexStringFactory<Address>(::Address, true, 42)
+    companion object : Factory<Address>(::Address) {
+        fun build(size: Int = 20, action: (ByteArray) -> Unit) = Address(ByteArray(size).apply(action).toHexString())
+    }
 }
 
 sealed class HexNumber<T, SELF : HexNumber<T, SELF>>(
     private val lazyHex: Lazy<String>,
     private val lazyNumber: Lazy<T>
-) : HexString {
-    constructor(toHex: () -> String, number: T) : this(lazy(LazyThreadSafetyMode.NONE, toHex), lazyOf(number))
+) : HexString() {
+    constructor(toHex: (Int) -> String, number: T) : this(lazy(LazyThreadSafetyMode.NONE) { toHex(16) }, lazyOf(number))
     constructor(hex: String, toNumber: () -> T) : this(lazyOf(hex), lazy(LazyThreadSafetyMode.NONE, toNumber))
 
     override val hex: String get() = lazyHex.value
@@ -40,8 +57,8 @@ sealed class HexNumber<T, SELF : HexNumber<T, SELF>>(
 
 @Serializable(HexIntSerializer::class)
 class HexInt : HexNumber<Int, HexInt> {
-    constructor(number: Int) : super({ "0x${number.toString(16)}" }, number)
-    constructor(hex: String) : super(hex, { hex.removePrefix("0x").toInt(16) })
+    constructor(number: Int) : super(number::toString, number)
+    constructor(hex: String) : super(hex, hex::hexToInt)
 
     override operator fun compareTo(other: HexInt): Int = number.compareTo(other.number)
     override operator fun plus(other: HexInt): HexInt = HexInt(number + other.number)
@@ -54,8 +71,8 @@ class HexInt : HexNumber<Int, HexInt> {
 
 @Serializable(HexULongSerializer::class)
 class HexULong : HexNumber<ULong, HexULong> {
-    constructor(number: ULong) : super({ "0x${number.toString(16)}" }, number)
-    constructor(hex: String) : super(hex, { hex.removePrefix("0x").toULong(16) })
+    constructor(number: ULong) : super(number::toString, number)
+    constructor(hex: String) : super(hex, hex::hexToULong)
 
     override operator fun compareTo(other: HexULong): Int = number.compareTo(other.number)
     override operator fun plus(other: HexULong): HexULong = HexULong(number + other.number)
@@ -68,8 +85,8 @@ class HexULong : HexNumber<ULong, HexULong> {
 
 @Serializable(HexBigIntSerializer::class)
 class HexBigInt : HexNumber<BigInteger, HexBigInt> {
-    constructor(number: BigInteger) : super({ "0x${number.toString(16)}" }, number)
-    constructor(hex: String) : super(hex, { hex.removePrefix("0x").toBigInteger(16) })
+    constructor(number: BigInteger) : super(number::toString, number)
+    constructor(hex: String) : super(hex, hex::hexToBigInt)
 
     override operator fun compareTo(other: HexBigInt): Int = number.compareTo(other.number)
     override operator fun plus(other: HexBigInt): HexBigInt = HexBigInt(number + other.number)
@@ -81,12 +98,7 @@ class HexBigInt : HexNumber<BigInteger, HexBigInt> {
 }
 
 @Serializable(HexDataSerializer::class)
-data class HexData(override val hex: String) : HexString {
-    fun toInt(): Int = hex.removePrefix("0x").toInt(16)
-    fun toLong(): Long = hex.removePrefix("0x").toLong(16)
-    fun toULong(): ULong = hex.removePrefix("0x").toULong(16)
-    fun toBigInt(): BigInteger = hex.removePrefix("0x").toBigInteger(16)
-
+data class HexData(override val hex: String) : HexString() {
     fun toText(): String = buildString {
         val value = hex.removePrefix("0x")
         for (i in value.indices step 2) {
@@ -95,46 +107,9 @@ data class HexData(override val hex: String) : HexString {
         }
     }.trim()
 
-    override fun toString(): String = hex
-
-    companion object : HexStringFactory<HexData>(::HexData)
+    companion object : Factory<HexData>(::HexData)
 }
 
-sealed class HexStringFactory<T : HexString>(protected val newInstance: (String) -> T) {
-    val empty: T by lazy(LazyThreadSafetyMode.NONE) { create("") }
-    open fun create(input: String): T = newInstance(input.lowercase())
-}
-
-sealed class StrictHexStringFactory<T : HexString>(
-    newInstance: (String) -> T,
-    private val requirePrefix: Boolean,
-    val valueLength: Int
-) : HexStringFactory<T>(newInstance) {
-    override fun create(input: String): T {
-        if (valueLength == input.length) {
-            if (requirePrefix xor input.startsWith("0x")) {
-                error("invalid input. require 0x prefix? $requirePrefix, input : $input")
-            }
-            return newInstance(input.lowercase())
-        }
-        val refinedInput = buildString(input.length) {
-            val refinedInputLength = valueLength - if (requirePrefix) 2 else 0
-            input.forEach { append(it.lowercaseChar()) }
-            if (startsWith("0x")) delete(0, 2)
-            if (length % 2 != 0) insert(0, '0')
-            while (length < refinedInputLength) insert(0, "00")
-            while (length > refinedInputLength && this[0] == '0' && this[1] == '0') delete(0, 2)
-            if (requirePrefix) insert(0, "0x")
-        }
-        if (valueLength != refinedInput.length) error("invalid length")
-        return newInstance(refinedInput)
-    }
-}
-
-inline fun <reified T : HexString> String.toHex(): T {
-    return (T::class.companionObjectInstance as HexStringFactory<*>).create(this) as T
-}
-
-inline fun <reified T : HexString> emptyHex(): T {
-    return (T::class.companionObjectInstance as HexStringFactory<*>).empty as T
-}
+fun String.hexToInt() = removePrefix("0x").toInt(16)
+fun String.hexToULong() = removePrefix("0x").toULong(16)
+fun String.hexToBigInt() = removePrefix("0x").toBigInteger(16)

@@ -2,7 +2,7 @@ package ethereum.type.builder
 
 import ethereum.collections.Hash
 import ethereum.type.BlockHeader
-import io.github.jyc228.ethereum.state.account.Address
+import io.github.jyc228.ethereum.Address
 import java.math.BigInteger
 
 class BlockHeaderBuilder(val parent: BlockHeader) {

@@ -1,6 +1,6 @@
 package io.github.jyc228.ethereum.vm
 
-import io.github.jyc228.ethereum.state.account.Address
+import io.github.jyc228.ethereum.Address
 import io.github.jyc228.ethereum.state.account.CodeHash
 import io.kotest.core.spec.style.DescribeSpec
 import io.kotest.core.spec.style.scopes.ContainerScope
@@ -26,9 +26,9 @@ class OperationTest : DescribeSpec({
         val operation = instructionSet[opcode.v] ?: fail("operation not exist. $opcode")
         withData(nameFn = { "${it.index} $it" }, testCases) { tc ->
             val frame = EVMFrame(
-                contract = EVMContract(Address.fromBytes(), byteArrayOf(), CodeHash(byteArrayOf())),
+                contract = EVMContract(Address.build { }, byteArrayOf(), CodeHash(byteArrayOf())),
                 callData = byteArrayOf(),
-                caller = Address.fromBytes(),
+                caller = Address.build { },
                 callValue = BigInteger.ZERO,
                 remainGas = 10000000
             )

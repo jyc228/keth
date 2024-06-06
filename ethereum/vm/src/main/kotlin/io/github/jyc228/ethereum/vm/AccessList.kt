@@ -1,6 +1,6 @@
 package io.github.jyc228.ethereum.vm
 
-import io.github.jyc228.ethereum.state.account.Address
+import io.github.jyc228.ethereum.Address
 
 class AccessList(private val account: MutableMap<Address, MutableSet<Slot>?> = mutableMapOf()) {
 

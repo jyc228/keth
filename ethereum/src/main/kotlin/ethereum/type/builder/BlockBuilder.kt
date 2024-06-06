@@ -2,13 +2,13 @@ package ethereum.type.builder
 
 import ethereum.type.Block
 import ethereum.type.BlockHeader
+import io.github.jyc228.ethereum.Address
 import io.github.jyc228.ethereum.Transaction
-import io.github.jyc228.ethereum.state.account.Address
 import java.math.BigInteger
 
 class BlockBuilder(val parent: Block) {
     val header = BlockHeaderBuilder(parent.header)
-    var coinbase: Address = Address.EMPTY
+    var coinbase: Address? = null
     var gasPool: ULong = 0u
     var extra: ByteArray = byteArrayOf()
     var nonce: ByteArray = byteArrayOf()

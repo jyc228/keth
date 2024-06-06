@@ -1,6 +1,6 @@
 package io.github.jyc228.ethereum.vm
 
-import io.github.jyc228.ethereum.state.account.Address
+import io.github.jyc228.ethereum.Address
 import io.github.jyc228.ethereum.state.account.keccak256
 import java.math.BigInteger
 import java.nio.ByteBuffer
@@ -325,7 +325,7 @@ fun OperationBuilder.withOpCode(opCode: OpCode): OperationBuilder { when (opCode
 
     OpCode.CREATE -> poppush { (value, offset, size) ->
         val newContract = db.withAccountOrThrow(contract.address) {
-            EVMContract(Address.new(it.address, it.nonce), memory.read(offset.int, size.int))
+            EVMContract(Address.generate(it.address, it.nonce), memory.read(offset.int, size.int))
         }
         deployContract(contract.address, newContract, value.big)
     }.gas(32000).extraGas { (_, _, size) ->
@@ -338,7 +338,7 @@ fun OperationBuilder.withOpCode(opCode: OpCode): OperationBuilder { when (opCode
 
     OpCode.CREATE2 -> if (vmConfig.eip1014) poppush { (value, offset, size, salt) ->
         val code = memory.read(offset.int, size.int)
-        val newContract = EVMContract(Address.new(contract.address, salt.bytes, code.keccak256()), code)
+        val newContract = EVMContract(Address.generate(contract.address, salt.bytes, code.keccak256()), code)
         deployContract(contract.address, newContract, value.big)
     }.gas(32000).extraGas { (_, _, size) ->
         if (vmConfig.eip3860 && maxInitCodeSize < size.int) 0.also { result = EVMReturn.initMaxCodeSizeExceeded() }
@@ -526,7 +526,7 @@ private fun Int.toElement() = EVMStackElement(_int = this)
 private fun ULong.toElement() = EVMStackElement(_big = toLong().toBigInteger())
 private fun Address.toElement() = EVMStackElement(bytes)
 
-private fun EVMStackElement.toAddress() = Address(bytes.sliceArrayLast(20))
+private fun EVMStackElement.toAddress() = Address.fromByteArray(bytes.sliceArrayLast(20))
 
 private inline fun runIf(condition: Boolean, crossinline execute: () -> EVMStackElement): EVMStackElement {
     if (condition) return execute()

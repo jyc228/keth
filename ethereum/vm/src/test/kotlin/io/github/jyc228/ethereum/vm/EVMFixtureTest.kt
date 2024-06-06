@@ -55,7 +55,7 @@ class EVMFixtureTest : DescribeSpec({
 })
 
 private suspend fun TestScope.testTransaction(evm: EVM, client: EthereumClient, debugRpcUrl: String? = null) {
-    val txHash = Hash(testCase.name.testName)
+    val txHash = Hash.fromHexString(testCase.name.testName)
     val logger = EVMStructLogger(enableStorage = true)
 
     val actual = evm.execute(client.eth.getTransactionByHash(txHash).awaitOrThrow()!!, logger)

@@ -199,7 +199,7 @@ data object AddressCodec : Codec {
     @OptIn(ExperimentalStdlibApi::class)
     fun decode(data: ByteBuffer): Address {
         repeat(12) { require(data.get() == 0.toByte()) }
-        return Address(ByteArray(20).also { data.get(it) }.toHexString().lowercase())
+        return Address.fromHexString(ByteArray(20).also { data.get(it) }.toHexString().lowercase())
     }
 }
 

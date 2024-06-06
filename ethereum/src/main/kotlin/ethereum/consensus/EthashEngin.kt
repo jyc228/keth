@@ -14,9 +14,9 @@ import ethereum.type.Block
 import ethereum.type.BlockBody
 import ethereum.type.BlockHeader
 import ethereum.type.builder.BlockHeaderBuilder
+import io.github.jyc228.ethereum.Address
 import io.github.jyc228.ethereum.TransactionReceipt
 import io.github.jyc228.ethereum.state.StateDatabase
-import io.github.jyc228.ethereum.state.account.Address
 import java.math.BigInteger
 
 /**

@@ -3,7 +3,7 @@ package ethereum.history
 import ethereum.collections.Hash
 import ethereum.config.ForkConfig
 import ethereum.type.BlockHeader
-import io.github.jyc228.ethereum.state.account.Address
+import io.github.jyc228.ethereum.Address
 import io.kotest.matchers.shouldBe
 import java.math.BigInteger
 import org.junit.jupiter.api.Test
@@ -21,7 +21,7 @@ class EIP1559Test {
         val header = BlockHeader(
             parentHash = Hash.EMPTY,
             uncleHash = Hash.EMPTY,
-            coinbase = Address.EMPTY,
+            coinbase = Address.build { },
             root = Hash.EMPTY,
             txHash = Hash.EMPTY,
             receiptHash = Hash.EMPTY,

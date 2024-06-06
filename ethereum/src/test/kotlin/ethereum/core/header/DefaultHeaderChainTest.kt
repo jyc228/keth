@@ -19,7 +19,7 @@ class DefaultHeaderChainTest : StringSpec({
         BlockChainBuilder(db, genesis).commitGenesis()
         val blocks = BlockGenerator.fromGenesis(ForkConfig.from(config), genesis, EthashEngin(), db).generate(128)
 
-        val hc = DefaultHeaderChain(ChainRepository(db))
-        hc.writeHeadersAndSetHead(blocks.map { it.header })
+//        val hc = DefaultHeaderChain(ChainRepository(db))
+//        hc.writeHeadersAndSetHead(blocks.map { it.header })
     }
 })

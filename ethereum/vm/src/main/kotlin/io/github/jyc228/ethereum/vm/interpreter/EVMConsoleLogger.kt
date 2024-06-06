@@ -18,7 +18,7 @@ class EVMConsoleLogger : EVMInterpreterDelegate {
             val beforeGas = frame.remainGas
             var prefix = "$index\t${frame.pc}\t${frame.remainGas}\t${operation.opCode}"
             if (operation.opCode.name.startsWith("SLOAD")) {
-                prefix += "(0x${frame.contract.address.bytes.toHexString()}, ${frame.stack.last()})"
+                prefix += "(${frame.contract.address}, ${frame.stack.last()})"
             }
             println(prefix)
         }

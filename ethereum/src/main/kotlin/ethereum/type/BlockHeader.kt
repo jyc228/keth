@@ -2,7 +2,7 @@ package ethereum.type
 
 import ethereum.collections.Hash
 import ethereum.rlp.toRlp
-import io.github.jyc228.ethereum.state.account.Address
+import io.github.jyc228.ethereum.Address
 import java.math.BigInteger
 
 class BlockHeaders(list: List<BlockHeader>) : ArrayList<BlockHeader>(list)

@@ -19,12 +19,12 @@ import kotlinx.serialization.serializer
 
 internal abstract class HexStringSerializer<T : HexString>(val toObject: (String) -> T) : KSerializer<T> {
     override val descriptor = PrimitiveSerialDescriptor(this::class.qualifiedName ?: error(""), PrimitiveKind.STRING)
-    override fun serialize(encoder: Encoder, value: T) = encoder.encodeString(value.hex.lowercase())
+    override fun serialize(encoder: Encoder, value: T) = encoder.encodeString(value.with0x)
     override fun deserialize(decoder: Decoder) = toObject(decoder.decodeString().lowercase())
 }
 
-internal object HashSerializer : HexStringSerializer<Hash>(::Hash)
-internal object AddressSerializer : HexStringSerializer<Address>(::Address)
+internal object HashSerializer : HexStringSerializer<Hash>(Hash::fromHexString)
+internal object AddressSerializer : HexStringSerializer<Address>(Address::fromHexString)
 internal object HexIntSerializer : HexStringSerializer<HexInt>(::HexInt)
 internal object HexULongSerializer : HexStringSerializer<HexULong>(::HexULong)
 internal object HexBigIntSerializer : HexStringSerializer<HexBigInt>(::HexBigInt)

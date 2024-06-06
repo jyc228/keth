@@ -5,6 +5,7 @@ plugins {
 }
 
 dependencies {
+    implementation(project(":rlp"))
     implementation(project(":ethereum:state"))
     implementation(project(":ethereum:hardfork"))
     compileOnly(project(":ethereum:rpc-client"))

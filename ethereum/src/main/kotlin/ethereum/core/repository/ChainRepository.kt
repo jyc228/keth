@@ -51,8 +51,8 @@ class ChainRepository(
     }
 
     fun writeBlock(block: Block) {
-        writeBlockHeader(block.header)
-        writeBlockBody(block.header.hash, block.header.number, block.body)
+//        writeBlockHeader(block.header)
+//        writeBlockBody(block.header.hash, block.header.number, block.body)
     }
 
     fun writeBlockHeader(header: BlockHeader) {

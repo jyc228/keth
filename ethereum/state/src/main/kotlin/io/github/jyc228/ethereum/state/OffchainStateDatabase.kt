@@ -1,11 +1,11 @@
 package io.github.jyc228.ethereum.state
 
+import io.github.jyc228.ethereum.Address
 import io.github.jyc228.ethereum.BlockReference
 import io.github.jyc228.ethereum.Hash
 import io.github.jyc228.ethereum.HexData
 import io.github.jyc228.ethereum.rpc.EthereumClient
 import io.github.jyc228.ethereum.rpc.eth.AccountProof
-import io.github.jyc228.ethereum.state.account.Address
 import io.github.jyc228.ethereum.state.account.CodeHash
 import io.github.jyc228.ethereum.state.account.ManagedStateAccount
 import io.github.jyc228.ethereum.state.account.StateRoot
@@ -17,7 +17,7 @@ class OffchainStateDatabase(
     private val client: EthereumClient
 ) : AbstractStateDatabase<ManagedStateAccount>() {
 
-    private val ref = BlockReference.fromHex(originalRoot.hex)
+    private val ref = BlockReference.fromHex(originalRoot)
     private val accountByAddress = mutableMapOf<Address, OffchainManagedStateAccount>()
 
     override suspend fun createAccount(
@@ -29,8 +29,7 @@ class OffchainStateDatabase(
 
     override suspend fun findAccount(address: Address): ManagedStateAccount? {
         return accountByAddress.getOrPut(address) {
-            val addr = io.github.jyc228.ethereum.Address("0x${address.hex}")
-            val proof = client.eth.getProof(addr, emptyList(), ref).awaitOrNull() ?: return null
+            val proof = client.eth.getProof(address, emptyList(), ref).awaitOrNull() ?: return null
             OffchainManagedStateAccount.fromProof(address, proof, client, ref)
         }
     }
@@ -68,13 +67,12 @@ class OffchainStateDatabase(
         private val origin = mutableMapOf<String, ByteArray?>()
         private val dirty = mutableMapOf<String, ByteArray?>()
 
-        val addr = io.github.jyc228.ethereum.Address("0x${address.hex}")
         var code: ByteArray? = null
 
         @OptIn(ExperimentalStdlibApi::class)
         override suspend fun getCode(): ByteArray? {
             if (code == null && codeHash != null) {
-                code = client.eth.getCode(addr, ref).awaitOrNull()?.hex?.removePrefix("0x")?.hexToByteArray()
+                code = client.eth.getCode(address, ref).awaitOrNull()?.hex?.removePrefix("0x")?.hexToByteArray()
             }
             return code
         }
@@ -96,7 +94,7 @@ class OffchainStateDatabase(
             if (key.toHexString() in origin) {
                 return origin[key.toHexString()]
             }
-            return client.eth.getStorageAt(addr, HexData.create(key.toHexString()), ref).awaitOrNull()
+            return client.eth.getStorageAt(address, HexData.fromByteArray(key), ref).awaitOrNull()
                 ?.hex
                 ?.removePrefix("0x")
                 ?.hexToByteArray()

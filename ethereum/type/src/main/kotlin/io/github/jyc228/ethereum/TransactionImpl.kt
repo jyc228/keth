@@ -10,8 +10,8 @@ data class RpcTransaction(
     @Serializable(NullBlockNumber::class)
     override val blockNumber: HexULong = Transaction.pendingBlockNumber,
 
-    override val hash: Hash = Hash.empty,
-    override val from: Address = Address.empty,
+    override val hash: Hash = nullHash,
+    override val from: Address = nullAddress,
     override var to: Address? = null,
     override var input: String = "",
     override var value: HexBigInt = HexBigInt.ZERO,
@@ -42,4 +42,9 @@ data class RpcTransaction(
     LegacyTransactionBuilder,
     AccessListTransactionBuilder,
     DynamicFeeTransactionBuilder,
-    BlobTransactionBuilder
+    BlobTransactionBuilder {
+    companion object {
+        private val nullHash = Hash.unsafe("null")
+        private val nullAddress = Address.unsafe("null")
+    }
+}

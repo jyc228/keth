@@ -13,7 +13,7 @@ class TransactionRlpTest : DescribeSpec({
         nonce = HexULong(3u)
         gasPrice = HexBigInt(1.toBigInteger())
         gas = HexBigInt(2000.toBigInteger())
-        to = Address.create("b94f5374fce5edbc8e2a8697c15331677e6ebf0b")
+        to = Address.fromHexString("b94f5374fce5edbc8e2a8697c15331677e6ebf0b")
         value = HexBigInt(10.toBigInteger())
         input = "0x5544"
         v = HexBigInt("28".toBigInteger())
@@ -26,7 +26,7 @@ class TransactionRlpTest : DescribeSpec({
         nonce = HexULong(3u)
         gasPrice = HexBigInt(BigInteger.ONE)
         gas = HexBigInt(25000.toBigInteger())
-        to = Address.create("b94f5374fce5edbc8e2a8697c15331677e6ebf0b")
+        to = Address.fromHexString("b94f5374fce5edbc8e2a8697c15331677e6ebf0b")
         value = HexBigInt(10.toBigInteger())
         input = "0x5544"
         v = HexBigInt("1".toBigInteger())

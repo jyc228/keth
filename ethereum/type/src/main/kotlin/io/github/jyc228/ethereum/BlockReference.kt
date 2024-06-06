@@ -20,6 +20,6 @@ value class BlockReference private constructor(val value: String) {
             else -> error("unknown tag $tag")
         }
 
-        fun fromHex(hex: String) = BlockReference(hex)
+        fun fromHex(hex: HexString) = BlockReference(hex.with0x)
     }
 }

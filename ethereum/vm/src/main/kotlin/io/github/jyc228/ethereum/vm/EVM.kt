@@ -1,5 +1,6 @@
 package io.github.jyc228.ethereum.vm
 
+import io.github.jyc228.ethereum.Address
 import io.github.jyc228.ethereum.BlockHeader
 import io.github.jyc228.ethereum.HexBigInt
 import io.github.jyc228.ethereum.HexData
@@ -9,7 +10,6 @@ import io.github.jyc228.ethereum.Transaction
 import io.github.jyc228.ethereum.TransactionReceipt
 import io.github.jyc228.ethereum.TransactionStatus
 import io.github.jyc228.ethereum.state.StateDatabase
-import io.github.jyc228.ethereum.state.account.Address
 import io.github.jyc228.ethereum.vm.interpreter.EVMInterpreter
 import io.github.jyc228.ethereum.vm.interpreter.EVMInterpreterDelegate
 import io.github.jyc228.keth.fork.HardForkManager
@@ -32,7 +32,7 @@ class EVM(
         val frame = when (val to = transaction.to) {
             null -> EVMFrame(
                 contract = db.withAccountOrThrow(Address.fromHexString(transaction.from.hex)) {
-                    val newContractAddress = Address.new(it.address, it.nonce)
+                    val newContractAddress = Address.generate(it.address, it.nonce)
                     EVMContract(newContractAddress, transaction.input.removePrefix("0x").hexToByteArray())
                 },
                 callData = byteArrayOf(),
@@ -124,7 +124,7 @@ class EVM(
             cumulativeGasUsed = transaction.gas - HexBigInt(frame.remainGas.toBigInteger()), // todo
             gasUsed = transaction.gas - HexBigInt(frame.remainGas.toBigInteger()),
             contractAddress = when (transaction.to) {
-                null -> io.github.jyc228.ethereum.Address(frame.contract.address.hex)
+                null -> frame.contract.address
                 else -> null
             },
             status = if (frame.result?.err == null) TransactionStatus.Success else TransactionStatus.Fail,
@@ -137,7 +137,7 @@ class EVM(
                     transactionHash = transaction.hash,
                     blockHash = transaction.blockHash,
                     blockNumber = transaction.blockNumber,
-                    address = io.github.jyc228.ethereum.Address(hex = log.address.hex),
+                    address = log.address,
                     data = HexData("0x${log.data?.toHexString() ?: ""}"),
                     topics = log.topics.map { HexData("0x${it.copyInto(ByteArray(32), 32 - it.size).toHexString()}") }
                 )

@@ -25,7 +25,7 @@ class BlockChainBuilder(val db: KeyValueDatabase, val genesis: Genesis) {
             TreeDatabase(db).commit(root)
         }
         chainDB.writeTotalDifficulty(genesisBlock.hash, genesisBlock.number, genesisBlock.header.difficulty!!)
-        chainDB.writeBlock(genesisBlock)
+        chainDB.writeBlock(genesisBlock) // todo
         chainDB.writeReceipts(genesisBlock.hash, genesisBlock.number, emptyList())
         chainDB.writeCanonicalHash(genesisBlock.hash, genesisBlock.number)
         chainDB.writeHeadBlockHash(genesisBlock.hash)

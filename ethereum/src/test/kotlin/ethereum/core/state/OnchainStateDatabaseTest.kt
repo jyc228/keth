@@ -2,8 +2,8 @@ package ethereum.core.state
 
 import ethereum.core.database.TreeDatabase
 import ethereum.core.repository.ContractCodeRepository
+import io.github.jyc228.ethereum.Address
 import io.github.jyc228.ethereum.state.OnchainStateDatabase
-import io.github.jyc228.ethereum.state.account.Address
 import io.github.jyc228.ethereum.state.account.ManagedStateAccount
 import io.kotest.common.runBlocking
 import org.junit.jupiter.api.Test
@@ -14,7 +14,7 @@ class OnchainStateDatabaseTest {
 // only the one right before the commit.
     @Test
     fun TestIntermediateLeaks() = runBlocking {
-        val addresses = (0..<255).map { Address.fromBytes(it.toByte()) }
+        val addresses = (0..<255).map { Address.fromByteArray(byteArrayOf(it.toByte())) }
 
         val prevDb = TreeDatabase.memory()
         val prevState = OnchainStateDatabase.empty(prevDb, ContractCodeRepository(prevDb.db))
@@ -41,8 +41,9 @@ class OnchainStateDatabaseTest {
         }
     }
 
+    @OptIn(ExperimentalStdlibApi::class)
     private suspend fun ManagedStateAccount.withTestData(tweak: Byte) {
-        val i = address.bytes[0]
+        val i = address.hex.hexToByteArray()[0]
         this.balance = (i.toUByte().toInt() * 11 + tweak).toBigInteger()
         this.nonce = (i.toUByte().toInt() * 42 + tweak).toULong()
         if (i % 2 == 0) {

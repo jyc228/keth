@@ -10,11 +10,11 @@ import ethereum.type.Block
 import ethereum.type.BlockBody
 import ethereum.type.BlockHeader
 import ethereum.type.builder.BlockHeaderBuilder
+import io.github.jyc228.ethereum.Address
 import io.github.jyc228.ethereum.Transaction
 import io.github.jyc228.ethereum.TransactionReceipt
 import io.github.jyc228.ethereum.TransactionRlp
 import io.github.jyc228.ethereum.state.OnchainStateDatabase
-import io.github.jyc228.ethereum.state.account.Address
 import java.math.BigInteger
 import kotlin.math.min
 import kotlinx.coroutines.runBlocking
@@ -79,7 +79,7 @@ object BlockFactory {
                     ?: BigInteger.valueOf(131072).takeIf { genesis.mixHash == null || genesis.mixHash == Hash.EMPTY }
                     ?: BigInteger.ZERO,
                 mixDigest = genesis.mixHash ?: Hash.EMPTY,
-                coinbase = genesis.coinbase ?: Address.EMPTY,
+                coinbase = genesis.coinbase ?: Address.build {  },
                 root = runBlocking {
                     val db = TreeDatabase.memory()
                     Hash.fromStateRoot(

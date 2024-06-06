@@ -1,6 +1,6 @@
 package io.github.jyc228.ethereum.state
 
-import io.github.jyc228.ethereum.state.account.Address
+import io.github.jyc228.ethereum.Address
 import io.github.jyc228.ethereum.state.account.ManagedStateAccount
 import io.github.jyc228.ethereum.state.account.StateAccount
 import io.github.jyc228.ethereum.state.account.StateRoot

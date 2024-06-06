@@ -2,8 +2,8 @@ package ethereum.core
 
 import ethereum.collections.Hash
 import ethereum.config.ChainConfig
+import io.github.jyc228.ethereum.Address
 import io.github.jyc228.ethereum.state.StateDatabase
-import io.github.jyc228.ethereum.state.account.Address
 import io.github.jyc228.ethereum.state.account.StateRoot
 import java.math.BigInteger
 
@@ -63,22 +63,25 @@ class Genesis(
             difficulty = BigInteger.valueOf(17179869184)
         )
 
+        @OptIn(ExperimentalStdlibApi::class)
         fun dev(gasLimit: BigInteger, faucet: Address? = null) = Genesis(
             config = null,
-            extraData = ByteArray(32) + (faucet?.bytes ?: byteArrayOf()) + ByteArray(65),
+            extraData = ByteArray(32) + (faucet?.hex?.hexToByteArray() ?: byteArrayOf()) + ByteArray(65),
             gasLimit = gasLimit,
             difficulty = BigInteger.ONE,
             baseFee = BigInteger.valueOf(1000000000),
             alloc = buildMap {
-                this[Address.fromByte(1)] = Account(balance = BigInteger.ONE) // ECRecover
-                this[Address.fromByte(2)] = Account(balance = BigInteger.ONE) // SHA256
-                this[Address.fromByte(3)] = Account(balance = BigInteger.ONE) // RIPEMD
-                this[Address.fromByte(4)] = Account(balance = BigInteger.ONE) // Identity
-                this[Address.fromByte(5)] = Account(balance = BigInteger.ONE) // ModExp
-                this[Address.fromByte(6)] = Account(balance = BigInteger.ONE) // ECAdd
-                this[Address.fromByte(7)] = Account(balance = BigInteger.ONE) // ECScalarMul
-                this[Address.fromByte(8)] = Account(balance = BigInteger.ONE) // ECPairing
-                this[Address.fromByte(9)] = Account(balance = BigInteger.ONE) // BLAKE2b
+                // @formatter:off
+                this[Address.fromHexString("0000000000000000000000000000000000000001")] = Account(balance = BigInteger.ONE) // ECRecover
+                this[Address.fromHexString("0000000000000000000000000000000000000002")] = Account(balance = BigInteger.ONE) // SHA256
+                this[Address.fromHexString("0000000000000000000000000000000000000003")] = Account(balance = BigInteger.ONE) // RIPEMD
+                this[Address.fromHexString("0000000000000000000000000000000000000004")] = Account(balance = BigInteger.ONE) // Identity
+                this[Address.fromHexString("0000000000000000000000000000000000000005")] = Account(balance = BigInteger.ONE) // ModExp
+                this[Address.fromHexString("0000000000000000000000000000000000000006")] = Account(balance = BigInteger.ONE) // ECAdd
+                this[Address.fromHexString("0000000000000000000000000000000000000007")] = Account(balance = BigInteger.ONE) // ECScalarMul
+                this[Address.fromHexString("0000000000000000000000000000000000000008")] = Account(balance = BigInteger.ONE) // ECPairing
+                this[Address.fromHexString("0000000000000000000000000000000000000009")] = Account(balance = BigInteger.ONE) // BLAKE2b
+                // @formatter:on
                 faucet?.let { this[it] = Account(balance = BigInteger.ONE.shiftLeft(256) - BigInteger.valueOf(9)) }
             }
         )

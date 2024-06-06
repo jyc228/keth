@@ -1,5 +1,6 @@
 package io.github.jyc228.ethereum.state.account
 
+import io.github.jyc228.ethereum.Address
 import java.math.BigInteger
 
 interface StateAccount {

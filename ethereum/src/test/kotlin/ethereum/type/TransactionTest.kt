@@ -1,7 +1,6 @@
 package ethereum.type
 
 import ethereum.collections.Hash
-import ethereum.hexToByteArray
 import ethereum.history.EIP2930
 import ethereum.history.fork.HomesteadHardFork
 import io.github.jyc228.ethereum.Address
@@ -15,16 +14,17 @@ import io.kotest.core.spec.style.StringSpec
 import io.kotest.matchers.shouldBe
 import java.math.BigInteger
 
+@OptIn(ExperimentalStdlibApi::class)
 class TransactionTest : StringSpec({
     "sig hash" {
         buildLegacyTransaction {
-            to = Address.create("0x095e7baea6a6c7c4c2dfeb977efac326af552d87")
+            to = Address.fromHexString("0x095e7baea6a6c7c4c2dfeb977efac326af552d87")
         }.let { HomesteadHardFork.hash(it) shouldBe Hash.fromHexString("c775b99e7ad12f50d819fcd602390467e28141316969f4b57f0626f74fe3b386") }
         buildLegacyTransaction {
             nonce = HexULong(3u)
             gasPrice = HexBigInt(1.toBigInteger())
             gas = HexBigInt(2000.toBigInteger())
-            to = Address.create("0xb94f5374fce5edbc8e2a8697c15331677e6ebf0b")
+            to = Address.fromHexString("0xb94f5374fce5edbc8e2a8697c15331677e6ebf0b")
             value = HexBigInt(10.toBigInteger())
             input = "0x5544"
             withSignature(
@@ -43,7 +43,7 @@ class TransactionTest : StringSpec({
                 nonce = HexULong(3u)
                 gasPrice = HexBigInt(BigInteger.ONE)
                 gas = HexBigInt(25000.toBigInteger())
-                to = Address.create("0xb94f5374fce5edbc8e2a8697c15331677e6ebf0b")
+                to = Address.fromHexString("0xb94f5374fce5edbc8e2a8697c15331677e6ebf0b")
                 value = HexBigInt(10.toBigInteger())
                 input = "0x5544"
                 if (sig != null) withSignature(sig)

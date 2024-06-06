@@ -1,6 +1,6 @@
 package io.github.jyc228.ethereum.state
 
-import io.github.jyc228.ethereum.state.account.Address
+import io.github.jyc228.ethereum.Address
 import io.github.jyc228.ethereum.state.account.CodeHash
 import io.github.jyc228.ethereum.state.account.OnchainManagedStateAccount
 import java.math.BigInteger

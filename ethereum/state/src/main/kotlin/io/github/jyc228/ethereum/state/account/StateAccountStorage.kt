@@ -3,6 +3,7 @@ package io.github.jyc228.ethereum.state.account
 import ethereum.collections.MerkleTree
 import ethereum.collections.MerkleTreeDirtyNodes
 import ethereum.rlp.RLPEncoder
+import io.github.jyc228.ethereum.Address
 import io.github.jyc228.ethereum.state.Journal
 import io.github.jyc228.ethereum.state.JournalEntry
 

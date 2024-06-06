@@ -48,7 +48,7 @@ interface Transaction : ECDSASignature {
     val yParity: HexULong?
 
     companion object {
-        val pendingBlockHash = Hash("0xpending")
+        val pendingBlockHash = Hash.unsafe("pending")
         val pendingBlockNumber = HexULong(0uL)
     }
 }
@@ -77,12 +77,12 @@ data class TransactionReceipt(
 data class Access(val address: Address, val storageKeys: List<Hash> = emptyList())
 
 @Serializable(TransactionTypeSerializer::class)
-sealed class TransactionType(val value: Int, override val hex: String) : HexString {
+sealed class TransactionType(val value: Int, override val hex: String) : HexString() {
     data object Legacy : TransactionType(0, "0x0")
     data object AccessList : TransactionType(1, "0x1")
     data object DynamicFee : TransactionType(2, "0x2")
     data object Blob : TransactionType(3, "0x3")
-    class Unknown(hex: String) : TransactionType(hex.removePrefix("0x").toInt(16), hex)
+    class Unknown(hex: String) : TransactionType(hex.hexToInt(), hex)
 
     companion object {
         fun from(hex: String): TransactionType = Legacy.takeIf { it.hex == hex }
@@ -94,14 +94,14 @@ sealed class TransactionType(val value: Int, override val hex: String) : HexStri
 }
 
 @Serializable(TransactionStatusSerializer::class)
-sealed class TransactionStatus(val value: Int, override val hex: String) : HexString {
+sealed class TransactionStatus(val value: Int, override val hex: String) : HexString() {
     data object Fail : TransactionStatus(0, "0x0")
     data object Success : TransactionStatus(1, "0x1")
-    class Custom(hex: String) : TransactionStatus(hex.removePrefix("0x").toInt(16), hex)
+    class Unknown(hex: String) : TransactionStatus(hex.hexToInt(), hex)
 
     companion object {
         fun from(hex: String): TransactionStatus = Fail.takeIf { it.hex == hex }
             ?: Success.takeIf { it.hex == hex }
-            ?: Custom(hex)
+            ?: Unknown(hex)
     }
 }

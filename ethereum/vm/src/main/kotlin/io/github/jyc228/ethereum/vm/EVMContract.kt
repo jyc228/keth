@@ -1,20 +1,30 @@
 package io.github.jyc228.ethereum.vm
 
-import io.github.jyc228.ethereum.state.account.Address
+import ethereum.rlp.RLPEncoder
+import io.github.jyc228.ethereum.Address
 import io.github.jyc228.ethereum.state.account.CodeHash
 import io.github.jyc228.ethereum.state.account.ManagedStateAccount
+import io.github.jyc228.ethereum.state.account.keccak256
+import java.nio.ByteBuffer
 
-interface EVMAccount {
-    val address: Address
+fun Address.Companion.generate(address: Address, nonce: ULong): Address {
+    val data = RLPEncoder.encodeArray { addBytes(address.bytes).addULong(nonce) }
+    return Address.fromByteArray(data.keccak256().copyOfRange(12, 32))
 }
 
-class EVMAddress(override val address: Address) : EVMAccount
+fun Address.Companion.generate(address: Address, salt: ByteArray, initHash: ByteArray): Address {
+    val data = ByteBuffer
+        .allocate(1 + address.bytes.size + salt.size + initHash.size)
+        .put(0xFF.toByte()).put(address.bytes).put(salt).put(initHash)
+        .array()
+    return Address.fromByteArray(data.keccak256().copyOfRange(12, 32))
+}
 
 class EVMContract(
-    override val address: Address,
+    val address: Address,
     val code: ByteArray,
     val codeHash: CodeHash
-) : EVMAccount {
+) {
     constructor(address: Address, code: ByteArray) : this(address, code, CodeHash.keccak256FromBytes(code))
 
 //    val caller: AccountReference,
