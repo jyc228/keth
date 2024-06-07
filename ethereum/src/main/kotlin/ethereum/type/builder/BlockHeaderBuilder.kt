@@ -1,13 +1,16 @@
 package ethereum.type.builder
 
-import ethereum.collections.Hash
 import ethereum.type.BlockHeader
+import ethereum.type.EMPTY_RECEIPT_HASH
+import ethereum.type.EMPTY_TX_HASH
+import ethereum.type.EMPTY_UNCLE_HASH
 import io.github.jyc228.ethereum.Address
+import io.github.jyc228.ethereum.Hash
 import java.math.BigInteger
 
 class BlockHeaderBuilder(val parent: BlockHeader) {
     val number = parent.number + 1u
-    var root: Hash = Hash.EMPTY
+    var root: Hash = Hash.unsafe("")
     var difficulty: BigInteger = BigInteger.ZERO
     var baseFee: BigInteger? = null
     var gasLimit: BigInteger = parent.gasLimit
@@ -34,7 +37,7 @@ class BlockHeaderBuilder(val parent: BlockHeader) {
             gasUsed = BigInteger.ZERO,
             time = parent.time + 10u,
             extra = null,
-            mixDigest = Hash.EMPTY,
+            mixDigest = Hash.unsafe(""),
             nonce = ByteArray(8),
             baseFee = baseFee,
             withdrawalsHash = null,

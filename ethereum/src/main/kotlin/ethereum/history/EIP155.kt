@@ -1,8 +1,9 @@
 package ethereum.history
 
-import ethereum.collections.Hash
 import ethereum.history.fork.FrontierHardFork
+import ethereum.type.keccak256
 import io.github.jyc228.ethereum.ECDSASignature
+import io.github.jyc228.ethereum.Hash
 import io.github.jyc228.ethereum.HexBigInt
 import io.github.jyc228.ethereum.Transaction
 import io.github.jyc228.ethereum.TransactionRlp
@@ -27,7 +28,7 @@ object EIP155 {
         }
 
         override fun hash(tx: Transaction): Hash {
-            return Hash.keccak256FromBytes(TransactionRlp.encode(tx, withSignature = false))
+            return Hash.keccak256(TransactionRlp.encode(tx, withSignature = false))
         }
     }
 }

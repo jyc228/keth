@@ -7,6 +7,9 @@ abstract class HexString {
     abstract val hex: String
     val with0x get() = "0x$hex"
 
+    @OptIn(ExperimentalStdlibApi::class)
+    val bytes get() = hex.hexToByteArray()
+
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
         if (other !is HexString) return false
@@ -32,8 +35,6 @@ class Hash private constructor(override val hex: String) : HexString() {
 @OptIn(ExperimentalStdlibApi::class)
 @Serializable(AddressSerializer::class)
 class Address private constructor(override val hex: String) : HexString() {
-    val bytes get() = hex.hexToByteArray()
-
     companion object : Factory<Address>(::Address) {
         fun build(size: Int = 20, action: (ByteArray) -> Unit) = Address(ByteArray(size).apply(action).toHexString())
     }

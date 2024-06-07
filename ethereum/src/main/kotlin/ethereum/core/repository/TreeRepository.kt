@@ -1,6 +1,6 @@
 package ethereum.core.repository
 
-import ethereum.collections.Hash
+import io.github.jyc228.ethereum.Hash
 import ethereum.db.KeyValueDatabase
 
 class TreeRepository(

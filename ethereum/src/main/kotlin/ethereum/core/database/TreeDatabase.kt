@@ -1,11 +1,12 @@
 package ethereum.core.database
 
-import ethereum.collections.Hash
 import ethereum.collections.MerkleTreeDirtyNodes
 import ethereum.collections.MerkleTreeNode
 import ethereum.core.repository.TreeRepository
 import ethereum.db.InMemoryKeyValueDatabase
 import ethereum.db.KeyValueDatabase
+import ethereum.type.fromStateRoot
+import io.github.jyc228.ethereum.Hash
 import io.github.jyc228.ethereum.state.account.AccountRlp
 import io.github.jyc228.ethereum.state.account.AddressHash
 import io.github.jyc228.ethereum.state.account.StateRoot
@@ -13,17 +14,17 @@ import io.github.jyc228.ethereum.state.account.StateRoot
 class TreeDatabase(val db: KeyValueDatabase) : io.github.jyc228.ethereum.state.TreeDatabase {
     private val repository = TreeRepository(db)
     private var dirties: MutableMap<Hash, CachedNode> = mutableMapOf()
-    var oldest = Hash.EMPTY
-    var newest = Hash.EMPTY
+    var oldest = Hash.unsafe("")
+    var newest = Hash.unsafe("")
     var dirtiesSize = 0
     var childrenSize: Int = 0
 
     override fun node(hash: ByteArray): ByteArray? {
-        val dirty = dirties[Hash(hash)]
+        val dirty = dirties[Hash.fromByteArray(hash)]
         if (dirty != null) {
             return dirty.node.encode(false)
         }
-        return repository.readLegacyTrieNode(Hash(hash))
+        return repository.readLegacyTrieNode(Hash.fromByteArray(hash))
     }
 
     // Update inserts the dirty nodes in provided nodeset into database and
@@ -43,7 +44,7 @@ class TreeDatabase(val db: KeyValueDatabase) : io.github.jyc228.ethereum.state.T
         accountDirties.leaves.forEach {
             val account = AccountRlp.decode(it.data)
             if (account.root != null) {
-                reference(Hash(account.root!!.bytes), Hash(it.hash))
+                reference(Hash.fromByteArray(account.root!!.bytes), Hash.fromByteArray(it.hash))
             }
         }
     }
@@ -51,7 +52,7 @@ class TreeDatabase(val db: KeyValueDatabase) : io.github.jyc228.ethereum.state.T
     // reference is the private locked version of Reference.
     private fun reference(child: Hash, parent: Hash) {
         val childNode = dirties[child] ?: return
-        if (parent == Hash.EMPTY) {
+        if (parent == Hash.unsafe("")) {
             childNode.parents++
             return
         }
@@ -65,21 +66,21 @@ class TreeDatabase(val db: KeyValueDatabase) : io.github.jyc228.ethereum.state.T
     // All nodes inserted by this function will be reference tracked
     // and in theory should only used for **trie nodes** insertion.
     private fun insert(node: MerkleTreeNode) {
-        if (Hash(node.hash) in dirties) return
+        if (Hash.fromByteArray(node.hash) in dirties) return
         val entry = CachedNode(node, flushPrev = newest)
         entry.forEachChildren { child -> dirties[child]?.parents?.inc() }
-        dirties[Hash(node.hash)] = entry
+        dirties[Hash.fromByteArray(node.hash)] = entry
 
-        if (oldest == Hash.EMPTY) {
-            oldest = Hash(node.hash)
+        if (oldest == Hash.unsafe("")) {
+            oldest = Hash.fromByteArray(node.hash)
         } else {
-            dirties[newest]!!.flushNext = Hash(node.hash)
+            dirties[newest]!!.flushNext = Hash.fromByteArray(node.hash)
         }
-        newest = Hash(node.hash)
+        newest = Hash.fromByteArray(node.hash)
         dirtiesSize += 32
     }
 
-    override fun commit(hash: StateRoot) = commit(Hash(hash.bytes))
+    override fun commit(hash: StateRoot) = commit(Hash.fromStateRoot(hash))
 
     private fun commit(hash: Hash) {
         val node = dirties[hash] ?: return
@@ -102,7 +103,7 @@ class TreeDatabase(val db: KeyValueDatabase) : io.github.jyc228.ethereum.state.T
 
         fun forEachChildren(callback: (Hash) -> Unit) {
             external.forEach(callback)
-            node.forEachChildrenHash { callback(Hash(it)) }
+            node.forEachChildrenHash { callback(Hash.fromByteArray(it)) }
         }
     }
 

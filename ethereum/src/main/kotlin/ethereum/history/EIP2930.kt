@@ -1,7 +1,8 @@
 package ethereum.history
 
-import ethereum.collections.Hash
+import ethereum.type.keccak256
 import io.github.jyc228.ethereum.ECDSASignature
+import io.github.jyc228.ethereum.Hash
 import io.github.jyc228.ethereum.HexBigInt
 import io.github.jyc228.ethereum.Transaction
 import io.github.jyc228.ethereum.TransactionRlp
@@ -32,7 +33,7 @@ object EIP2930 {
                 return super.hash(tx)
             }
             if (tx.type == TransactionType.AccessList) {
-                return Hash.keccak256FromBytes(TransactionRlp.encode(tx, withSignature = false))
+                return Hash.keccak256(TransactionRlp.encode(tx, withSignature = false))
             }
             error("ErrTxTypeNotSupported")
         }

@@ -1,6 +1,6 @@
 package ethereum.core
 
-import ethereum.collections.Hash
+import io.github.jyc228.ethereum.Hash
 import ethereum.config.ChainConfig
 import io.github.jyc228.ethereum.Address
 import io.github.jyc228.ethereum.state.StateDatabase

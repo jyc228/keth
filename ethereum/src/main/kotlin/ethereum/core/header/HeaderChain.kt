@@ -1,7 +1,7 @@
 package ethereum.core.header
 
-import ethereum.collections.Hash
 import ethereum.type.BlockHeader
+import io.github.jyc228.ethereum.Hash
 import java.math.BigInteger
 
 interface HeaderChain {

@@ -1,6 +1,6 @@
 package ethereum.core
 
-import ethereum.collections.Hash
+import io.github.jyc228.ethereum.Hash
 import ethereum.collections.MerkleTree
 import ethereum.collections.mpt.MerklePatriciaTrie
 import ethereum.core.database.TreeDatabase
@@ -9,7 +9,13 @@ import ethereum.rlp.RLPEncoder
 import ethereum.type.Block
 import ethereum.type.BlockBody
 import ethereum.type.BlockHeader
+import ethereum.type.EMPTY_MPT_ROOT
+import ethereum.type.EMPTY_RECEIPT_HASH
+import ethereum.type.EMPTY_TX_HASH
+import ethereum.type.EMPTY_UNCLE_HASH
+import ethereum.type.EMPTY_WITHDRAWAL_HASH
 import ethereum.type.builder.BlockHeaderBuilder
+import ethereum.type.fromStateRoot
 import io.github.jyc228.ethereum.Address
 import io.github.jyc228.ethereum.Transaction
 import io.github.jyc228.ethereum.TransactionReceipt
@@ -56,7 +62,7 @@ object BlockFactory {
         (128..list.size).forEach { i ->
             tree[RLPEncoder.encode { addULong(i.toULong()) }] = encode(list[i])
         }
-        return tree.rootHash()?.let(::Hash) ?: Hash.EMPTY_MPT_ROOT
+        return tree.rootHash()?.let(Hash::fromByteArray) ?: Hash.EMPTY_MPT_ROOT
     }
 
 
@@ -66,7 +72,7 @@ object BlockFactory {
                 number = genesis.number,
                 nonce = ByteArray(8),
                 time = genesis.timestamp,
-                parentHash = genesis.parentHash ?: Hash.EMPTY,
+                parentHash = genesis.parentHash ?: Hash.unsafe(""),
                 extra = genesis.extraData,
                 gasLimit = genesis.gasLimit.takeIf { it != BigInteger.ZERO } ?: BigInteger.valueOf(4712388),
                 gasUsed = genesis.gasUsed,
@@ -76,9 +82,9 @@ object BlockFactory {
                     else -> null
                 },
                 difficulty = genesis.difficulty
-                    ?: BigInteger.valueOf(131072).takeIf { genesis.mixHash == null || genesis.mixHash == Hash.EMPTY }
+                    ?: BigInteger.valueOf(131072).takeIf { genesis.mixHash == null || genesis.mixHash == Hash.unsafe("") }
                     ?: BigInteger.ZERO,
-                mixDigest = genesis.mixHash ?: Hash.EMPTY,
+                mixDigest = genesis.mixHash ?: Hash.unsafe(""),
                 coinbase = genesis.coinbase ?: Address.build {  },
                 root = runBlocking {
                     val db = TreeDatabase.memory()

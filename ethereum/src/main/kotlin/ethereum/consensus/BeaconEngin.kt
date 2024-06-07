@@ -1,6 +1,6 @@
 package ethereum.consensus
 
-import ethereum.collections.Hash
+import io.github.jyc228.ethereum.Hash
 import ethereum.type.Block
 import ethereum.type.BlockBody
 import ethereum.type.BlockHeader

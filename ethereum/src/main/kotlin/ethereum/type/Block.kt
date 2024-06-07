@@ -14,7 +14,7 @@ class Block(
     val size by lazy(LazyThreadSafetyMode.NONE) { 0 }
 
     override fun toString(): String {
-        return "$number : ${hash.toHexString()}"
+        return "$number : $hash"
     }
 
     companion object

@@ -1,6 +1,6 @@
 package ethereum.type
 
-import ethereum.collections.Hash
+import io.github.jyc228.ethereum.Hash
 import ethereum.history.EIP2930
 import ethereum.history.fork.HomesteadHardFork
 import io.github.jyc228.ethereum.Address

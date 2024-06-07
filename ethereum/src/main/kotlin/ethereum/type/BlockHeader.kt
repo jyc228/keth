@@ -1,8 +1,8 @@
 package ethereum.type
 
-import ethereum.collections.Hash
 import ethereum.rlp.toRlp
 import io.github.jyc228.ethereum.Address
+import io.github.jyc228.ethereum.Hash
 import java.math.BigInteger
 
 class BlockHeaders(list: List<BlockHeader>) : ArrayList<BlockHeader>(list)
@@ -38,10 +38,10 @@ data class BlockHeader(
     /** [dataGasUsed] was added by EIP-4844 and is ignored in legacy headers. */
     val dataGasUsed: BigInteger? = null,
 ) {
-    val hash by lazy(LazyThreadSafetyMode.NONE) { Hash.keccak256FromBytes(toRlp()) }
+    val hash by lazy(LazyThreadSafetyMode.NONE) { Hash.keccak256(toRlp()) }
 
     override fun toString(): String {
-        return "$number : ${hash.toHexString()} : ${parentHash.toHexString()}"
+        return "$number : $hash : $parentHash"
     }
 
     companion object

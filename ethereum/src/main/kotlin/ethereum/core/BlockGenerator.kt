@@ -1,6 +1,6 @@
 package ethereum.core
 
-import ethereum.collections.Hash
+import io.github.jyc228.ethereum.Hash
 import ethereum.config.ForkConfig
 import ethereum.consensus.ChainHeaderReader
 import ethereum.consensus.ConsensusEngin
@@ -12,6 +12,7 @@ import ethereum.type.Block
 import ethereum.type.BlockBody
 import ethereum.type.builder.BlockBuilder
 import ethereum.type.builder.BlockHeaderBuilder
+import ethereum.type.fromStateRoot
 import io.github.jyc228.ethereum.state.OnchainStateDatabase
 import io.github.jyc228.ethereum.state.StateDatabase
 import io.github.jyc228.ethereum.state.account.StateRoot

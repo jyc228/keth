@@ -1,6 +1,6 @@
 package ethereum.type
 
-import ethereum.collections.Hash
+import io.github.jyc228.ethereum.Hash
 import io.github.jyc228.ethereum.ECDSASignature
 import io.github.jyc228.ethereum.Transaction
 import io.github.jyc228.ethereum.TransactionType

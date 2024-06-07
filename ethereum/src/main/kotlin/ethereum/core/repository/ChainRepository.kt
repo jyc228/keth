@@ -1,6 +1,6 @@
 package ethereum.core.repository
 
-import ethereum.collections.Hash
+import io.github.jyc228.ethereum.Hash
 import ethereum.config.ChainConfig
 import ethereum.db.KeyValueDatabase
 import ethereum.rlp.RLPDecoder
@@ -11,6 +11,7 @@ import ethereum.type.Block
 import ethereum.type.BlockBody
 import ethereum.type.BlockHeader
 import io.github.jyc228.ethereum.TransactionReceipt
+import io.github.jyc228.ethereum.state.account.keccak256
 import java.math.BigInteger
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
@@ -57,7 +58,7 @@ class ChainRepository(
 
     fun writeBlockHeader(header: BlockHeader) {
         val rlp = header.toRlp()
-        val hash = Hash.keccak256FromBytes(rlp).bytes
+        val hash = rlp.keccak256()
         val t = rlp.rlpToObject<BlockHeader>()
         db[key('H', hash)] = header.number.toBigEndian()
         db[key('h', header.number.toBigEndian() + hash)] = rlp

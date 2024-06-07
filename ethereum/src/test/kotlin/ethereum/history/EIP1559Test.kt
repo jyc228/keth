@@ -1,6 +1,6 @@
 package ethereum.history
 
-import ethereum.collections.Hash
+import io.github.jyc228.ethereum.Hash
 import ethereum.config.ForkConfig
 import ethereum.type.BlockHeader
 import io.github.jyc228.ethereum.Address
@@ -19,12 +19,12 @@ class EIP1559Test {
 
     private fun computeBaseFee(parentGasUsed: Int): BigInteger {
         val header = BlockHeader(
-            parentHash = Hash.EMPTY,
-            uncleHash = Hash.EMPTY,
+            parentHash = Hash.unsafe(""),
+            uncleHash = Hash.unsafe(""),
             coinbase = Address.build { },
-            root = Hash.EMPTY,
-            txHash = Hash.EMPTY,
-            receiptHash = Hash.EMPTY,
+            root = Hash.unsafe(""),
+            txHash = Hash.unsafe(""),
+            receiptHash = Hash.unsafe(""),
             bloom = ByteArray(256),
             difficulty = null,
             number = 32u,
@@ -32,7 +32,7 @@ class EIP1559Test {
             gasUsed = parentGasUsed.toBigInteger(),
             time = 0u,
             extra = byteArrayOf(),
-            mixDigest = Hash.EMPTY,
+            mixDigest = Hash.unsafe(""),
             nonce = ByteArray(8),
             baseFee = EIP1559.initialBaseFee,
             withdrawalsHash = null,

@@ -1,6 +1,6 @@
 package ethereum.core
 
-import ethereum.collections.Hash
+import io.github.jyc228.ethereum.Hash
 import ethereum.core.header.HeaderChain
 import ethereum.type.Block
 import ethereum.type.BlockBody

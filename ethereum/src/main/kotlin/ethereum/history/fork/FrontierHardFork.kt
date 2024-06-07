@@ -1,9 +1,10 @@
 package ethereum.history.fork
 
-import ethereum.collections.Hash
 import ethereum.type.BlockHeader
 import ethereum.type.Signer
+import ethereum.type.keccak256
 import io.github.jyc228.ethereum.ECDSASignature
+import io.github.jyc228.ethereum.Hash
 import io.github.jyc228.ethereum.Transaction
 import io.github.jyc228.ethereum.TransactionRlp
 import io.github.jyc228.ethereum.TransactionType
@@ -56,6 +57,6 @@ object FrontierHardFork : Signer {
     }
 
     override fun hash(tx: Transaction): Hash {
-        return Hash.keccak256FromBytes(TransactionRlp.encode(tx, withSignature = false))
+        return Hash.keccak256(TransactionRlp.encode(tx, withSignature = false))
     }
 }

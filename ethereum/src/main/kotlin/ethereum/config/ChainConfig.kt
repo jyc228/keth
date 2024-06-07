@@ -1,6 +1,6 @@
 package ethereum.config
 
-import ethereum.collections.Hash
+import io.github.jyc228.ethereum.Hash
 import java.math.BigInteger
 
 data class ChainConfig(
@@ -17,7 +17,7 @@ data class ChainConfig(
     /** EIP150 HF block (nil = no fork) */
     val eip150Block: ULong? = 0u,
     /** EIP150 HF hash (needed for header only clients as only gas pricing changed) */
-    val eip150Hash: Hash = Hash.EMPTY,
+    val eip150Hash: Hash? = null,
 
     /** EIP155 HF block */
     val eip155Block: ULong? = 0u,
