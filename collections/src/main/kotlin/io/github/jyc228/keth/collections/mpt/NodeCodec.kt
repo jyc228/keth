@@ -1,4 +1,4 @@
-package ethereum.collections.mpt
+package io.github.jyc228.keth.collections.mpt
 
 import ethereum.rlp.RLPBuilder
 import ethereum.rlp.RLPDecoder

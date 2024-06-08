@@ -1,4 +1,4 @@
-package ethereum.collections.mpt
+package io.github.jyc228.keth.collections.mpt
 
 import kotlin.experimental.and
 import kotlin.experimental.or

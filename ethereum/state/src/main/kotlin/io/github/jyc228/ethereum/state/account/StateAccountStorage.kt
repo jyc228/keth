@@ -1,7 +1,7 @@
 package io.github.jyc228.ethereum.state.account
 
-import ethereum.collections.MerkleTree
-import ethereum.collections.MerkleTreeDirtyNodes
+import io.github.jyc228.keth.collections.MerkleTree
+import io.github.jyc228.keth.collections.MerkleTreeDirtyNodes
 import ethereum.rlp.RLPEncoder
 import io.github.jyc228.ethereum.Address
 import io.github.jyc228.ethereum.state.Journal

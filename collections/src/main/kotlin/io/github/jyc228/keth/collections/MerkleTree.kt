@@ -1,4 +1,4 @@
-package ethereum.collections
+package io.github.jyc228.keth.collections
 
 interface MerkleTree {
     fun rootHash(): ByteArray?

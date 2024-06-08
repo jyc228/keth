@@ -1,8 +1,8 @@
-package ethereum.collections.mpt
+package io.github.jyc228.keth.collections.mpt
 
-import ethereum.collections.MerkleTree
-import ethereum.collections.MerkleTreeDirtyNodes
-import ethereum.collections.MissingNodeError
+import io.github.jyc228.keth.collections.MerkleTree
+import io.github.jyc228.keth.collections.MerkleTreeDirtyNodes
+import io.github.jyc228.keth.collections.MissingNodeError
 
 class MerklePatriciaTrie(
     private var root: MerklePatriciaTrieNode?,

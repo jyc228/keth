@@ -1,6 +1,6 @@
-package ethereum.collections.mpt
+package io.github.jyc228.keth.collections.mpt
 
-import ethereum.collections.MerkleTreeNode
+import io.github.jyc228.keth.collections.MerkleTreeNode
 
 sealed interface MerklePatriciaTrieNode : MerkleTreeNode {
     override fun forEachChildrenHash(callback: (hash: ByteArray) -> Unit): Unit = when (this) {

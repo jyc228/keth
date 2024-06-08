@@ -1,6 +1,6 @@
-package ethereum.collections.mpt
+package io.github.jyc228.keth.collections.mpt
 
-import ethereum.collections.MerkleTreeDirtyNodes
+import io.github.jyc228.keth.collections.MerkleTreeDirtyNodes
 
 fun collectDirties(node: MerklePatriciaTrieNode, collectLeaf: Boolean): MerkleTreeDirtyNodes? {
     if ((node as? AbstractMerklePatriciaTrieNode)?.dirty == true) {

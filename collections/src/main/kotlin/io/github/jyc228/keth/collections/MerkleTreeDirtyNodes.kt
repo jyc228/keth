@@ -1,4 +1,4 @@
-package ethereum.collections
+package io.github.jyc228.keth.collections
 
 class MerkleTreeDirtyNodes(
     // the set of updated nodes(newly inserted, updated)

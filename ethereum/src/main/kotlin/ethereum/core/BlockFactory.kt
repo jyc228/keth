@@ -1,8 +1,8 @@
 package ethereum.core
 
 import io.github.jyc228.ethereum.Hash
-import ethereum.collections.MerkleTree
-import ethereum.collections.mpt.MerklePatriciaTrie
+import io.github.jyc228.keth.collections.MerkleTree
+import io.github.jyc228.keth.collections.mpt.MerklePatriciaTrie
 import ethereum.core.database.TreeDatabase
 import ethereum.core.repository.ContractCodeRepository
 import ethereum.rlp.RLPEncoder

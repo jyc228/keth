@@ -1,6 +1,6 @@
 package io.github.jyc228.ethereum.state
 
-import ethereum.collections.MerkleTreeDirtyNodes
+import io.github.jyc228.keth.collections.MerkleTreeDirtyNodes
 import io.github.jyc228.ethereum.state.account.AddressHash
 import io.github.jyc228.ethereum.state.account.CodeHash
 import io.github.jyc228.ethereum.state.account.StateRoot

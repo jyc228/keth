@@ -1,7 +1,7 @@
 package ethereum.core.database
 
-import ethereum.collections.MerkleTreeDirtyNodes
-import ethereum.collections.MerkleTreeNode
+import io.github.jyc228.keth.collections.MerkleTreeDirtyNodes
+import io.github.jyc228.keth.collections.MerkleTreeNode
 import ethereum.core.repository.TreeRepository
 import ethereum.db.InMemoryKeyValueDatabase
 import ethereum.db.KeyValueDatabase
