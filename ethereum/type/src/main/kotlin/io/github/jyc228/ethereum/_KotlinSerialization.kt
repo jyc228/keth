@@ -28,7 +28,7 @@ internal object AddressSerializer : HexStringSerializer<Address>(Address::fromHe
 internal object HexIntSerializer : HexStringSerializer<HexInt>(::HexInt)
 internal object HexULongSerializer : HexStringSerializer<HexULong>(::HexULong)
 internal object HexBigIntSerializer : HexStringSerializer<HexBigInt>(::HexBigInt)
-internal object HexDataSerializer : HexStringSerializer<HexData>(::HexData)
+internal object HexDataSerializer : HexStringSerializer<HexData>(HexData::fromHexString)
 
 internal object InstantSerializer : KSerializer<Instant> {
     override val descriptor = PrimitiveSerialDescriptor("io.github.jyc228.ethereum.Instant", PrimitiveKind.STRING)

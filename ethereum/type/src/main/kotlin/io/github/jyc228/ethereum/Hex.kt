@@ -27,9 +27,13 @@ abstract class HexString {
     }
 }
 
+@OptIn(ExperimentalStdlibApi::class)
 @Serializable(HashSerializer::class)
 class Hash private constructor(override val hex: String) : HexString() {
-    companion object : Factory<Hash>(::Hash)
+    companion object : Factory<Hash>(::Hash) {
+        val ZERO = build {}
+        fun build(size: Int = 32, action: (ByteArray) -> Unit) = Hash(ByteArray(size).apply(action).toHexString())
+    }
 }
 
 @OptIn(ExperimentalStdlibApi::class)

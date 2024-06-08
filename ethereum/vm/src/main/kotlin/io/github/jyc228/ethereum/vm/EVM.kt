@@ -104,7 +104,6 @@ class EVM(
         return tx.gas.number.toInt() - gas
     }
 
-    @OptIn(ExperimentalStdlibApi::class)
     private suspend fun receipt(transaction: Transaction, frame: EVMFrame): TransactionReceipt {
         frame.remainGas += min(
             transaction.gas.number.toInt() - frame.remainGas / if (frame.vmConfig.eip3529) 5 else 2,
@@ -138,8 +137,8 @@ class EVM(
                     blockHash = transaction.blockHash,
                     blockNumber = transaction.blockNumber,
                     address = log.address,
-                    data = HexData("0x${log.data?.toHexString() ?: ""}"),
-                    topics = log.topics.map { HexData("0x${it.copyInto(ByteArray(32), 32 - it.size).toHexString()}") }
+                    data = log.data?.let(HexData::fromByteArray) ?: HexData(""),
+                    topics = log.topics.map { HexData.fromByteArray(it.copyInto(ByteArray(32), 32 - it.size)) }
                 )
             }
         )
