@@ -28,16 +28,16 @@ class OnchainStateDatabase(val accountTree: StateAccountTree) : AbstractStateDat
         TODO("Not yet implemented")
     }
 
-    override suspend fun commit(deleteEmpty: Boolean) = accountTree.commit(deleteEmpty)
+    override suspend fun commit() = accountTree.commit()
 
-    override suspend fun intermediateRoot(deleteEmpty: Boolean) = accountTree.intermediateRoot(deleteEmpty)
+    override suspend fun intermediateRoot() = accountTree.intermediateRoot()
 
     companion object {
-        fun of(root: StateRoot?, database: TreeDatabase, codeDatabase: ContractCodeDatabase) =
-            OnchainStateDatabase(StateAccountTree(root, database, codeDatabase))
+        fun of(root: StateRoot?, database: TreeDatabase, codeDatabase: ContractCodeDatabase, eip158: Boolean = true) =
+            OnchainStateDatabase(StateAccountTree(root, database, codeDatabase, eip158))
 
         fun from(db: OnchainStateDatabase) = OnchainStateDatabase(StateAccountTree.from(db.accountTree))
-        fun empty(database: TreeDatabase, codeDatabase: ContractCodeDatabase) =
-            OnchainStateDatabase(StateAccountTree(null, database, codeDatabase))
+        fun empty(database: TreeDatabase, codeDatabase: ContractCodeDatabase, eip158: Boolean = true) =
+            OnchainStateDatabase(StateAccountTree(null, database, codeDatabase, eip158))
     }
 }

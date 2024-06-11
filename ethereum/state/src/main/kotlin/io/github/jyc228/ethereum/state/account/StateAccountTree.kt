@@ -11,7 +11,8 @@ import io.github.jyc228.ethereum.state.TreeDatabase
 class StateAccountTree(
     private var originalRoot: StateRoot?,
     private val database: TreeDatabase,
-    private val codeRepository: ContractCodeDatabase
+    private val codeRepository: ContractCodeDatabase,
+    private val eip158: Boolean
 ) {
     private val tree = MerkleTree.fromRootState(originalRoot?.bytes, database::node)
     val accountByAddress = mutableMapOf<Address, OnchainManagedStateAccount>()
@@ -58,8 +59,8 @@ class StateAccountTree(
 
     fun findFromSnapshotOrNull(): ManagedStateAccount? = null
 
-    fun commit(deleteEmptyObjects: Boolean): StateRoot? {
-        intermediateRoot(deleteEmptyObjects)
+    fun commit(): StateRoot? {
+        intermediateRoot()
 
         val storageDirtyNodes = mutableMapOf<AddressHash, MerkleTreeDirtyNodes>()
         dirtyAddress.forEachAccount { account ->
@@ -82,9 +83,9 @@ class StateAccountTree(
         return tree.rootHash()?.let(::StateRoot)
     }
 
-    fun intermediateRoot(deleteEmptyObject: Boolean): StateRoot? {
+    fun intermediateRoot(): StateRoot? {
         // Finalise all the dirty storage states and write them into the tries
-        finalise(deleteEmptyObject)
+        finalise()
 
         pendingAddress.forEachAccount { if (!it.deleted) it.storage.applyPending() }
         pendingAddress.forEachAccount { account ->
@@ -102,7 +103,7 @@ class StateAccountTree(
      * finalises the state by removing the destructed objects and clears the journal as well as the refunds
      * [finalise], however, will not push any updates into the tries just yet. Only [intermediateRoot] or [commit] will do that.
      */
-    fun finalise(deleteEmptyObject: Boolean) {
+    fun finalise() {
         val addressesToPrefetch = journal.dirtyAddresses().mapNotNull { addr ->
             // ripeMD is 'touched' at block 1714175, in tx 0x1237f737031e40bcde4a8b7e717b2d15e3ecadfe49bb1bbc71ee9deb09c6fcf2
             // That tx goes out of gas, and although the notion of 'touched' does not exist there, the
@@ -111,7 +112,7 @@ class StateAccountTree(
             // it may exist in `s.journal.dirties` but not in `s.stateObjects`.
             // Thus, we can safely ignore it here
             val account = accountByAddress[addr] ?: return@mapNotNull null
-            if (account.suicided || deleteEmptyObject && account.empty) {
+            if (account.suicided || eip158 && account.empty) {
                 account.deleted = true
                 destructAddress += account.address
             } else {
@@ -146,6 +147,6 @@ class StateAccountTree(
     }
 
     companion object {
-        fun from(m: StateAccountTree) = StateAccountTree(m.originalRoot, m.database, m.codeRepository)
+        fun from(m: StateAccountTree) = StateAccountTree(m.originalRoot, m.database, m.codeRepository, m.eip158)
     }
 }

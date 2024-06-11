@@ -120,7 +120,7 @@ class DefaultBlockChain(
         repository.writeReceipts(block.hash, block.number, receipts)
 //        repository.writePreimage(state.preimage())
         // Commit all cached state changes into underlying memory database.
-        val root = state.commit(config.eip158.forked(block.number))
+        val root = state.commit()
         // If we're running an archive node, always flush
         if (cacheConfig.trieDirtyDisabled) {
 //            return bc.triedb.Commit(root, false)

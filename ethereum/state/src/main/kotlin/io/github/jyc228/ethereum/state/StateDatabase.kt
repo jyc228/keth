@@ -31,13 +31,13 @@ interface StateDatabase {
     suspend fun <R> withAccountOrNull(address: Address, transform: suspend (ManagedStateAccount?) -> R): R
     suspend fun <R> withAccount(address: Address, transform: suspend (ManagedStateAccount) -> R): R?
 
-    suspend fun commit(deleteEmpty: Boolean): StateRoot?
+    suspend fun commit(): StateRoot?
 
     /**
      * computes the current root hash of the state tree.
      * It is called in between transactions to get the root hash that goes into transaction receipts.
      */
-    suspend fun intermediateRoot(deleteEmpty: Boolean): StateRoot?
+    suspend fun intermediateRoot(): StateRoot?
 
     fun snapshot(): Int
     fun revertSnapshot(id: Int)

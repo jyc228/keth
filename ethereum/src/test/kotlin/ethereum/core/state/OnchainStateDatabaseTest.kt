@@ -21,7 +21,7 @@ class OnchainStateDatabaseTest {
 
         addresses.forEach { addr -> prevState.withAccountOrCreate(addr) { it.withTestData(0) } }
 
-        prevState.intermediateRoot(false)
+        prevState.intermediateRoot()
 
         val nextDb = TreeDatabase.memory()
         val nextState = OnchainStateDatabase.empty(nextDb, ContractCodeRepository(nextDb.db))
@@ -29,10 +29,10 @@ class OnchainStateDatabaseTest {
             prevState.withAccountOrCreate(addr) { it.withTestData(99) }
             nextState.withAccountOrCreate(addr) { it.withTestData(99) }
         }
-        val prevRoot = requireNotNull(prevState.commit(false))
+        val prevRoot = requireNotNull(prevState.commit())
         prevDb.commit(prevRoot)
 
-        val nextRoot = requireNotNull(nextState.commit(false))
+        val nextRoot = requireNotNull(nextState.commit())
         nextDb.commit(nextRoot)
         val r = nextDb.db.iterator().asSequence().toList()
         r.forEach { (k, v) ->

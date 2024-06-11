@@ -87,11 +87,11 @@ class EVMStructLogger(
         return originDB.withAccount(address) { DelegatedStateAccount(this, it) }
     }
 
-    override suspend fun commit(deleteEmpty: Boolean): StateRoot? {
+    override suspend fun commit(): StateRoot? {
         TODO("Not yet implemented")
     }
 
-    override suspend fun intermediateRoot(deleteEmpty: Boolean): StateRoot? {
+    override suspend fun intermediateRoot(): StateRoot? {
         TODO("Not yet implemented")
     }
 

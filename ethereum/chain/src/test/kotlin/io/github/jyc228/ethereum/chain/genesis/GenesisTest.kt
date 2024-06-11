@@ -16,9 +16,9 @@ import io.kotest.matchers.shouldBe
 class GenesisTest : DescribeSpec({
     context("mainnet header hash") {
         val genesis = Genesis.fromNetworkName("mainnet")
-        val forkManager = HardForkManager.fromNetworkName("mainnet")
+        val fork = HardForkManager.fromNetworkName("mainnet").findFork(genesis.number.number)
         val db = TestDB()
-        val header = BlockHeader.fromGenesis(genesis, OnchainStateDatabase.empty(db, db), forkManager)
+        val header = BlockHeader.fromGenesis(genesis, OnchainStateDatabase.empty(db, db, "eip158" in fork.eips), fork)
         header.hash shouldBe Hash.fromHexString("0xd4e56740f876aef8c010b86a40d5f56745a118d0906a34e69aec8c0db1cb8fa3")
     }
 })

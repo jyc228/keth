@@ -12,7 +12,7 @@ import io.github.jyc228.ethereum.chain.EMPTY_UNCLE_HASH
 import io.github.jyc228.ethereum.chain.EMPTY_WITHDRAWAL_HASH
 import io.github.jyc228.ethereum.chain.fromStateRoot
 import io.github.jyc228.ethereum.state.StateDatabase
-import io.github.jyc228.keth.fork.HardForkManager
+import io.github.jyc228.keth.fork.HardFork
 import java.math.BigInteger
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
@@ -61,9 +61,8 @@ class GenesisAccount(
 suspend fun BlockHeader.Companion.fromGenesis(
     genesis: Genesis,
     db: StateDatabase,
-    forkManager: HardForkManager
+    fork: HardFork
 ): BlockHeader {
-    val fork = forkManager.findFork(genesis.number.number)
     return BlockHeader(
         number = genesis.number.number,
         nonce = genesis.nonce.number,
@@ -85,7 +84,7 @@ suspend fun BlockHeader.Companion.fromGenesis(
             ?: BigInteger.ZERO,
         mixDigest = genesis.mixHash,
         coinbase = genesis.coinbase ?: Address.build { },
-        root = Hash.fromStateRoot(db.createAccounts(genesis.alloc).commit(false)),
+        root = Hash.fromStateRoot(db.createAccounts(genesis.alloc).commit()),
         uncleHash = Hash.EMPTY_UNCLE_HASH,
         txHash = Hash.EMPTY_TX_HASH,
         receiptHash = Hash.EMPTY_RECEIPT_HASH,

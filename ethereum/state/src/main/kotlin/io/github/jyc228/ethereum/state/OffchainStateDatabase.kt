@@ -34,11 +34,11 @@ class OffchainStateDatabase(
         }
     }
 
-    override suspend fun commit(deleteEmpty: Boolean): StateRoot? {
+    override suspend fun commit(): StateRoot? {
         TODO("Not yet implemented")
     }
 
-    override suspend fun intermediateRoot(deleteEmpty: Boolean): StateRoot? {
+    override suspend fun intermediateRoot(): StateRoot? {
         TODO("Not yet implemented")
     }
 

@@ -75,7 +75,7 @@ class EthashEngin : ConsensusEngin {
         finalize(chain, header, state, body)
         return Block.new(
             header = header.mutate {
-                root = Hash.fromStateRoot(state.intermediateRoot(chain.config.eip158.forked(header.number)))
+                root = Hash.fromStateRoot(state.intermediateRoot())
             },
             transactions = body.transactions,
             uncles = body.uncles,

@@ -13,14 +13,14 @@ import org.junit.jupiter.api.Test
 class StateDatabaseTest {
     val emptyDB = {
         val db = TreeDatabase.memory()
-        OnchainStateDatabase.empty(db, ContractCodeRepository(db.db))
+        OnchainStateDatabase.empty(db, ContractCodeRepository(db.db), false)
     }
 
     @Test
     fun `touch delete`() = runBlocking {
         var db = emptyDB()
         db.accountTree.create(Address.build { })
-        db.commit(false)
+        db.commit()
         db = OnchainStateDatabase.from(db)
         val snapshot = db.snapshot()
         db.withAccountOrCreate(Address.build { }) { it.balance += BigInteger.ZERO }
@@ -74,7 +74,7 @@ class StateDatabaseTest {
             it.setCode(byteArrayOf('c'.code.toByte(), 'a'.code.toByte(), 'f'.code.toByte(), 'e'.code.toByte()))
         }
 
-        db.accountTree.commit(false)
+        db.accountTree.commit()
         db = OnchainStateDatabase.from(db)
         val so1 = db.applyAccountOrThrow(addr1) {
             it as OnchainManagedStateAccount
