@@ -14,9 +14,14 @@ interface AbiComponent {
         .split(" ")[1]
         .split(".")
         .let {
-            if (it.size == 1) Struct("", it[0])
-            else Struct(it[0], it[1])
+            if (it.size == 1) Struct("", it[0].removeSuffix("[]"))
+            else Struct(it[0], it[1].removeSuffix("[]"))
         }
+
+    fun resolveName() = when (name.all { it == '_' }) {
+        true -> "`${name}`"
+        false -> name
+    }
 
     data class Struct(val ownerName: String, val name: String)
 }

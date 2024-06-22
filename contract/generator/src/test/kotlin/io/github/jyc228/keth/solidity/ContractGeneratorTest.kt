@@ -66,5 +66,9 @@ class ContractGeneratorTest : StringSpec({
         val gen = newContractGenerator("FullTest")
         println(gen.generateInterface().build())
         println(gen.generateDefaultImplementation().build())
+        LibraryGenerator(
+            "",
+            gen.compileResult.topLevelStructures().associateBy { it.resolveStruct().name }.toMutableMap()
+        ).generate("_Struct", null).build().let { println(it) }
     }
 })

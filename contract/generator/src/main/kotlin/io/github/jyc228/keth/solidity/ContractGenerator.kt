@@ -65,7 +65,7 @@ class ContractGenerator(
         val struct = item.resolveStruct()
         type().dataClass(struct.name).constructor {
             item.components.forEach { output ->
-                parameter(output.name)
+                parameter(output.resolveName())
                     .immutable()
                     .type(output.typeToKotlin)
             }

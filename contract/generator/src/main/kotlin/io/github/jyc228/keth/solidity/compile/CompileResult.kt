@@ -20,7 +20,7 @@ class CompileResult(
     init {
         val functionNames = mutableSetOf<String>()
         abi.forEachIndexed { index, item ->
-            item.ioAsSequence().filter { it.type == "tuple" }.forEach {
+            item.ioAsSequence().filter { it.type == "tuple" || it.type == "tuple[]" }.forEach {
                 val struct = it.resolveStruct()
                 when (struct.ownerName.isBlank()) {
                     true -> topLevelTuples[struct.name] = it

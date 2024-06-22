@@ -74,6 +74,6 @@ open class GenerateCodeTask : SourceTask() {
     private fun generateLibrary(fullName: String, gen: LibraryGenerator) {
         val path = fullName.split(".")
         val dir = File(outputs.files.singleFile, path.dropLast(1).joinToString("/"))
-        gen.generate(path.last()).write(dir)
+        gen.generate(path.last(), path.last().takeIf { it != "_Struct" }).write(dir)
     }
 }

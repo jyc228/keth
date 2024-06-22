@@ -63,6 +63,6 @@ abstract class SolidityCodeGen {
             if (arrayStartIndex == -1) {
                 return kotlinType
             }
-            return "List<${kotlinType}>"
+            return "List<${kotlinType.removeSuffix("[]")}>"
         }
 }
