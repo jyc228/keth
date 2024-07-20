@@ -1,7 +1,9 @@
 package io.github.jyc228.ethereum
 
+import io.kotest.assertions.json.shouldEqualJson
 import io.kotest.core.spec.style.StringSpec
 import io.kotest.matchers.collections.shouldHaveSize
+import io.kotest.matchers.resource.resourceAsString
 import io.kotest.matchers.shouldBe
 
 class BlockJsonTest : StringSpec({
@@ -32,5 +34,10 @@ class BlockJsonTest : StringSpec({
     "decode uncle block" {
         val block = decodeJsonResource<RpcUncleBlock>("/block/uncle_block.json")
         block.stateRoot shouldBe Hash.fromHexString("0xa18dcb578ea2c1d80999c09879550ccb11e86cebe6824c18d3b0981166481be0")
+    }
+
+    "encode to header" {
+        val block = decodeJsonResource<RpcBlock<TransactionHashes>>("/block/block_with_tx_hash.json")
+        encodeToJson(block) shouldEqualJson resourceAsString("/block/block_with_tx_hash.json")
     }
 })

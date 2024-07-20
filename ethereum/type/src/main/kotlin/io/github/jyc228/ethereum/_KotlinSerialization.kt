@@ -32,7 +32,9 @@ internal object HexDataSerializer : HexStringSerializer<HexData>(HexData::fromHe
 
 internal object InstantSerializer : KSerializer<Instant> {
     override val descriptor = PrimitiveSerialDescriptor("io.github.jyc228.ethereum.Instant", PrimitiveKind.STRING)
-    override fun serialize(encoder: Encoder, value: Instant) = encoder.encodeString(value.epochSeconds.toString(16))
+    override fun serialize(encoder: Encoder, value: Instant) =
+        encoder.encodeString("0x${value.epochSeconds.toString(16)}")
+
     override fun deserialize(decoder: Decoder) =
         Instant.fromEpochSeconds(decoder.decodeString().removePrefix("0x").toLong(16))
 }

@@ -53,7 +53,7 @@ data class RpcBlock<T : Transactions>(
     override val totalDifficulty: HexBigInt? = null,
     override val transactions: T,
     override val transactionsRoot: Hash,
-    override val uncles: List<Hash> = emptyList(),
+    override val uncles: List<Hash>,
     override val withdrawals: List<Withdrawal> = emptyList(),
     override val withdrawalsRoot: Hash? = null,
     override val parentBeaconBlockRoot: Hash? = null,

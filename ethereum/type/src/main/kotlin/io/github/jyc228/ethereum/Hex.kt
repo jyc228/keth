@@ -48,8 +48,15 @@ sealed class HexNumber<T, SELF : HexNumber<T, SELF>>(
     private val lazyHex: Lazy<String>,
     private val lazyNumber: Lazy<T>
 ) : HexString() {
-    constructor(toHex: (Int) -> String, number: T) : this(lazy(LazyThreadSafetyMode.NONE) { toHex(16) }, lazyOf(number))
-    constructor(hex: String, toNumber: () -> T) : this(lazyOf(hex), lazy(LazyThreadSafetyMode.NONE, toNumber))
+    constructor(
+        toHex: (Int) -> String,
+        number: T
+    ) : this(lazy(LazyThreadSafetyMode.NONE) { toHex(16) }, lazyOf(number))
+
+    constructor(
+        hex: String,
+        toNumber: () -> T
+    ) : this(lazyOf(hex.removePrefix("0x")), lazy(LazyThreadSafetyMode.NONE, toNumber))
 
     override val hex: String get() = lazyHex.value
     val number: T get() = lazyNumber.value

@@ -1,6 +1,7 @@
 package io.github.jyc228.ethereum
 
 import io.kotest.matchers.resource.resourceAsString
+import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.modules.plus
 
@@ -12,4 +13,8 @@ val defaultJson = Json {
 
 inline fun <reified T> decodeJsonResource(path: String, json: Json = defaultJson): T {
     return json.decodeFromString<T>(resourceAsString(path))
+}
+
+inline fun <reified T> encodeToJson(v: T, json: Json = defaultJson): String {
+    return json.encodeToString(v)
 }
