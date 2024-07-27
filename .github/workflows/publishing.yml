@@ -18,6 +18,8 @@ jobs:
       - uses: gradle/actions/setup-gradle@v3
       - name: execute build
         run: ./gradlew build
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
   publish:
     runs-on: ubuntu-latest
