@@ -1,7 +1,7 @@
 package com.github.jyc228.keth.state
 
-import com.github.jyc228.keth.rpc.EthereumClient
-import com.github.jyc228.keth.rpc.eth.AccountProof
+import com.github.jyc228.keth.client.EthereumClient
+import com.github.jyc228.keth.client.eth.AccountProof
 import com.github.jyc228.keth.state.account.CodeHash
 import com.github.jyc228.keth.state.account.ManagedStateAccount
 import com.github.jyc228.keth.state.account.StateRoot

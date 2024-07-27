@@ -2,9 +2,9 @@ package com.github.jyc228.keth.vm
 
 import com.github.jyc228.jsonrpc.JsonRpcRequest
 import com.github.jyc228.jsonrpc.KtorJsonRpcClient
+import com.github.jyc228.keth.client.EthereumClient
+import com.github.jyc228.keth.client.fromRpcUrl
 import com.github.jyc228.keth.fork.HardForkManager
-import com.github.jyc228.keth.rpc.EthereumClient
-import com.github.jyc228.keth.rpc.fromRpcUrl
 import com.github.jyc228.keth.state.OffchainStateDatabase
 import com.github.jyc228.keth.type.Hash
 import com.github.jyc228.keth.type.TransactionReceipt

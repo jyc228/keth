@@ -4,11 +4,15 @@ plugins {
     `maven-publish`
 }
 
+repositories {
+    gpr("jyc228/keth-client")
+}
+
 dependencies {
     implementation(project(":rlp"))
     implementation(project(":ethereum:state"))
     implementation(project(":ethereum:hardfork"))
-    compileOnly(project(":ethereum:rpc-client"))
+    compileOnly("com.github.jyc228.keth:client:1.0-SNAPSHOT")
 
     implementation("org.jetbrains.kotlin:kotlin-reflect")
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.2")
@@ -16,7 +20,7 @@ dependencies {
     implementation("org.bouncycastle:bcprov-jdk15on:1.70")
 
     testImplementation(project(":ethereum"))
-    testImplementation(project(":ethereum:rpc-client"))
+    testImplementation("com.github.jyc228.keth:client:1.0-SNAPSHOT")
 }
 
 publishing(createGPRPublisher { artifactId = "vm" })

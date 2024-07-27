@@ -4,10 +4,14 @@ plugins {
     `maven-publish`
 }
 
+repositories {
+    gpr("jyc228/keth-client")
+}
+
 dependencies {
     implementation(project(":rlp"))
     implementation(project(":collections"))
-    compileOnly(project(":ethereum:rpc-client"))
+    compileOnly("com.github.jyc228.keth:client:1.0-SNAPSHOT")
 
     implementation("org.bouncycastle:bcprov-jdk15on:1.70")
 }
