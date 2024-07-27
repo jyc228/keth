@@ -1,6 +1,9 @@
 package ethereum.consensus
 
-import io.github.jyc228.ethereum.Hash
+import com.github.jyc228.keth.state.StateDatabase
+import com.github.jyc228.keth.type.Address
+import com.github.jyc228.keth.type.Hash
+import com.github.jyc228.keth.type.TransactionReceipt
 import ethereum.core.BlockFactory.new
 import ethereum.history.fork.ArrowGlacierHardFork
 import ethereum.history.fork.ByzantiumHardFork
@@ -15,9 +18,6 @@ import ethereum.type.BlockBody
 import ethereum.type.BlockHeader
 import ethereum.type.builder.BlockHeaderBuilder
 import ethereum.type.fromStateRoot
-import io.github.jyc228.ethereum.Address
-import io.github.jyc228.ethereum.TransactionReceipt
-import io.github.jyc228.ethereum.state.StateDatabase
 import java.math.BigInteger
 
 /**

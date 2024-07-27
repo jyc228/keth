@@ -1,10 +1,10 @@
 package ethereum.evm.state
 
+import com.github.jyc228.keth.state.OnchainStateDatabase
+import com.github.jyc228.keth.state.account.OnchainManagedStateAccount
+import com.github.jyc228.keth.type.Address
 import ethereum.core.database.TreeDatabase
 import ethereum.core.repository.ContractCodeRepository
-import io.github.jyc228.ethereum.Address
-import io.github.jyc228.ethereum.state.OnchainStateDatabase
-import io.github.jyc228.ethereum.state.account.OnchainManagedStateAccount
 import io.kotest.common.runBlocking
 import io.kotest.matchers.shouldBe
 import java.math.BigInteger

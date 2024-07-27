@@ -1,17 +1,17 @@
 package ethereum.core.database
 
-import io.github.jyc228.keth.collections.MerkleTreeDirtyNodes
-import io.github.jyc228.keth.collections.MerkleTreeNode
+import com.github.jyc228.keth.collections.MerkleTreeDirtyNodes
+import com.github.jyc228.keth.collections.MerkleTreeNode
+import com.github.jyc228.keth.state.account.AccountRlp
+import com.github.jyc228.keth.state.account.AddressHash
+import com.github.jyc228.keth.state.account.StateRoot
+import com.github.jyc228.keth.type.Hash
 import ethereum.core.repository.TreeRepository
 import ethereum.db.InMemoryKeyValueDatabase
 import ethereum.db.KeyValueDatabase
 import ethereum.type.fromStateRoot
-import io.github.jyc228.ethereum.Hash
-import io.github.jyc228.ethereum.state.account.AccountRlp
-import io.github.jyc228.ethereum.state.account.AddressHash
-import io.github.jyc228.ethereum.state.account.StateRoot
 
-class TreeDatabase(val db: KeyValueDatabase) : io.github.jyc228.ethereum.state.TreeDatabase {
+class TreeDatabase(val db: KeyValueDatabase) : com.github.jyc228.keth.state.TreeDatabase {
     private val repository = TreeRepository(db)
     private var dirties: MutableMap<Hash, CachedNode> = mutableMapOf()
     var oldest = Hash.unsafe("")

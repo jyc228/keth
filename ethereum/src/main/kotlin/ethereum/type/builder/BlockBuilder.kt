@@ -1,9 +1,9 @@
 package ethereum.type.builder
 
+import com.github.jyc228.keth.type.Address
+import com.github.jyc228.keth.type.Transaction
 import ethereum.type.Block
 import ethereum.type.BlockHeader
-import io.github.jyc228.ethereum.Address
-import io.github.jyc228.ethereum.Transaction
 import java.math.BigInteger
 
 class BlockBuilder(val parent: Block) {

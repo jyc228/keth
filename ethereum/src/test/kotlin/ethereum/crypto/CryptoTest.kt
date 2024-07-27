@@ -1,6 +1,6 @@
 package ethereum.crypto
 
-//import io.github.jyc228.ethereum.state.account.Address
+//import com.github.jyc228.keth.state.account.Address
 import io.kotest.core.spec.style.StringSpec
 import io.kotest.matchers.shouldBe
 

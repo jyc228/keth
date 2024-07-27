@@ -1,8 +1,8 @@
 package ethereum.p2p.node.record
 
-import ethereum.rlp.RLPEncoder
-import ethereum.rlp.rlpToObject
-import ethereum.rlp.toRlp
+import com.github.jyc228.keth.rlp.RLPEncoder
+import com.github.jyc228.keth.rlp.rlpToObject
+import com.github.jyc228.keth.rlp.toRlp
 import java.util.SortedMap
 import kotlin.reflect.full.companionObjectInstance
 

@@ -1,9 +1,9 @@
 package ethereum.type
 
-import io.github.jyc228.ethereum.Hash
-import io.github.jyc228.ethereum.ECDSASignature
-import io.github.jyc228.ethereum.Transaction
-import io.github.jyc228.ethereum.TransactionType
+import com.github.jyc228.keth.type.ECDSASignature
+import com.github.jyc228.keth.type.Hash
+import com.github.jyc228.keth.type.Transaction
+import com.github.jyc228.keth.type.TransactionType
 
 interface Signer {
     //    // Sender returns the sender address of the transaction.

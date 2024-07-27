@@ -1,9 +1,9 @@
 package ethereum.history
 
-import io.github.jyc228.ethereum.Hash
+import com.github.jyc228.keth.type.Address
+import com.github.jyc228.keth.type.Hash
 import ethereum.config.ForkConfig
 import ethereum.type.BlockHeader
-import io.github.jyc228.ethereum.Address
 import io.kotest.matchers.shouldBe
 import java.math.BigInteger
 import org.junit.jupiter.api.Test

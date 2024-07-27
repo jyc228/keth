@@ -1,11 +1,11 @@
 package ethereum.core
 
-import io.github.jyc228.ethereum.Hash
+import com.github.jyc228.keth.type.Hash
+import com.github.jyc228.keth.type.TransactionReceipt
 import ethereum.core.header.HeaderChain
 import ethereum.type.Block
 import ethereum.type.BlockBody
 import ethereum.type.BlockHeader
-import io.github.jyc228.ethereum.TransactionReceipt
 
 interface BlockChain : HeaderChain {
     val state: State

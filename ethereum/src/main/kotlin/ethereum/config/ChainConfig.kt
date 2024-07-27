@@ -1,6 +1,6 @@
 package ethereum.config
 
-import io.github.jyc228.ethereum.Hash
+import com.github.jyc228.keth.type.Hash
 import java.math.BigInteger
 
 data class ChainConfig(

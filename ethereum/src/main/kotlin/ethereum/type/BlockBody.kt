@@ -1,7 +1,7 @@
 package ethereum.type
 
-import io.github.jyc228.ethereum.Transaction
-import io.github.jyc228.ethereum.Withdrawal
+import com.github.jyc228.keth.type.Transaction
+import com.github.jyc228.keth.type.Withdrawal
 
 class BlockBody(
     val uncles: List<BlockHeader>,

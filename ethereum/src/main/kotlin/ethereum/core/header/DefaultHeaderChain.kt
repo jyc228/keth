@@ -1,8 +1,8 @@
 package ethereum.core.header
 
+import com.github.jyc228.keth.type.Hash
 import ethereum.core.repository.ChainRepository
 import ethereum.type.BlockHeader
-import io.github.jyc228.ethereum.Hash
 import java.math.BigInteger
 import kotlin.random.Random
 

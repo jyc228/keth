@@ -18,7 +18,7 @@ gradlePlugin {
     plugins {
         create("solidity-plugin") {
             id = "io.github.jyc228.keth"
-            implementationClass = "io.github.jyc228.solidity.SolidityPlugin"
+            implementationClass = "com.github.jyc228.keth.solidity.SolidityPlugin"
         }
     }
 }

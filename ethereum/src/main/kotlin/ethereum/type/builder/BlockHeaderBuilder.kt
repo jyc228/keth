@@ -1,11 +1,11 @@
 package ethereum.type.builder
 
+import com.github.jyc228.keth.type.Address
+import com.github.jyc228.keth.type.Hash
 import ethereum.type.BlockHeader
 import ethereum.type.EMPTY_RECEIPT_HASH
 import ethereum.type.EMPTY_TX_HASH
 import ethereum.type.EMPTY_UNCLE_HASH
-import io.github.jyc228.ethereum.Address
-import io.github.jyc228.ethereum.Hash
 import java.math.BigInteger
 
 class BlockHeaderBuilder(val parent: BlockHeader) {

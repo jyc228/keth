@@ -1,6 +1,8 @@
 package ethereum.core
 
-import io.github.jyc228.ethereum.Hash
+import com.github.jyc228.keth.state.StateDatabase
+import com.github.jyc228.keth.type.Hash
+import com.github.jyc228.keth.type.TransactionReceipt
 import ethereum.config.ForkConfig
 import ethereum.consensus.ChainHeaderReader
 import ethereum.consensus.ConsensusEngin
@@ -9,8 +11,6 @@ import ethereum.core.repository.ChainRepository
 import ethereum.type.Block
 import ethereum.type.BlockBody
 import ethereum.type.BlockHeader
-import io.github.jyc228.ethereum.TransactionReceipt
-import io.github.jyc228.ethereum.state.StateDatabase
 import java.math.BigInteger
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.minutes

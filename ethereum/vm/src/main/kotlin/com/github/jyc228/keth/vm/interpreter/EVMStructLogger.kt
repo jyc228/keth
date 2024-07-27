@@ -1,0 +1,149 @@
+package com.github.jyc228.keth.vm.interpreter
+
+import com.github.jyc228.keth.state.AbstractStateDatabase
+import com.github.jyc228.keth.state.StateDatabase
+import com.github.jyc228.keth.state.account.ManagedStateAccount
+import com.github.jyc228.keth.state.account.StateRoot
+import com.github.jyc228.keth.type.Address
+import com.github.jyc228.keth.vm.EVMFrame
+import com.github.jyc228.keth.vm.EVMReturn
+import com.github.jyc228.keth.vm.EVMStack
+import com.github.jyc228.keth.vm.OpCode
+import com.github.jyc228.keth.vm.Operation
+import java.nio.ByteBuffer
+import kotlinx.serialization.Serializable
+
+class EVMStructLogger(
+    private val enableMemory: Boolean = false,
+    private val enableStorage: Boolean = false
+) : EVMInterpreterDelegate, AbstractStateDatabase<ManagedStateAccount>() {
+    val logs = mutableListOf<StructLog>()
+    private val storage: MutableMap<Address, MutableMap<String, String>> = mutableMapOf()
+    private lateinit var originDB: StateDatabase
+
+    override suspend fun execute(frame: EVMFrame, execute: suspend (EVMFrame) -> EVMReturn): EVMReturn {
+        if (frame.depth == 0) {
+            originDB = frame.db
+        }
+        return execute(frame.with(this, frame.block, frame.transaction))
+    }
+
+    @OptIn(ExperimentalStdlibApi::class)
+    override suspend fun execute(
+        frame: EVMFrame,
+        operation: Operation?,
+        execute: suspend (EVMFrame, Operation?) -> EVMReturn?
+    ): EVMReturn? {
+        val nextFrameHash = frame.nextFrame?.hashCode()
+
+        val log = StructLog(
+            pc = frame.pc,
+            op = operation?.opCode,
+            gas = frame.remainGas,
+            gasCost = frame.remainGas,
+            memory = frame.memory.takeIf { enableMemory }?.toHexString(),
+            memorySize = frame.memory.size.takeIf { enableMemory },
+            stack = frame.stack.map { it.toHexString() },
+            returnData = frame.result?.data?.toHexString(),
+            storage = mapOf(),
+            depth = frame.depth + 1,
+            refund = frame.refundGas.takeIf { it != 0 },
+            err = frame.result?.err?.toString()
+        ).also { logs += it }
+
+        return execute(frame, when (operation?.opCode) {
+            OpCode.CALL,
+            OpCode.STATICCALL,
+            OpCode.DELEGATECALL -> operation.beforeExecute { log.gasCost = log.gas - this.remainGas }
+
+            OpCode.SSTORE -> operation.beforeExecute { log.refund = refundGas.takeIf { g -> g != 0 } }
+
+            else -> operation
+        }).apply {
+            if (nextFrameHash == frame.nextFrame?.hashCode()) {
+                log.gasCost -= frame.remainGas
+            }
+            if (enableStorage && (log.op == OpCode.SLOAD || log.op == OpCode.SSTORE)) {
+                log.storage = storage[frame.contract.address]!!.toMap()
+            }
+        }
+    }
+
+    private fun Operation.beforeExecute(
+        action: suspend EVMFrame.(EVMStack) -> Unit
+    ) = Operation(opCode, minStack, gas, extraGas, memorySize) {
+        action(this, it)
+        this@beforeExecute.execute(this, it)
+    }
+
+    override suspend fun createAccount(
+        address: Address,
+        callback: (suspend (ManagedStateAccount) -> Unit)?
+    ): ManagedStateAccount {
+        TODO("Not yet implemented")
+    }
+
+    override suspend fun findAccount(address: Address): ManagedStateAccount? {
+        return originDB.withAccount(address) { DelegatedStateAccount(this, it) }
+    }
+
+    override suspend fun commit(): StateRoot? {
+        TODO("Not yet implemented")
+    }
+
+    override suspend fun intermediateRoot(): StateRoot? {
+        TODO("Not yet implemented")
+    }
+
+    override fun snapshot(): Int {
+        TODO("Not yet implemented")
+    }
+
+    override fun revertSnapshot(id: Int) {
+        TODO("Not yet implemented")
+    }
+
+    override fun dump() {
+        TODO("Not yet implemented")
+    }
+
+    @OptIn(ExperimentalStdlibApi::class)
+    private class DelegatedStateAccount(
+        private val logger: EVMStructLogger,
+        private val delegate: ManagedStateAccount
+    ) : ManagedStateAccount by delegate, ManagedStateAccount.Storage by delegate.storage {
+        override val storage: ManagedStateAccount.Storage get() = this
+        override suspend fun get(key: ByteArray): ByteArray? {
+            return delegate.storage.get(key).also {
+                logger.storage.getOrPut(address) { mutableMapOf() }[key.to32ByteHexString()] = it.to32ByteHexString()
+            }
+        }
+
+        override suspend fun set(key: ByteArray, value: ByteArray?) {
+            delegate.storage.set(key, value)
+            logger.storage.getOrPut(address) { mutableMapOf() }[key.to32ByteHexString()] = value.to32ByteHexString()
+        }
+
+        private fun ByteArray?.to32ByteHexString(): String {
+            if (this == null) return "0x${"0".repeat(64)}"
+            if (size != 32) return "0x${ByteBuffer.allocate(32).position(32 - size).put(this).array().toHexString()}"
+            return "0x${toHexString()}"
+        }
+    }
+}
+
+@Serializable
+data class StructLog(
+    val pc: Int,
+    val op: OpCode?,
+    val gas: Int,
+    var gasCost: Int,
+    val memory: String? = null,
+    val memorySize: Int? = null,
+    val stack: List<String> = emptyList(),
+    val returnData: String? = null,
+    var storage: Map<String, String> = emptyMap(),
+    val depth: Int,
+    var refund: Int? = null,
+    val err: String? = null
+)
