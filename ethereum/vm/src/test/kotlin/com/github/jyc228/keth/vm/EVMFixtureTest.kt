@@ -1,7 +1,7 @@
 package com.github.jyc228.keth.vm
 
+import com.github.jyc228.jsonrpc.JsonRpcClient
 import com.github.jyc228.jsonrpc.JsonRpcRequest
-import com.github.jyc228.jsonrpc.KtorJsonRpcClient
 import com.github.jyc228.keth.client.EthereumClient
 import com.github.jyc228.keth.client.fromRpcUrl
 import com.github.jyc228.keth.fork.HardForkManager
@@ -24,17 +24,6 @@ import kotlinx.serialization.json.encodeToJsonElement
 import kotlinx.serialization.json.jsonObject
 
 class EVMFixtureTest : DescribeSpec({
-
-    context("ethereum") {
-        this.testCase
-        val client = EthereumClient.fromRpcUrl("") // todo
-        val evm = EVM(
-            { client.eth.getHeaderByNumber(it).awaitOrThrow() },
-            { OffchainStateDatabase(it.hash, client) },
-            HardForkManager.fromNetworkName("mainnet")
-        )
-    }
-
     context("kroma") {
         val client = EthereumClient.fromRpcUrl("https://api.kroma.network")
         val debugRpc = "http://apne2c-mainnet-debug01.kroma.network:8545"
@@ -101,7 +90,7 @@ private suspend fun readExpected(txHash: Hash, debugRpcUrl: String): List<Struct
     val fixture = File(fixtureDir, txHash.hex)
     if (!fixture.exists()) {
         println("generate fixture data from debug rpc..")
-        val client = KtorJsonRpcClient(debugRpcUrl)
+        val client = JsonRpcClient.from(debugRpcUrl)
         val request = JsonRpcRequest(json.encodeToJsonElement(listOf(txHash)), "debug_traceTransaction", "1")
         val response = client.send(request)
         val structLogs = requireNotNull(response.result.jsonObject["structLogs"])

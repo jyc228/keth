@@ -14,11 +14,3 @@ data class Log(
     val data: HexData,
     val topics: List<HexData>
 )
-
-@Serializable
-data class GetLogsRequest(
-    var fromBlock: BlockReference? = null,
-    var toBlock: BlockReference? = null,
-    var address: String? = null,
-    var topics: List<String?>? = null
-)

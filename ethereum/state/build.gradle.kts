@@ -11,7 +11,7 @@ repositories {
 dependencies {
     implementation(project(":rlp"))
     implementation(project(":collections"))
-    compileOnly("com.github.jyc228.keth:client:1.0-SNAPSHOT")
+    compileOnly("com.github.jyc228:keth-client:0.2")
 
     implementation("org.bouncycastle:bcprov-jdk15on:1.70")
 }

@@ -12,7 +12,7 @@ dependencies {
     implementation(project(":rlp"))
     implementation(project(":ethereum:state"))
     implementation(project(":ethereum:hardfork"))
-    compileOnly("com.github.jyc228.keth:client:1.0-SNAPSHOT")
+    compileOnly("com.github.jyc228:keth-client:0.2")
 
     implementation("org.jetbrains.kotlin:kotlin-reflect")
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.2")
@@ -20,7 +20,7 @@ dependencies {
     implementation("org.bouncycastle:bcprov-jdk15on:1.70")
 
     testImplementation(project(":ethereum"))
-    testImplementation("com.github.jyc228.keth:client:1.0-SNAPSHOT")
+    testImplementation("com.github.jyc228:keth-client:0.2")
 }
 
 publishing(createGPRPublisher { artifactId = "vm" })
