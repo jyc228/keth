@@ -19,7 +19,6 @@ dependencies {
     implementation("org.jetbrains.kotlinx:kotlinx-datetime-jvm:0.4.0")
     implementation("org.bouncycastle:bcprov-jdk15on:1.70")
 
-    testImplementation(project(":ethereum"))
     testImplementation("com.github.jyc228:keth-client:0.2")
 }
 

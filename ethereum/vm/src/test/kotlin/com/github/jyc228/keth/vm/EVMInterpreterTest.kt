@@ -1,11 +1,11 @@
 package com.github.jyc228.keth.vm
 
+import com.github.jyc228.keth.state.ContractCodeRepository
+import com.github.jyc228.keth.state.DefaultTreeDatabase
 import com.github.jyc228.keth.state.OnchainStateDatabase
 import com.github.jyc228.keth.state.account.Address
 import com.github.jyc228.keth.vm.interpreter.EVMConsoleLogger
 import com.github.jyc228.keth.vm.interpreter.EVMInterpreter
-import ethereum.core.database.TreeDatabase
-import ethereum.core.repository.ContractCodeRepository
 import io.kotest.core.spec.style.DescribeSpec
 import io.kotest.matchers.shouldBe
 import java.math.BigInteger
@@ -13,7 +13,7 @@ import java.math.BigInteger
 @OptIn(ExperimentalStdlibApi::class)
 class EVMInterpreterTest : DescribeSpec({
     val emptyDB = {
-        val db = TreeDatabase.memory()
+        val db = DefaultTreeDatabase.memory()
         OnchainStateDatabase.empty(db, ContractCodeRepository(db.db))
     }
     it("test") {
