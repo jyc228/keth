@@ -2,12 +2,13 @@ package com.github.jyc228.keth.state
 
 import com.github.jyc228.keth.client.EthereumClient
 import com.github.jyc228.keth.client.eth.AccountProof
+import com.github.jyc228.keth.client.eth.BlockReference
+import com.github.jyc228.keth.client.eth.ref
 import com.github.jyc228.keth.state.account.Address
 import com.github.jyc228.keth.state.account.CodeHash
 import com.github.jyc228.keth.state.account.ManagedStateAccount
 import com.github.jyc228.keth.state.account.StateRoot
 import com.github.jyc228.keth.state.account.StorageRoot
-import com.github.jyc228.keth.type.BlockReference
 import com.github.jyc228.keth.type.Hash
 import com.github.jyc228.keth.type.HexData
 import java.math.BigInteger
@@ -17,7 +18,7 @@ class OffchainStateDatabase(
     private val client: EthereumClient
 ) : AbstractStateDatabase<ManagedStateAccount>() {
 
-    private val ref = BlockReference.fromHex(originalRoot)
+    private val ref = originalRoot.ref
     private val accountByAddress = mutableMapOf<Address, OffchainManagedStateAccount>()
 
     override suspend fun createAccount(
@@ -95,7 +96,7 @@ class OffchainStateDatabase(
             if (key.toHexString() in origin) {
                 return origin[key.toHexString()]
             }
-            return client.eth.getStorageAt(address.toKethAddress(), HexData.fromByteArray(key), ref).awaitOrNull()
+            return client.eth.getStorageAt(address.toKethAddress(), HexData(key), ref).awaitOrNull()
                 ?.hex
                 ?.removePrefix("0x")
                 ?.hexToByteArray()
@@ -126,6 +127,6 @@ class OffchainStateDatabase(
     }
 
     companion object {
-        private fun Address.toKethAddress() = com.github.jyc228.keth.type.Address.fromByteArray(bytes)
+        private fun Address.toKethAddress() = com.github.jyc228.keth.type.Address(bytes)
     }
 }

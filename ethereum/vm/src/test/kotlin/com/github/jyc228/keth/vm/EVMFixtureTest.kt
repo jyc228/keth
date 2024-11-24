@@ -3,11 +3,10 @@ package com.github.jyc228.keth.vm
 import com.github.jyc228.jsonrpc.JsonRpcClient
 import com.github.jyc228.jsonrpc.JsonRpcRequest
 import com.github.jyc228.keth.client.EthereumClient
-import com.github.jyc228.keth.client.fromRpcUrl
+import com.github.jyc228.keth.client.eth.TransactionReceipt
 import com.github.jyc228.keth.fork.HardForkManager
 import com.github.jyc228.keth.state.OffchainStateDatabase
 import com.github.jyc228.keth.type.Hash
-import com.github.jyc228.keth.type.TransactionReceipt
 import com.github.jyc228.keth.vm.interpreter.EVMStructLogger
 import com.github.jyc228.keth.vm.interpreter.StructLog
 import io.kotest.assertions.assertSoftly
@@ -25,7 +24,7 @@ import kotlinx.serialization.json.jsonObject
 
 class EVMFixtureTest : DescribeSpec({
     context("kroma") {
-        val client = EthereumClient.fromRpcUrl("https://api.kroma.network")
+        val client = EthereumClient("https://api.kroma.network")
         val debugRpc = "http://apne2c-mainnet-debug01.kroma.network:8545"
         val evm = EVM(
             { client.eth.getHeaderByNumber(it).awaitOrThrow() },
@@ -44,7 +43,7 @@ class EVMFixtureTest : DescribeSpec({
 })
 
 private suspend fun TestScope.testTransaction(evm: EVM, client: EthereumClient, debugRpcUrl: String? = null) {
-    val txHash = Hash.fromHexString(testCase.name.testName)
+    val txHash = Hash(testCase.name.testName)
     val logger = EVMStructLogger(enableStorage = true)
 
     val actual = evm.execute(client.eth.getTransactionByHash(txHash).awaitOrThrow()!!, logger)
@@ -90,7 +89,7 @@ private suspend fun readExpected(txHash: Hash, debugRpcUrl: String): List<Struct
     val fixture = File(fixtureDir, txHash.hex)
     if (!fixture.exists()) {
         println("generate fixture data from debug rpc..")
-        val client = JsonRpcClient.from(debugRpcUrl)
+        val client = JsonRpcClient(debugRpcUrl)
         val request = JsonRpcRequest(json.encodeToJsonElement(listOf(txHash)), "debug_traceTransaction", "1")
         val response = client.send(request)
         val structLogs = requireNotNull(response.result.jsonObject["structLogs"])

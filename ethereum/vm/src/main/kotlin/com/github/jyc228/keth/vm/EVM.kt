@@ -1,16 +1,16 @@
 package com.github.jyc228.keth.vm
 
+import com.github.jyc228.keth.client.eth.BlockHeader
+import com.github.jyc228.keth.client.eth.Log
+import com.github.jyc228.keth.client.eth.Transaction
+import com.github.jyc228.keth.client.eth.TransactionReceipt
+import com.github.jyc228.keth.client.eth.TransactionStatus
 import com.github.jyc228.keth.fork.HardForkManager
 import com.github.jyc228.keth.state.StateDatabase
 import com.github.jyc228.keth.state.account.Address
-import com.github.jyc228.keth.type.BlockHeader
 import com.github.jyc228.keth.type.HexBigInt
 import com.github.jyc228.keth.type.HexData
 import com.github.jyc228.keth.type.HexInt
-import com.github.jyc228.keth.type.Log
-import com.github.jyc228.keth.type.Transaction
-import com.github.jyc228.keth.type.TransactionReceipt
-import com.github.jyc228.keth.type.TransactionStatus
 import com.github.jyc228.keth.vm.interpreter.EVMInterpreter
 import com.github.jyc228.keth.vm.interpreter.EVMInterpreterDelegate
 import java.math.BigInteger
@@ -137,12 +137,12 @@ class EVM(
                     blockHash = transaction.blockHash,
                     blockNumber = transaction.blockNumber,
                     address = log.address.toKethAddress(),
-                    data = log.data?.let(HexData::fromByteArray) ?: HexData(""),
-                    topics = log.topics.map { HexData.fromByteArray(it.copyInto(ByteArray(32), 32 - it.size)) }
+                    data = log.data?.let(HexData::invoke) ?: HexData(""),
+                    topics = log.topics.map { HexData(it.copyInto(ByteArray(32), 32 - it.size)) }
                 )
             }
         )
     }
 
-    private fun Address.toKethAddress() = com.github.jyc228.keth.type.Address.fromByteArray(bytes)
+    private fun Address.toKethAddress() = com.github.jyc228.keth.type.Address(bytes)
 }
