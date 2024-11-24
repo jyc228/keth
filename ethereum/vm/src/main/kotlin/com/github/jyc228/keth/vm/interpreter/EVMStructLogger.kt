@@ -2,9 +2,9 @@ package com.github.jyc228.keth.vm.interpreter
 
 import com.github.jyc228.keth.state.AbstractStateDatabase
 import com.github.jyc228.keth.state.StateDatabase
+import com.github.jyc228.keth.state.account.Address
 import com.github.jyc228.keth.state.account.ManagedStateAccount
 import com.github.jyc228.keth.state.account.StateRoot
-import com.github.jyc228.keth.type.Address
 import com.github.jyc228.keth.vm.EVMFrame
 import com.github.jyc228.keth.vm.EVMReturn
 import com.github.jyc228.keth.vm.EVMStack

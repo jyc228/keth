@@ -1,6 +1,6 @@
 package ethereum.type.builder
 
-import com.github.jyc228.keth.type.Address
+import com.github.jyc228.keth.state.account.Address
 import com.github.jyc228.keth.type.Hash
 import ethereum.type.BlockHeader
 import ethereum.type.EMPTY_RECEIPT_HASH

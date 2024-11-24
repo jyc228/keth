@@ -1,7 +1,7 @@
 package com.github.jyc228.keth.vm
 
+import com.github.jyc228.keth.state.account.Address
 import com.github.jyc228.keth.state.account.keccak256
-import com.github.jyc228.keth.type.Address
 import java.math.BigInteger
 import java.nio.ByteBuffer
 import kotlin.math.max
@@ -526,7 +526,7 @@ private fun Int.toElement() = EVMStackElement(_int = this)
 private fun ULong.toElement() = EVMStackElement(_big = toLong().toBigInteger())
 private fun Address.toElement() = EVMStackElement(bytes)
 
-private fun EVMStackElement.toAddress() = Address.fromByteArray(bytes.sliceArrayLast(20))
+private fun EVMStackElement.toAddress() = Address(bytes.sliceArrayLast(20))
 
 private inline fun runIf(condition: Boolean, crossinline execute: () -> EVMStackElement): EVMStackElement {
     if (condition) return execute()

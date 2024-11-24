@@ -1,6 +1,6 @@
 package ethereum.history
 
-import com.github.jyc228.keth.type.Address
+import com.github.jyc228.keth.state.account.Address
 import com.github.jyc228.keth.type.Hash
 import ethereum.config.ForkConfig
 import ethereum.type.BlockHeader

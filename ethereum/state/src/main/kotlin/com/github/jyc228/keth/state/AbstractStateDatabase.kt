@@ -1,7 +1,7 @@
 package com.github.jyc228.keth.state
 
+import com.github.jyc228.keth.state.account.Address
 import com.github.jyc228.keth.state.account.ManagedStateAccount
-import com.github.jyc228.keth.type.Address
 
 abstract class AbstractStateDatabase<T : ManagedStateAccount> : StateDatabase {
     abstract override suspend fun createAccount(address: Address, callback: (suspend (ManagedStateAccount) -> Unit)?): T
@@ -15,7 +15,7 @@ abstract class AbstractStateDatabase<T : ManagedStateAccount> : StateDatabase {
     override suspend fun applyAccountOrThrow(
         address: Address,
         callback: suspend (ManagedStateAccount) -> Unit
-    ): T = findAccount(address)?.also { callback(it) } ?: error("account 0x${address.hex} not exists")
+    ): T = findAccount(address)?.also { callback(it) } ?: error("account $address not exists")
 
     override suspend fun applyAccountOrNull(
         address: Address,
@@ -35,7 +35,7 @@ abstract class AbstractStateDatabase<T : ManagedStateAccount> : StateDatabase {
     override suspend fun <R> withAccountOrThrow(
         address: Address,
         transform: suspend (ManagedStateAccount) -> R
-    ): R = transform(findAccount(address) ?: error("account 0x${address.hex} not exists"))
+    ): R = transform(findAccount(address) ?: error("account $address not exists"))
 
     override suspend fun <R> withAccountOrNull(
         address: Address,

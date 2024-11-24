@@ -1,6 +1,6 @@
 package com.github.jyc228.keth.state
 
-import com.github.jyc228.keth.type.Address
+import com.github.jyc228.keth.state.account.Address
 import kotlin.properties.ObservableProperty
 import kotlin.properties.ReadWriteProperty
 import kotlin.reflect.KProperty
@@ -32,7 +32,9 @@ class Journal {
         entries += e
         val dirtyAddress = e.dirtyAddress ?: return
         dirties.compute(dirtyAddress) { _, v -> (v ?: 0) + 1 }
-        if (e is JournalEntry.TouchChange && dirtyAddress.hex == "0000000000000000000000000000000000000003") { // RIPEMD address
+        if (e is JournalEntry.TouchChange && dirtyAddress.toString()
+                .removePrefix("0x") == "0000000000000000000000000000000000000003"
+        ) { // RIPEMD address
             // Explicitly put it in the dirty-cache, which is otherwise generated from flattened journals.
             // dirty explicitly sets an address to dirty, even if the change entries would
             // otherwise suggest it as clean. This method is an ugly hack to handle the RIPEMD

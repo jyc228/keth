@@ -5,7 +5,6 @@ import com.github.jyc228.keth.collections.MerkleTreeDirtyNodes
 import com.github.jyc228.keth.rlp.RLPEncoder
 import com.github.jyc228.keth.state.Journal
 import com.github.jyc228.keth.state.JournalEntry
-import com.github.jyc228.keth.type.Address
 
 class StateAccountStorage(
     private val journal: Journal,

@@ -3,7 +3,6 @@ package com.github.jyc228.keth.state.account
 import com.github.jyc228.keth.state.ContractCodeDatabase
 import com.github.jyc228.keth.state.Journal
 import com.github.jyc228.keth.state.JournalEntry
-import com.github.jyc228.keth.type.Address
 import java.math.BigInteger
 
 data class ImmutableStateAccount(

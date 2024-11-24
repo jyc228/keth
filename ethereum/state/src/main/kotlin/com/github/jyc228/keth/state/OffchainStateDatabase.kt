@@ -2,11 +2,11 @@ package com.github.jyc228.keth.state
 
 import com.github.jyc228.keth.client.EthereumClient
 import com.github.jyc228.keth.client.eth.AccountProof
+import com.github.jyc228.keth.state.account.Address
 import com.github.jyc228.keth.state.account.CodeHash
 import com.github.jyc228.keth.state.account.ManagedStateAccount
 import com.github.jyc228.keth.state.account.StateRoot
 import com.github.jyc228.keth.state.account.StorageRoot
-import com.github.jyc228.keth.type.Address
 import com.github.jyc228.keth.type.BlockReference
 import com.github.jyc228.keth.type.Hash
 import com.github.jyc228.keth.type.HexData
@@ -29,7 +29,7 @@ class OffchainStateDatabase(
 
     override suspend fun findAccount(address: Address): ManagedStateAccount? {
         return accountByAddress.getOrPut(address) {
-            val proof = client.eth.getProof(address, emptyList(), ref).awaitOrNull() ?: return null
+            val proof = client.eth.getProof(address.toKethAddress(), emptyList(), ref).awaitOrNull() ?: return null
             OffchainManagedStateAccount.fromProof(address, proof, client, ref)
         }
     }
@@ -72,7 +72,8 @@ class OffchainStateDatabase(
         @OptIn(ExperimentalStdlibApi::class)
         override suspend fun getCode(): ByteArray? {
             if (code == null && codeHash != null) {
-                code = client.eth.getCode(address, ref).awaitOrNull()?.hex?.removePrefix("0x")?.hexToByteArray()
+                code = client.eth.getCode(address.toKethAddress(), ref)
+                    .awaitOrNull()?.hex?.removePrefix("0x")?.hexToByteArray()
             }
             return code
         }
@@ -94,7 +95,7 @@ class OffchainStateDatabase(
             if (key.toHexString() in origin) {
                 return origin[key.toHexString()]
             }
-            return client.eth.getStorageAt(address, HexData.fromByteArray(key), ref).awaitOrNull()
+            return client.eth.getStorageAt(address.toKethAddress(), HexData.fromByteArray(key), ref).awaitOrNull()
                 ?.hex
                 ?.removePrefix("0x")
                 ?.hexToByteArray()
@@ -122,5 +123,9 @@ class OffchainStateDatabase(
                 ref = ref,
             )
         }
+    }
+
+    companion object {
+        private fun Address.toKethAddress() = com.github.jyc228.keth.type.Address.fromByteArray(bytes)
     }
 }

@@ -1,9 +1,9 @@
 package com.github.jyc228.keth.state
 
+import com.github.jyc228.keth.state.account.Address
 import com.github.jyc228.keth.state.account.ManagedStateAccount
 import com.github.jyc228.keth.state.account.StateAccount
 import com.github.jyc228.keth.state.account.StateRoot
-import com.github.jyc228.keth.type.Address
 
 interface StateDatabase {
     /**

@@ -2,7 +2,7 @@ package com.github.jyc228.keth.vm
 
 import com.github.jyc228.keth.fork.HardForkManager
 import com.github.jyc228.keth.state.StateDatabase
-import com.github.jyc228.keth.type.Address
+import com.github.jyc228.keth.state.account.Address
 import com.github.jyc228.keth.type.BlockHeader
 import com.github.jyc228.keth.type.HexBigInt
 import com.github.jyc228.keth.type.HexData
@@ -31,20 +31,20 @@ class EVM(
 
         val frame = when (val to = transaction.to) {
             null -> EVMFrame(
-                contract = db.withAccountOrThrow(Address.fromHexString(transaction.from.hex)) {
+                contract = db.withAccountOrThrow(Address(transaction.from.hex)) {
                     val newContractAddress = Address.generate(it.address, it.nonce)
                     EVMContract(newContractAddress, transaction.input.removePrefix("0x").hexToByteArray())
                 },
                 callData = byteArrayOf(),
-                caller = Address.fromHexString(transaction.from.hex),
+                caller = Address(transaction.from.hex),
                 callValue = transaction.value.number,
                 remainGas = intrinsicGas(transaction, config)
             ).with(db, context(header), context(transaction, config)).also { interpreter.execute(it, OpCode.CREATE) }
 
             else -> EVMFrame(
-                contract = db.withAccountOrThrow(Address.fromHexString(to.hex), EVMContract::of),
+                contract = db.withAccountOrThrow(Address(to.hex), EVMContract::of),
                 callData = transaction.input.removePrefix("0x").hexToByteArray(),
-                caller = Address.fromHexString(transaction.from.hex),
+                caller = Address(transaction.from.hex),
                 callValue = transaction.value.number,
                 remainGas = intrinsicGas(transaction, config)
             ).with(db, context(header), context(transaction, config)).also { interpreter.execute(it) }
@@ -58,22 +58,22 @@ class EVM(
         time = header.timestamp.epochSeconds.toULong() + 2u,
         gasLimit = header.gasLimit.number,
         random = header.mixHash.hex.removePrefix("0x").toByteArray(),
-        coinbase = Address.fromHexString(header.miner?.hex ?: "0x"),
+        coinbase = Address(header.miner?.hex ?: "0x"),
         baseFee = header.baseFeePerGas?.number ?: BigInteger.ZERO
     )
 
     @OptIn(ExperimentalStdlibApi::class)
     private fun context(transaction: Transaction, config: EVMConfig) = EVMFrame.TransactionContext(
-        Address.fromHexString(transaction.from.hex),
-        Address.fromHexString(requireNotNull(transaction.to).hex),
+        Address(transaction.from.hex),
+        Address(requireNotNull(transaction.to).hex),
         requireNotNull(transaction.gasPrice?.number),
         transaction.value.number,
         when (config.eip2929) {
             true -> AccessList().also { accessList ->
-                accessList += Address.fromHexString(transaction.from.hex)
-                if (transaction.to != null) accessList += Address.fromHexString(transaction.to!!.hex)
+                accessList += Address(transaction.from.hex)
+                if (transaction.to != null) accessList += Address(transaction.to!!.hex)
                 transaction.accessList.forEach {
-                    accessList[Address.fromHexString(it.address.hex)] += it.storageKeys.map { k ->
+                    accessList[Address(it.address.hex)] += it.storageKeys.map { k ->
                         AccessList.Slot(k.hex.hexToByteArray())
                     }
                 }
@@ -109,7 +109,7 @@ class EVM(
             transaction.gas.number.toInt() - frame.remainGas / if (frame.vmConfig.eip3529) 5 else 2,
             frame.refundGas
         )
-        frame.db.applyAccount(Address.fromHexString(transaction.from.hex)) {
+        frame.db.applyAccount(Address(transaction.from.hex)) {
             it.balance += frame.remainGas.toBigInteger() * requireNotNull(transaction.gasPrice).number
         }
         return TransactionReceipt(
@@ -123,7 +123,7 @@ class EVM(
             cumulativeGasUsed = transaction.gas - HexBigInt(frame.remainGas.toBigInteger()), // todo
             gasUsed = transaction.gas - HexBigInt(frame.remainGas.toBigInteger()),
             contractAddress = when (transaction.to) {
-                null -> frame.contract.address
+                null -> frame.contract.address.toKethAddress()
                 else -> null
             },
             status = if (frame.result?.err == null) TransactionStatus.Success else TransactionStatus.Fail,
@@ -136,11 +136,13 @@ class EVM(
                     transactionHash = transaction.hash,
                     blockHash = transaction.blockHash,
                     blockNumber = transaction.blockNumber,
-                    address = log.address,
+                    address = log.address.toKethAddress(),
                     data = log.data?.let(HexData::fromByteArray) ?: HexData(""),
                     topics = log.topics.map { HexData.fromByteArray(it.copyInto(ByteArray(32), 32 - it.size)) }
                 )
             }
         )
     }
+
+    private fun Address.toKethAddress() = com.github.jyc228.keth.type.Address.fromByteArray(bytes)
 }

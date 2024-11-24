@@ -1,15 +1,15 @@
 package com.github.jyc228.keth.vm
 
 import com.github.jyc228.keth.rlp.RLPEncoder
+import com.github.jyc228.keth.state.account.Address
 import com.github.jyc228.keth.state.account.CodeHash
 import com.github.jyc228.keth.state.account.ManagedStateAccount
 import com.github.jyc228.keth.state.account.keccak256
-import com.github.jyc228.keth.type.Address
 import java.nio.ByteBuffer
 
 fun Address.Companion.generate(address: Address, nonce: ULong): Address {
     val data = RLPEncoder.encodeArray { addBytes(address.bytes).addULong(nonce) }
-    return Address.fromByteArray(data.keccak256().copyOfRange(12, 32))
+    return Address(data.keccak256().copyOfRange(12, 32))
 }
 
 fun Address.Companion.generate(address: Address, salt: ByteArray, initHash: ByteArray): Address {
@@ -17,7 +17,7 @@ fun Address.Companion.generate(address: Address, salt: ByteArray, initHash: Byte
         .allocate(1 + address.bytes.size + salt.size + initHash.size)
         .put(0xFF.toByte()).put(address.bytes).put(salt).put(initHash)
         .array()
-    return Address.fromByteArray(data.keccak256().copyOfRange(12, 32))
+    return Address(data.keccak256().copyOfRange(12, 32))
 }
 
 class EVMContract(

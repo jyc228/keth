@@ -1,10 +1,10 @@
 package com.github.jyc228.keth.state
 
+import com.github.jyc228.keth.state.account.Address
 import com.github.jyc228.keth.state.account.ManagedStateAccount
 import com.github.jyc228.keth.state.account.OnchainManagedStateAccount
 import com.github.jyc228.keth.state.account.StateAccountTree
 import com.github.jyc228.keth.state.account.StateRoot
-import com.github.jyc228.keth.type.Address
 
 class OnchainStateDatabase(val accountTree: StateAccountTree) : AbstractStateDatabase<OnchainManagedStateAccount>() {
     override suspend fun createAccount(

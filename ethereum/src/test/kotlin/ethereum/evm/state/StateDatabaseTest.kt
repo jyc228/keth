@@ -1,8 +1,8 @@
 package ethereum.evm.state
 
 import com.github.jyc228.keth.state.OnchainStateDatabase
+import com.github.jyc228.keth.state.account.Address
 import com.github.jyc228.keth.state.account.OnchainManagedStateAccount
-import com.github.jyc228.keth.type.Address
 import ethereum.core.database.TreeDatabase
 import ethereum.core.repository.ContractCodeRepository
 import io.kotest.common.runBlocking
@@ -19,11 +19,11 @@ class StateDatabaseTest {
     @Test
     fun `touch delete`() = runBlocking {
         var db = emptyDB()
-        db.accountTree.create(Address.build { })
+        db.accountTree.create(Address.empty)
         db.commit()
         db = OnchainStateDatabase.from(db)
         val snapshot = db.snapshot()
-        db.withAccountOrCreate(Address.build { }) { it.balance += BigInteger.ZERO }
+        db.withAccountOrCreate(Address.empty) { it.balance += BigInteger.ZERO }
         db.revertSnapshot(snapshot)
     }
 
@@ -36,7 +36,7 @@ class StateDatabaseTest {
     @Test
     fun `test snapshot1`() = runBlocking<Unit> {
         val db = emptyDB()
-        val address = Address.fromHexString("aa")
+        val address = Address("aa")
 
         val genesis = db.snapshot()
 
@@ -60,8 +60,8 @@ class StateDatabaseTest {
     fun `test snapshot`() = runBlocking<Unit> {
         var db = emptyDB()
 
-        val addr0 = Address.fromHexString("00")
-        val addr1 = Address.fromHexString("01")
+        val addr0 = Address("00")
+        val addr1 = Address("01")
 
         db.withAccountOrCreate(addr0) { it.storage.set(byteArrayOf(1), byteArrayOf(31, 17)) }
         db.withAccountOrCreate(addr1) { it.storage.set(byteArrayOf(1), byteArrayOf(31, 18)) }

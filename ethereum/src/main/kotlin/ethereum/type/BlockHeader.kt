@@ -1,7 +1,7 @@
 package ethereum.type
 
 import com.github.jyc228.keth.rlp.toRlp
-import com.github.jyc228.keth.type.Address
+import com.github.jyc228.keth.state.account.Address
 import com.github.jyc228.keth.type.Hash
 import java.math.BigInteger
 

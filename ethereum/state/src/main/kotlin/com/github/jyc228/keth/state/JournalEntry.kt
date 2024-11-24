@@ -1,8 +1,8 @@
 package com.github.jyc228.keth.state
 
+import com.github.jyc228.keth.state.account.Address
 import com.github.jyc228.keth.state.account.CodeHash
 import com.github.jyc228.keth.state.account.OnchainManagedStateAccount
-import com.github.jyc228.keth.type.Address
 import java.math.BigInteger
 
 sealed interface JournalEntry {

@@ -6,7 +6,6 @@ import com.github.jyc228.keth.state.ContractCodeDatabase
 import com.github.jyc228.keth.state.Journal
 import com.github.jyc228.keth.state.JournalEntry
 import com.github.jyc228.keth.state.TreeDatabase
-import com.github.jyc228.keth.type.Address
 
 class StateAccountTree(
     private var originalRoot: StateRoot?,

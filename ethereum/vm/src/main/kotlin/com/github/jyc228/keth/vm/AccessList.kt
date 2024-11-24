@@ -1,6 +1,6 @@
 package com.github.jyc228.keth.vm
 
-import com.github.jyc228.keth.type.Address
+import com.github.jyc228.keth.state.account.Address
 
 class AccessList(private val account: MutableMap<Address, MutableSet<Slot>?> = mutableMapOf()) {
 

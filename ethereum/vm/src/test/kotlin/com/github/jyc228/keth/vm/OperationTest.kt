@@ -1,7 +1,7 @@
 package com.github.jyc228.keth.vm
 
+import com.github.jyc228.keth.state.account.Address
 import com.github.jyc228.keth.state.account.CodeHash
-import com.github.jyc228.keth.type.Address
 import io.kotest.core.spec.style.DescribeSpec
 import io.kotest.core.spec.style.scopes.ContainerScope
 import io.kotest.datatest.withData

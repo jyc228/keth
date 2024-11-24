@@ -1,6 +1,5 @@
 package com.github.jyc228.keth.state.account
 
-import com.github.jyc228.keth.type.Address
 import java.math.BigInteger
 
 interface StateAccount {

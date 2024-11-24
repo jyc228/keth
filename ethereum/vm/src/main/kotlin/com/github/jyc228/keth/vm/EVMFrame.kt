@@ -1,7 +1,7 @@
 package com.github.jyc228.keth.vm
 
 import com.github.jyc228.keth.state.StateDatabase
-import com.github.jyc228.keth.type.Address
+import com.github.jyc228.keth.state.account.Address
 import com.github.jyc228.keth.vm.interpreter.EVMInterpreter
 import java.math.BigInteger
 
@@ -114,7 +114,7 @@ class EVMFrame(
         val time: ULong = 0uL,
         val gasLimit: BigInteger = BigInteger.ZERO,
         val random: ByteArray = byteArrayOf(),
-        val coinbase: Address = Address.build { },
+        val coinbase: Address = Address(byteArrayOf()),
         val baseFee: BigInteger = BigInteger.ZERO
     )
 
